@@ -5,6 +5,7 @@ import Observation
 @Observable
 public final class SettingsStore {
     public var showMenuBarIcon: Bool { didSet { defaults.set(showMenuBarIcon, forKey: Key.menuBar) } }
+    public var openSettingsOnLaunch: Bool { didSet { defaults.set(openSettingsOnLaunch, forKey: Key.openSettingsOnLaunch) } }
     public var openOnHover: Bool { didSet { defaults.set(openOnHover, forKey: Key.openOnHover) } }
     public var collapseOnLeave: Bool { didSet { defaults.set(collapseOnLeave, forKey: Key.collapseOnLeave) } }
     public var hapticFeedback: Bool { didSet { defaults.set(hapticFeedback, forKey: Key.haptic) } }
@@ -20,6 +21,7 @@ public final class SettingsStore {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         showMenuBarIcon = defaults.object(forKey: Key.menuBar) as? Bool ?? true
+        openSettingsOnLaunch = defaults.object(forKey: Key.openSettingsOnLaunch) as? Bool ?? true
         openOnHover = defaults.object(forKey: Key.openOnHover) as? Bool ?? true
         collapseOnLeave = defaults.object(forKey: Key.collapseOnLeave) as? Bool ?? true
         hapticFeedback = defaults.object(forKey: Key.haptic) as? Bool ?? true
@@ -72,6 +74,7 @@ public final class SettingsStore {
 
     private enum Key {
         static let menuBar = "arrowslit.showMenuBarIcon"
+        static let openSettingsOnLaunch = "arrowslit.openSettingsOnLaunch"
         static let openOnHover = "arrowslit.openOnHover"
         static let collapseOnLeave = "arrowslit.collapseOnLeave"
         static let haptic = "arrowslit.hapticFeedback"
