@@ -3,6 +3,7 @@ import Foundation
 import Observation
 
 public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
+    case nowPlaying
     case timer
     case calendar
     case clipboard
@@ -13,6 +14,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
+        case .nowPlaying: "Now Playing"
         case .timer: "Timer"
         case .calendar: "Calendar"
         case .clipboard: "Clipboard"
@@ -23,6 +25,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
 
     public var symbol: String {
         switch self {
+        case .nowPlaying: "music.note"
         case .timer: "timer"
         case .calendar: "calendar"
         case .clipboard: "doc.on.clipboard"
@@ -36,6 +39,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
 @Observable
 public final class AppState {
     public let settings: SettingsStore
+    public let nowPlaying: NowPlayingService
     public let timer: TimerService
     public let calendar: CalendarService
     public let clipboard: ClipboardService
@@ -49,6 +53,7 @@ public final class AppState {
 
     public init(
         settings: SettingsStore = SettingsStore(),
+        nowPlaying: NowPlayingService = NowPlayingService(),
         timer: TimerService = TimerService(),
         calendar: CalendarService = CalendarService(),
         clipboard: ClipboardService = ClipboardService(),
@@ -56,6 +61,7 @@ public final class AppState {
         stats: StatsService = StatsService()
     ) {
         self.settings = settings
+        self.nowPlaying = nowPlaying
         self.timer = timer
         self.calendar = calendar
         self.clipboard = clipboard
@@ -64,12 +70,14 @@ public final class AppState {
     }
 
     public func start() {
+        nowPlaying.start()
         calendar.start()
         if settings.clipboardEnabled { clipboard.start() }
     }
 
     public func stop() {
         notes.save()
+        nowPlaying.stop()
         calendar.stop()
         clipboard.stop()
         stats.stop()
@@ -139,12 +147,16 @@ public final class AppState {
             return ClockFormat.clock(timer.remaining, roundingUp: true)
         }
         if timer.justFinished { return "DONE" }
+        if nowPlaying.isVisible, let title = nowPlaying.track?.title, !title.isEmpty {
+            return String(title.prefix(28))
+        }
         return ClockFormat.wallClock()
     }
 
     public var compactLabel: String {
         if timer.isActive { return timer.isPaused ? "PAUSED" : "FOCUS" }
         if timer.justFinished { return "TIMER" }
+        if nowPlaying.isVisible { return "PLAYING" }
         return "READY"
     }
 }

@@ -23,6 +23,7 @@ final class DebugHooks {
         switch command {
         case "expand": state.expand(.timer)
         case "collapse": state.collapse()
+        case "nowplaying": state.expand(.nowPlaying)
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "clipboard": state.expand(.clipboard)

@@ -23,7 +23,7 @@ BIN_DIR="$(swift build --build-system native -c "$CONFIG" --show-bin-path)"
 
 echo "› Assembling app bundle…"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 cp "$BIN_DIR/Arrowslit" "$APP/Contents/MacOS/Arrowslit"
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD_NUMBER/" -e "s/__BUNDLE_ID__/$BUNDLE_ID/" \
     "$ROOT/Support/Info.plist" > "$APP/Contents/Info.plist"
@@ -34,10 +34,12 @@ if [[ -f "$ROOT/Support/AppIcon.icns" ]]; then
 fi
 if [[ "$CONFIG" == "release" ]]; then
     strip -x "$APP/Contents/MacOS/Arrowslit"
+    strip -x "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
 fi
 
 xattr -dr com.apple.FinderInfo "$APP" 2>/dev/null || true
 xattr -dr com.apple.ResourceFork "$APP" 2>/dev/null || true
+codesign --force --options runtime --timestamp=none --sign - "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
 codesign --force --options runtime --timestamp=none --sign - "$APP"
 codesign --verify --deep --strict "$APP"
 echo "✓ Built $APP ($VERSION, build $BUILD_NUMBER)"

@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .executable(name: "Arrowslit", targets: ["Arrowslit"]),
+        .library(name: "ArrowslitMedia", type: .dynamic, targets: ["ArrowslitMedia"]),
     ],
     targets: [
         .executableTarget(
@@ -16,6 +17,12 @@ let package = Package(
         .target(
             name: "ArrowslitKit",
             path: "Sources/ArrowslitKit"
+        ),
+        .target(
+            name: "ArrowslitMedia",
+            path: "Sources/ArrowslitMedia",
+            publicHeadersPath: "include",
+            linkerSettings: [.linkedFramework("Foundation")]
         ),
         .testTarget(
             name: "ArrowslitKitTests",

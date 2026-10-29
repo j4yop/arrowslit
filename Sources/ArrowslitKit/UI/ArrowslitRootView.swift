@@ -38,8 +38,11 @@ private struct CompactBar: View {
 
             VStack(alignment: .trailing, spacing: 0) {
                 Text(state.compactValue)
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 12, weight: .semibold, design: state.timer.isActive ? .monospaced : .default))
                     .foregroundStyle(state.timer.isActive ? ArrowTheme.amber : ArrowTheme.bone)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: 190, alignment: .trailing)
                 Text(state.compactLabel)
                     .font(.system(size: 7.5, weight: .bold))
                     .tracking(1.1)
