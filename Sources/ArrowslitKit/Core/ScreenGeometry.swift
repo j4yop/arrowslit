@@ -25,9 +25,11 @@ public struct ScreenGeometry: Equatable, Sendable {
 
     public var centreX: CGFloat { housing.midX }
 
-    /// The compact strip never gets narrower than the notch plus two readable ears.
+    /// The compact strip keeps at least ~80 pt of usable space on each side of
+    /// the camera housing, without growing so wide that it covers menu bar extras.
     public var compactWidth: CGFloat {
-        max(320, min(420, (housing.width + 140).rounded()))
+        let ideal = max(320, min(420, housing.width + 160))
+        return (ideal / 2).rounded(.up) * 2
     }
 
     /// Space available on each side of the camera housing inside a panel of `width`.

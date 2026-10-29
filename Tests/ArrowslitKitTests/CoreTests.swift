@@ -81,15 +81,15 @@ struct ScreenGeometryTests {
         #expect(normal.earWidth(in: normal.compactWidth) == 110)
     }
 
-    @Test func wideNotchStillLeavesRoomForTheClock() {
+    @Test func wideNotchGrowsTheStripToKeepTheClockClear() {
         let wide = geometry(notchWidth: 179)
-        #expect(wide.compactWidth == 320)
-        #expect(wide.earWidth(in: wide.compactWidth) == 70.5)
+        #expect(wide.compactWidth == 340)
+        #expect(wide.earWidth(in: wide.compactWidth) == 80.5)
     }
 
     @Test func veryWideNotchGrowsTheStrip() {
         let veryWide = geometry(notchWidth: 250)
-        #expect(veryWide.compactWidth == 390)
+        #expect(veryWide.compactWidth == 410)
         #expect(veryWide.earWidth(in: veryWide.compactWidth) == 70)
     }
 }
