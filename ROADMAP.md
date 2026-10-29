@@ -10,23 +10,25 @@ language and code are our own.
 - Notch-fused compact strip with timer status
 - Expanded workbench: vertical feature rail, header, footer
 - Countdown timer with presets, pause/resume/reset
+- Calendar next event with EventKit permission flow
+- File tray (drop targets, file picker, Quick Look icons)
+- Camera mirror with explicit permission
+- Now Playing via an optional system media helper
 - Clipboard history (20 text items, memory only, private markers skipped)
 - Scratchpad saved in UserDefaults
 - CPU / memory monitor
 - Settings window, launch at login, menu-bar icon toggle
-- App icon and ad-hoc signed app bundle
+- App icon, ad-hoc signed app bundle and DMG
 - Swift Testing coverage for pure logic
 
-## Phase 1 — daily driver
+## Phase 1 — daily driver polish
 
-- **Now Playing**: a small helper that reads system media state and sends play/pause/next;
-  artwork, title/artist, progress, multiple players. Must remain a separate optional helper.
-- **Calendar next event**: already scaffolded; add permission flow, menus, Join links.
 - **Multiple displays**: virtual notch on external screens, display picker, follow pointer.
 - **Keyboard**: global hotkey to open, Escape/arrow navigation, quick timer shortcuts.
-- **Timer polish**: notification + sound choice, repeat, custom minutes, menu bar status.
-- **Clipboard polish**: search, pin, remove, source app icons.
+- **Timer polish**: notifications, sound choice, repeat, custom minutes.
+- **Clipboard polish**: search, pin, source app icons.
 - **Notes polish**: rich text or Markdown preview, export.
+- **Files polish**: drag out, Quick Look preview, session restore (opt-in).
 - **Settings polish**: per-feature toggles, reset, diagnostics.
 - **Accessibility**: full labels, reduce motion, keyboard-only operation.
 
