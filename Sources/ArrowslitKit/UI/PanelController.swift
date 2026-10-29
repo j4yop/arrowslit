@@ -75,13 +75,11 @@ final class PanelController {
             }
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            MainActor.assumeIsolated {
-                if event.keyCode == 53, self?.state.isExpanded == true {
-                    self?.state.collapse()
-                    return nil
-                }
-                return event
+            if event.keyCode == 53 {
+                Task { @MainActor [weak self] in self?.state.collapse() }
+                return nil
             }
+            return event
         }
     }
 
