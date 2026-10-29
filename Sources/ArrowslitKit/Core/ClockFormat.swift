@@ -25,6 +25,15 @@ public enum ClockFormat {
         date.formatted(date: .omitted, time: .shortened)
     }
 
+    /// Live time in India Standard Time, e.g. "3:25 PM".
+    public static func wallClockIST(_ date: Date = Date()) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Kolkata") ?? .current
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+
     /// "1m", "25m", "1h 30m" for preset buttons.
     public static func presetLabel(minutes: Int) -> String {
         if minutes < 60 { return "\(minutes)m" }

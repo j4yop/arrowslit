@@ -176,7 +176,7 @@ public final class AppState {
         if nowPlaying.isVisible, let title = nowPlaying.track?.title, !title.isEmpty {
             return String(title.prefix(28))
         }
-        return ClockFormat.wallClock()
+        return ClockFormat.wallClockIST()
     }
 
     public var compactLabel: String {
