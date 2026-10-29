@@ -11,6 +11,7 @@ final class SettingsWindowController {
     }
 
     func show() {
+        state.collapse()
         let window = window ?? makeWindow()
         if !window.isVisible { window.center() }
         NSApp.activate(ignoringOtherApps: true)

@@ -27,7 +27,9 @@ final class DebugHooks {
         case "clipboard": state.expand(.clipboard)
         case "notes": state.expand(.notes)
         case "stats": state.expand(.stats)
-        case "settings": state.onOpenSettings?()
+        case "settings":
+            state.collapse()
+            state.onOpenSettings?()
         case "start5": state.startTimer(minutes: 5)
         case "start25": state.startTimer(minutes: 25)
         case "toggle": state.toggleTimer()
