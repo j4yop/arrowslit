@@ -27,9 +27,6 @@ public final class SettingsStore {
         statsEnabled = defaults.object(forKey: Key.stats) as? Bool ?? true
         notesEnabled = defaults.object(forKey: Key.notes) as? Bool ?? true
         enabledTabs = Set(defaults.stringArray(forKey: Key.tabs) ?? WorkbenchTab.allCases.map(\.rawValue))
-        if !clipboardEnabled { enabledTabs.remove(WorkbenchTab.clipboard.rawValue) }
-        if !notesEnabled { enabledTabs.remove(WorkbenchTab.notes.rawValue) }
-        if !statsEnabled { enabledTabs.remove(WorkbenchTab.stats.rawValue) }
         let defaultsShortcuts = [WorkbenchTab.tray.rawValue, WorkbenchTab.clipboard.rawValue]
         let valid = Set(WorkbenchTab.allCases.map(\.rawValue))
         var seen = Set<String>()
@@ -39,6 +36,9 @@ public final class SettingsStore {
                 .filter { seen.insert($0).inserted }
                 .prefix(Self.shortcutLimit)
         )
+        if !clipboardEnabled { enabledTabs.remove(WorkbenchTab.clipboard.rawValue) }
+        if !notesEnabled { enabledTabs.remove(WorkbenchTab.notes.rawValue) }
+        if !statsEnabled { enabledTabs.remove(WorkbenchTab.stats.rawValue) }
     }
 
     public func isTabEnabled(_ tab: WorkbenchTab) -> Bool {
