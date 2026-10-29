@@ -26,6 +26,7 @@ final class DebugHooks {
         case "nowplaying": state.expand(.nowPlaying)
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
+        case "tray": state.expand(.tray)
         case "clipboard": state.expand(.clipboard)
         case "notes": state.expand(.notes)
         case "stats": state.expand(.stats)
