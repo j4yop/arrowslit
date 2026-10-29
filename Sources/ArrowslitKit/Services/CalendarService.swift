@@ -1,5 +1,5 @@
 import AppKit
-import EventKit
+@preconcurrency import EventKit
 import Observation
 
 public struct CalendarEvent: Identifiable, Equatable, Sendable {
