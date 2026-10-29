@@ -7,6 +7,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case timer
     case calendar
     case tray
+    case mirror
     case clipboard
     case notes
     case stats
@@ -19,6 +20,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .timer: "Timer"
         case .calendar: "Calendar"
         case .tray: "Files"
+        case .mirror: "Mirror"
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "System"
@@ -31,6 +33,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .timer: "timer"
         case .calendar: "calendar"
         case .tray: "tray.full"
+        case .mirror: "web.camera"
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
@@ -46,6 +49,7 @@ public final class AppState {
     public let timer: TimerService
     public let calendar: CalendarService
     public let tray: TrayStore
+    public let camera = CameraAccess()
     public let clipboard: ClipboardService
     public let notes: NotesStore
     public let stats: StatsService

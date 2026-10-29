@@ -15,6 +15,7 @@ struct WorkbenchView: View {
                     case .timer: TimerPane(state: state)
                     case .calendar: CalendarPane(state: state)
                     case .tray: TrayPane(state: state)
+                    case .mirror: MirrorPane(state: state)
                     case .clipboard: ClipboardPane(state: state)
                     case .notes: NotesPane(state: state)
                     case .stats: StatsPane(state: state)

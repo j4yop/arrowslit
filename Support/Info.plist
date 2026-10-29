@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Arrowslit shows a local camera preview before a call. Nothing is recorded.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Arrowslit shows your next calendar event in the notch.</string>
 	<key>NSCalendarsUsageDescription</key>

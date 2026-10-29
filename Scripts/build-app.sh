@@ -41,6 +41,6 @@ fi
 xattr -dr com.apple.FinderInfo "$APP" 2>/dev/null || true
 xattr -dr com.apple.ResourceFork "$APP" 2>/dev/null || true
 codesign --force --options runtime --timestamp=none --sign - "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
-codesign --force --options runtime --timestamp=none --sign - "$APP"
+codesign --force --options runtime --timestamp=none --entitlements "$ROOT/Support/Arrowslit.entitlements" --sign - "$APP"
 codesign --verify --deep --strict "$APP"
 echo "✓ Built $APP ($VERSION, build $BUILD_NUMBER)"
