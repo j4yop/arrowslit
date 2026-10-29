@@ -41,9 +41,9 @@ public final class CameraAccess {
     private static func current() -> State {
         guard AVCaptureDevice.default(for: .video) != nil else { return .noCamera }
         switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized: .granted
-        case .notDetermined: .notAsked
-        default: .denied
+        case .authorized: return .granted
+        case .notDetermined: return .notAsked
+        default: return .denied
         }
     }
 }
