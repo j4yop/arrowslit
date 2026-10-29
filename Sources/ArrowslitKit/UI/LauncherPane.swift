@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Corbel-style feature launcher: large tiles, two rows, four across.
+/// Corbel-style feature launcher: large tiles, two rows, five across.
 struct LauncherPane: View {
     @Bindable var state: AppState
 
@@ -26,30 +26,66 @@ struct LauncherPane: View {
                 columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5),
                 spacing: 8
             ) {
-            ForEach(items) { tab in
-                Button { state.select(tab) } label: {
-                    VStack(spacing: 5) {
-                        Image(systemName: tab.symbol)
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(tint(tab))
-                        Text(tab.title)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(ArrowTheme.bone)
-                            .lineLimit(1)
+                ForEach(items) { tab in
+                    Button {
+                        if state.isEditingShortcuts {
+                            state.toggleShortcut(tab)
+                        } else {
+                            state.select(tab)
+                        }
+                    } label: {
+                        VStack(spacing: 5) {
+                            Image(systemName: tab.symbol)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(tint(tab))
+                            Text(tab.title)
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(ArrowTheme.bone)
+                                .lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.white.opacity(0.055))
+                        )
+                        .overlay(alignment: .topTrailing) {
+                            if state.isEditingShortcuts {
+                                shortcutBadge(for: tab)
+                                    .padding(6)
+                            }
+                        }
+                        .overlay {
+                            if state.isEditingShortcuts, state.settings.isShortcut(tab) {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(Color(red: 0.20, green: 0.55, blue: 1).opacity(0.7), lineWidth: 1.5)
+                            }
+                        }
+                        .opacity(state.isEditingShortcuts && !state.settings.isShortcut(tab) ? 0.45 : 1)
+                        .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.white.opacity(0.055))
-                    )
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .help(state.isEditingShortcuts ? "Toggle shortcut" : tab.title)
                 }
-                .buttonStyle(.plain)
-                .help(tab.title)
-            }
             }
             .frame(maxHeight: .infinity, alignment: .top)
         }
+    }
+
+    @ViewBuilder
+    private func shortcutBadge(for tab: WorkbenchTab) -> some View {
+        let selected = state.settings.isShortcut(tab)
+        let hasRoom = state.settings.shortcutTabs.count < SettingsStore.shortcutLimit
+        Image(systemName: selected ? "checkmark" : "plus")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: 16, height: 16)
+            .background(
+                Circle().fill(
+                    selected || hasRoom
+                        ? Color(red: 0.04, green: 0.52, blue: 1)
+                        : Color.white.opacity(0.14)
+                )
+            )
     }
 
     private func tint(_ tab: WorkbenchTab) -> Color {

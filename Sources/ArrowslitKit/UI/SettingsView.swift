@@ -54,6 +54,30 @@ struct SettingsView: View {
 
                     SettingsSection(title: "INTERFACE", note: "Keep Arrowslit close without taking over the menu bar.") {
                         SettingsToggle(
+                            title: "Open notch on hover",
+                            detail: "Hold the pointer over the strip for 0.4 seconds.",
+                            isOn: Binding(
+                                get: { state.settings.openOnHover },
+                                set: { state.settings.openOnHover = $0 }
+                            )
+                        )
+                        SettingsToggle(
+                            title: "Collapse when the pointer leaves",
+                            detail: "Close the nook after a short pause outside it.",
+                            isOn: Binding(
+                                get: { state.settings.collapseOnLeave },
+                                set: { state.settings.collapseOnLeave = $0 }
+                            )
+                        )
+                        SettingsToggle(
+                            title: "Haptic feedback",
+                            detail: "A small tap when the notch opens.",
+                            isOn: Binding(
+                                get: { state.settings.hapticFeedback },
+                                set: { state.settings.hapticFeedback = $0 }
+                            )
+                        )
+                        SettingsToggle(
                             title: "Show menu bar icon",
                             detail: "A small slit in the menu bar. Turn it off to keep only the notch.",
                             isOn: Binding(

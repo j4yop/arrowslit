@@ -77,16 +77,30 @@ private struct NookHeader: View {
         return max(120, (560 - gap) / 2)
     }
 
+    private var shortcuts: [WorkbenchTab] {
+        state.settings.shortcutTabs
+            .compactMap(WorkbenchTab.init(rawValue:))
+            .filter { state.settings.isTabEnabled($0) }
+    }
+
+    private var showsShortcutRow: Bool {
+        state.activeTab == .home || shortcuts.contains(state.activeTab)
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             HStack(spacing: 3) {
-                if state.activeTab.isPrimaryTab {
+                if showsShortcutRow {
                     NookTabButton(symbol: "house", title: "Home", isSelected: state.activeTab == .home) { state.select(.home) }
-                    if state.settings.isTabEnabled(.tray) {
-                        NookTabButton(symbol: "tray.full", title: "Files", isSelected: state.activeTab == .tray, badge: state.tray.items.count) { state.select(.tray) }
-                    }
-                    if state.settings.isTabEnabled(.clipboard) {
-                        NookTabButton(symbol: "doc.on.clipboard", title: "Clipboard", isSelected: state.activeTab == .clipboard) { state.select(.clipboard) }
+                    ForEach(shortcuts) { tab in
+                        NookTabButton(
+                            symbol: tab.symbol,
+                            title: tab.title,
+                            isSelected: state.activeTab == tab,
+                            badge: tab == .tray ? state.tray.items.count : 0
+                        ) {
+                            state.select(tab)
+                        }
                     }
                 } else {
                     Button { state.select(.home) } label: {
@@ -104,13 +118,31 @@ private struct NookHeader: View {
 
             Color.clear.frame(width: 560 - sideWidth * 2)
 
-            HStack(spacing: 3) {
-                NookIconButton(symbol: "square.grid.2x2", title: "All features", selected: state.activeTab == .launcher) {
-                    if state.activeTab == .launcher { state.select(.home) } else { state.select(.launcher) }
-                }
-                NookIconButton(symbol: "gearshape", title: "Settings") {
-                    state.collapse()
-                    state.onOpenSettings?()
+            HStack(spacing: 4) {
+                if state.activeTab == .launcher, state.isEditingShortcuts {
+                    Text("\(state.settings.shortcutTabs.count) of \(SettingsStore.shortcutLimit)")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.muted)
+                    Button("Done") { state.isEditingShortcuts = false }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .frame(height: 22)
+                        .background(Capsule().fill(Color(red: 0.04, green: 0.52, blue: 1)))
+                } else {
+                    if state.activeTab == .launcher {
+                        NookIconButton(symbol: "pencil", title: "Edit shortcuts") {
+                            state.isEditingShortcuts = true
+                        }
+                    }
+                    NookIconButton(symbol: "square.grid.2x2", title: "All features", selected: state.activeTab == .launcher) {
+                        if state.activeTab == .launcher { state.select(.home) } else { state.select(.launcher) }
+                    }
+                    NookIconButton(symbol: "gearshape", title: "Settings") {
+                        state.collapse()
+                        state.onOpenSettings?()
+                    }
                 }
             }
             .padding(.trailing, 10)

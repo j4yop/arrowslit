@@ -52,6 +52,11 @@ private struct MediaCard: View {
                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                if let track {
+                    MusicBars(isPlaying: track.isPlaying, height: 16)
+                        .padding(.top, 1)
+                }
             }
 
             if let track {

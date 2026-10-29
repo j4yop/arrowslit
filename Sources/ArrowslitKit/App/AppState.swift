@@ -79,6 +79,7 @@ public final class AppState {
 
     public private(set) var activeTab: WorkbenchTab = .home
     public private(set) var isExpanded = false
+    public var isEditingShortcuts = false
 
     @ObservationIgnored public var onOpenSettings: (() -> Void)?
 
@@ -120,13 +121,18 @@ public final class AppState {
 
     public func expand(_ tab: WorkbenchTab = .timer) {
         if isExpanded, activeTab == tab { return }
+        let wasCollapsed = !isExpanded
         isExpanded = true
         select(tab)
+        if wasCollapsed, settings.hapticFeedback {
+            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        }
     }
 
     public func collapse() {
         guard isExpanded else { return }
         isExpanded = false
+        isEditingShortcuts = false
         stats.stop()
         notes.save()
     }
@@ -137,6 +143,7 @@ public final class AppState {
 
     public func select(_ tab: WorkbenchTab) {
         activeTab = tab
+        if tab != .launcher { isEditingShortcuts = false }
         if tab == .stats, isExpanded {
             stats.start()
         } else {
@@ -171,6 +178,10 @@ public final class AppState {
 
     public func setMenuBarIconVisible(_ visible: Bool) {
         settings.showMenuBarIcon = visible
+    }
+
+    public func toggleShortcut(_ tab: WorkbenchTab) {
+        settings.toggleShortcut(tab)
     }
 
     public func setTabEnabled(_ tab: WorkbenchTab, _ enabled: Bool) {
