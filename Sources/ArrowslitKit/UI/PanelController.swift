@@ -14,7 +14,6 @@ final class PanelController {
     private var hoverTimer: Timer?
     private var hoverStartedAt: Date?
     private var leaveStartedAt: Date?
-    private var lastExpandedState = false
 
     init(state: AppState) {
         self.state = state
@@ -50,13 +49,7 @@ final class PanelController {
             Task { @MainActor [weak self] in
                 await Task.yield()
                 guard let self else { return }
-                let expandedChanged = self.state.isExpanded != self.lastExpandedState
-                self.lastExpandedState = self.state.isExpanded
-                if expandedChanged {
-                    self.updateFrame(animated: true)
-                } else {
-                    self.keyboardFocus()
-                }
+                self.updateFrame(animated: true)
                 self.observe()
             }
         }
