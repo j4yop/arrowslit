@@ -76,7 +76,7 @@ private struct MediaCard: View {
                     Button { service.toggle() } label: { Image(systemName: track.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 13, weight: .semibold)) }
                     Button { service.next() } label: { Image(systemName: "forward.fill").font(.system(size: 10, weight: .semibold)) }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .foregroundStyle(ArrowTheme.bone)
                 .frame(maxWidth: .infinity)
             } else {
@@ -123,7 +123,7 @@ private struct CalendarHomeRow: View {
                         }
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                 } else {
                     Text("No more events this week").font(.system(size: 11)).foregroundStyle(ArrowTheme.muted)
                     Spacer()
@@ -153,7 +153,7 @@ private struct TimerHomeRow: View {
                 }
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NookPressStyle())
             Spacer(minLength: 6)
             ForEach([5, 10, 25], id: \.self) { minutes in
                 Button("\(minutes)m") { state.startTimer(minutes: minutes) }
@@ -166,7 +166,7 @@ private struct TimerHomeRow: View {
                     .frame(width: 26, height: 22)
                     .background(Capsule().fill(ArrowTheme.amber))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NookPressStyle())
             .help("Start a 25 minute focus session")
         }
     }
@@ -193,7 +193,7 @@ private struct SystemHomeRow: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
         .onAppear { state.stats.start() }
         .onDisappear { state.stats.stop() }
     }

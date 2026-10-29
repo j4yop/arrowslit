@@ -115,7 +115,7 @@ private struct PresetButton: View {
                 )
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }
 
@@ -139,6 +139,6 @@ private struct ActionButton: View {
             )
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }

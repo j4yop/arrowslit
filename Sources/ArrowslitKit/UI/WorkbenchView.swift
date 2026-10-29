@@ -105,7 +105,7 @@ private struct RailButton: View {
             .frame(width: 44, height: 36)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
         .onHover { isHovering = $0 }
         .help(title)
         .accessibilityLabel(title)
@@ -144,7 +144,7 @@ private struct Header: View {
                     .frame(width: 24, height: 24)
                     .background(Circle().fill(Color.white.opacity(0.06)))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NookPressStyle())
             .help("Close")
             .accessibilityLabel("Close")
         }

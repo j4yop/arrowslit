@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct ArrowslitRootView: View {
     @Bindable var state: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let geometry = ScreenReader.current
@@ -10,7 +11,7 @@ struct ArrowslitRootView: View {
         ZStack(alignment: .top) {
             if state.isExpanded {
                 NookView(state: state)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
             } else {
                 CompactBar(
                     state: state,
@@ -25,7 +26,7 @@ struct ArrowslitRootView: View {
             height: state.isExpanded ? 178 : 32,
             alignment: .top
         )
-        .animation(.spring(response: 0.34, dampingFraction: 0.86), value: state.isExpanded)
+        .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: state.isExpanded)
         .environment(\.colorScheme, .dark)
     }
 }
@@ -37,6 +38,7 @@ private struct CompactBar: View {
     let width: CGFloat
     let notchWidth: CGFloat
     @State private var isDropTargeted = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
 
@@ -80,6 +82,7 @@ private struct CompactBar: View {
         .overlay {
             SlitShape(radius: 12)
                 .stroke(isDropTargeted ? Color(red: 0.20, green: 0.55, blue: 1) : ArrowTheme.hairline, lineWidth: isDropTargeted ? 1.5 : 0.5)
+                .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isDropTargeted)
         }
         .contentShape(SlitShape(radius: 12))
         .onTapGesture { state.expand(.home) }
