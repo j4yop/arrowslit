@@ -21,6 +21,7 @@ struct WorkbenchView: View {
                     case .clipboard: ClipboardPane(state: state)
                     case .notes: NotesPane(state: state)
                     case .stats: StatsPane(state: state)
+                    case .reminders: RemindersPane(state: state)
                     case .stopwatch: StopwatchPane(state: state)
                     case .keepAwake: KeepAwakePane(state: state)
                     }

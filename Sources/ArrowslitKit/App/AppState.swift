@@ -12,6 +12,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case clipboard
     case notes
     case stats
+    case reminders
     case stopwatch
     case keepAwake
     case launcher
@@ -29,6 +30,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "System"
+        case .reminders: "Reminders"
         case .stopwatch: "Stopwatch"
         case .keepAwake: "Keep Awake"
         case .launcher: "All Features"
@@ -46,6 +48,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
+        case .reminders: "checklist"
         case .stopwatch: "stopwatch"
         case .keepAwake: "cup.and.saucer.fill"
         case .launcher: "square.grid.2x2"
@@ -74,6 +77,7 @@ public final class AppState {
     public let clipboard: ClipboardService
     public let notes: NotesStore
     public let stats: StatsService
+    public let reminders: RemindersService
     public let stopwatch = StopwatchService()
     public let keepAwake = KeepAwakeService()
 
@@ -91,7 +95,8 @@ public final class AppState {
         tray: TrayStore = TrayStore(),
         clipboard: ClipboardService = ClipboardService(),
         notes: NotesStore = NotesStore(),
-        stats: StatsService = StatsService()
+        stats: StatsService = StatsService(),
+        reminders: RemindersService = RemindersService()
     ) {
         self.settings = settings
         self.nowPlaying = nowPlaying
@@ -101,6 +106,7 @@ public final class AppState {
         self.clipboard = clipboard
         self.notes = notes
         self.stats = stats
+        self.reminders = reminders
     }
 
     public func start() {

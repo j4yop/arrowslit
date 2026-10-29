@@ -33,6 +33,7 @@ final class DebugHooks {
         case "clipboard": state.expand(.clipboard)
         case "notes": state.expand(.notes)
         case "stats": state.expand(.stats)
+        case "reminders": state.expand(.reminders)
         case "stopwatch": state.expand(.stopwatch)
         case "keepawake": state.expand(.keepAwake)
         case "launcher": state.expand(.launcher)
