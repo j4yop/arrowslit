@@ -38,6 +38,14 @@ private struct CompactBar: View {
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
 
+    private var isLiveClock: Bool {
+        if state.timer.isActive || state.timer.justFinished { return false }
+        if state.nowPlaying.isVisible,
+           let title = state.nowPlaying.track?.title,
+           !title.isEmpty { return false }
+        return true
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             SlitMark(height: 14)
@@ -47,22 +55,8 @@ private struct CompactBar: View {
             Color.clear
                 .frame(width: notchWidth)
 
-            HStack(spacing: 4) {
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text(state.compactValue)
-                        .font(.system(size: 12, weight: .semibold, design: state.timer.isActive ? .monospaced : .default))
-                        .monospacedDigit()
-                        .foregroundStyle(state.timer.isActive ? ArrowTheme.amber : ArrowTheme.bone)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .truncationMode(.tail)
-                    Text(state.compactLabel)
-                        .font(.system(size: 7, weight: .bold))
-                        .tracking(0.9)
-                        .foregroundStyle(ArrowTheme.faint)
-                        .lineLimit(1)
-                }
-                .frame(width: max(24, ear - 26), alignment: .trailing)
+            HStack(spacing: 5) {
+                compactValue
 
                 Image(systemName: "chevron.down")
                     .font(.system(size: 9, weight: .semibold))
@@ -83,7 +77,38 @@ private struct CompactBar: View {
         .contentShape(SlitShape(radius: 12))
         .onTapGesture { state.expand(.home) }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Arrowslit. \(state.compactLabel) \(state.compactValue)")
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(.isButton)
+    }
+
+    @ViewBuilder
+    private var compactValue: some View {
+        if isLiveClock {
+            TimelineView(.everyMinute) { context in
+                timeText(ClockFormat.wallClockIST(context.date), color: ArrowTheme.bone)
+            }
+        } else {
+            timeText(
+                state.compactValue,
+                color: state.timer.isActive ? ArrowTheme.amber : ArrowTheme.bone
+            )
+        }
+    }
+
+    private func timeText(_ value: String, color: Color) -> some View {
+        Text(value)
+            .font(.system(size: 13, weight: .semibold, design: state.timer.isActive ? .monospaced : .default))
+            .monospacedDigit()
+            .foregroundStyle(color)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .truncationMode(.tail)
+            .frame(width: max(24, ear - 27), alignment: .trailing)
+    }
+
+    private var accessibilityLabel: String {
+        state.compactLabel == "READY"
+            ? "Arrowslit. \(state.compactValue)"
+            : "Arrowslit. \(state.compactLabel) \(state.compactValue)"
     }
 }

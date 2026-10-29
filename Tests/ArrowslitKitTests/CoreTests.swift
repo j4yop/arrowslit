@@ -12,6 +12,11 @@ struct ClockFormatTests {
         #expect(ClockFormat.presetLabel(minutes: 25) == "25m")
         #expect(ClockFormat.presetLabel(minutes: 90) == "1h 30m")
     }
+
+    @Test func formatsTheNotchClockInIndiaStandardTime() {
+        #expect(ClockFormat.wallClockIST(Date(timeIntervalSince1970: 0)) == "5:30 AM")
+        #expect(ClockFormat.wallClockIST(Date(timeIntervalSince1970: 36_000)) == "3:30 PM")
+    }
 }
 
 @Suite("Countdown")
