@@ -25,6 +25,7 @@ echo "› Assembling app bundle…"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 cp "$BIN_DIR/Arrowslit" "$APP/Contents/MacOS/Arrowslit"
+cp "$BIN_DIR/libArrowslitMedia.dylib" "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD_NUMBER/" -e "s/__BUNDLE_ID__/$BUNDLE_ID/" \
     "$ROOT/Support/Info.plist" > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist" > /dev/null
