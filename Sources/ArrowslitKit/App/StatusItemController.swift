@@ -98,15 +98,15 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
             NSColor.white.setFill()
             let slit = NSBezierPath(
-                roundedRect: NSRect(x: 8, y: 4, width: 2, height: 11),
-                xRadius: 1,
-                yRadius: 1
+                roundedRect: NSRect(x: 7.75, y: 4.5, width: 2.5, height: 11.5),
+                xRadius: 1.25,
+                yRadius: 1.25
             )
             slit.fill()
             let base = NSBezierPath(
-                roundedRect: NSRect(x: 5, y: 2, width: 8, height: 2),
-                xRadius: 1,
-                yRadius: 1
+                roundedRect: NSRect(x: 4, y: 2, width: 10, height: 2.5),
+                xRadius: 1.25,
+                yRadius: 1.25
             )
             base.fill()
             return true

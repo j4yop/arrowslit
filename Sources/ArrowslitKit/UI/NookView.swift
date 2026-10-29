@@ -7,7 +7,7 @@ struct NookView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            NookHeader(state: state)
+            NookHeader(state: state, notchWidth: ScreenReader.current.housing.width)
             Group {
                 switch state.activeTab {
                 case .home: HomePane(state: state)
@@ -39,6 +39,13 @@ struct NookView: View {
 
 private struct NookHeader: View {
     @Bindable var state: AppState
+    let notchWidth: CGFloat
+
+    private var sideWidth: CGFloat {
+        // Keep a small buffer around the camera housing so no control touches it.
+        let gap = min(260, notchWidth + 12)
+        return max(120, (560 - gap) / 2)
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -58,10 +65,10 @@ private struct NookHeader: View {
                     .buttonStyle(.plain)
                 }
             }
-            .frame(width: 185, alignment: .leading)
             .padding(.leading, 10)
+            .frame(width: sideWidth, alignment: .leading)
 
-            Color.clear.frame(width: 170)
+            Color.clear.frame(width: 560 - sideWidth * 2)
 
             HStack(spacing: 3) {
                 NookTabButton(symbol: "square.and.pencil", title: "Notes", isSelected: state.activeTab == .notes) { state.select(.notes) }
@@ -75,8 +82,8 @@ private struct NookHeader: View {
                 }
                 NookIconButton(symbol: "xmark", title: "Close") { state.collapse() }
             }
-            .frame(width: 185, alignment: .trailing)
             .padding(.trailing, 10)
+            .frame(width: sideWidth, alignment: .trailing)
         }
         .frame(height: 32)
     }

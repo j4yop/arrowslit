@@ -86,7 +86,7 @@ final class PanelController {
     private func updateFrame(animated: Bool) {
         guard let screen = ScreenReader.builtIn() else { return }
         let geometry = ScreenReader.geometry(for: screen)
-        let width: CGFloat = state.isExpanded ? 560 : 320
+        let width: CGFloat = state.isExpanded ? 560 : geometry.compactWidth
         let height: CGFloat = state.isExpanded ? 178 : 32
         let x = (screen.frame.minX + geometry.centreX - width / 2).rounded()
         let y = screen.frame.maxY - height
