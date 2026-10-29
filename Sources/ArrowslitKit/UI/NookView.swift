@@ -80,8 +80,12 @@ private struct NookHeader: View {
             HStack(spacing: 3) {
                 if state.activeTab.isPrimaryTab {
                     NookTabButton(symbol: "house", title: "Home", isSelected: state.activeTab == .home) { state.select(.home) }
-                    NookTabButton(symbol: "tray.full", title: "Files", isSelected: state.activeTab == .tray, badge: state.tray.items.count) { state.select(.tray) }
-                    NookTabButton(symbol: "doc.on.clipboard", title: "Clipboard", isSelected: state.activeTab == .clipboard) { state.select(.clipboard) }
+                    if state.settings.isTabEnabled(.tray) {
+                        NookTabButton(symbol: "tray.full", title: "Files", isSelected: state.activeTab == .tray, badge: state.tray.items.count) { state.select(.tray) }
+                    }
+                    if state.settings.isTabEnabled(.clipboard) {
+                        NookTabButton(symbol: "doc.on.clipboard", title: "Clipboard", isSelected: state.activeTab == .clipboard) { state.select(.clipboard) }
+                    }
                 } else {
                     Button { state.select(.home) } label: {
                         HStack(spacing: 4) {

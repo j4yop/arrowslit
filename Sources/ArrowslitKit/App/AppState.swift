@@ -150,22 +150,32 @@ public final class AppState {
     }
 
     public func setClipboardEnabled(_ enabled: Bool) {
-        settings.clipboardEnabled = enabled
-        if enabled { clipboard.start() } else { clipboard.stop() }
+        setTabEnabled(.clipboard, enabled)
     }
 
     public func setStatsEnabled(_ enabled: Bool) {
-        settings.statsEnabled = enabled
-        if !enabled { stats.stop() }
+        setTabEnabled(.stats, enabled)
     }
 
     public func setNotesEnabled(_ enabled: Bool) {
-        settings.notesEnabled = enabled
-        if !enabled, activeTab == .notes { select(.timer) }
+        setTabEnabled(.notes, enabled)
     }
 
-    public func setMenuBarIconVisible(_ visible: Bool) {
-        settings.showMenuBarIcon = visible
+    public func setTabEnabled(_ tab: WorkbenchTab, _ enabled: Bool) {
+        settings.setTabEnabled(tab, enabled)
+        switch tab {
+        case .clipboard:
+            settings.clipboardEnabled = enabled
+            if enabled { clipboard.start() } else { clipboard.stop() }
+        case .notes:
+            settings.notesEnabled = enabled
+        case .stats:
+            settings.statsEnabled = enabled
+            if !enabled { stats.stop() }
+        default:
+            break
+        }
+        if !enabled, activeTab == tab { select(.home) }
     }
 
     public var compactValue: String {

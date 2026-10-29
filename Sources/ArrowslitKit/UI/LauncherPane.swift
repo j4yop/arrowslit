@@ -4,16 +4,28 @@ import SwiftUI
 struct LauncherPane: View {
     @Bindable var state: AppState
 
-    private let items: [WorkbenchTab] = [
-        .nowPlaying, .timer, .calendar, .tray,
-        .mirror, .clipboard, .notes, .stats
-    ]
+    private var items: [WorkbenchTab] {
+        [.nowPlaying, .timer, .calendar, .tray,
+         .mirror, .clipboard, .notes, .stats]
+            .filter { state.settings.isTabEnabled($0) }
+    }
 
     var body: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
-            spacing: 8
-        ) {
+        if items.isEmpty {
+            VStack(spacing: 4) {
+                Text("No features selected")
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.muted)
+                Text("Choose features in Settings.")
+                    .font(.system(size: 9.5))
+                    .foregroundStyle(ArrowTheme.faint)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
+                spacing: 8
+            ) {
             ForEach(items) { tab in
                 Button { state.select(tab) } label: {
                     VStack(spacing: 5) {
@@ -35,8 +47,9 @@ struct LauncherPane: View {
                 .buttonStyle(.plain)
                 .help(tab.title)
             }
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private func tint(_ tab: WorkbenchTab) -> Color {
