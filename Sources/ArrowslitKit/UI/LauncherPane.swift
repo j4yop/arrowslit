@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Corbel-style feature launcher: large tiles, two rows, four across.
 struct LauncherPane: View {
     @Bindable var state: AppState
 
@@ -15,21 +16,18 @@ struct LauncherPane: View {
         ) {
             ForEach(items) { tab in
                 Button { state.select(tab) } label: {
-                    HStack(spacing: 8) {
+                    VStack(spacing: 5) {
                         Image(systemName: tab.symbol)
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(tint(tab))
-                            .frame(width: 20)
                         Text(tab.title)
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(ArrowTheme.bone)
                             .lineLimit(1)
-                        Spacer(minLength: 0)
                     }
-                    .padding(.horizontal, 9)
-                    .frame(height: 46)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(Color.white.opacity(0.055))
                     )
                     .contentShape(Rectangle())

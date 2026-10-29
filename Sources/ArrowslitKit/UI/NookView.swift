@@ -4,6 +4,8 @@ import UniformTypeIdentifiers
 /// The 560 x 178 notch panel: a wide, short surface with a horizontal tab strip.
 struct NookView: View {
     @Bindable var state: AppState
+    @State private var isDropTargeted = false
+    @State private var dropPoint: CGPoint = .zero
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,6 +28,12 @@ struct NookView: View {
             .padding(.horizontal, 14)
             .padding(.top, 10)
             .padding(.bottom, 16)
+            .overlay {
+                if isDropTargeted {
+                    NookDropOverlay(point: dropPoint, split: 336)
+                        .transition(.opacity)
+                }
+            }
         }
         .frame(width: 560, height: 178)
         .background(ArrowTheme.ink)
@@ -34,6 +42,26 @@ struct NookView: View {
             SlitShape(radius: 18).stroke(ArrowTheme.hairline, lineWidth: 0.5)
         }
         .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
+        .onDrop(
+            of: [.fileURL, .url],
+            delegate: NookDropDelegate(
+                isTargeted: $isDropTargeted,
+                point: $dropPoint,
+                split: 336,
+                onFiles: { providers in
+                    Task { @MainActor in
+                        let urls = await FileDrop.urls(from: providers)
+                        if state.tray.add(urls) > 0 { state.select(.tray) }
+                    }
+                },
+                onAirDrop: { providers in
+                    Task { @MainActor in
+                        state.tray.airDrop(await FileDrop.urls(from: providers))
+                    }
+                }
+            )
+        )
+        .animation(.easeOut(duration: 0.12), value: isDropTargeted)
     }
 }
 
@@ -52,7 +80,7 @@ private struct NookHeader: View {
             HStack(spacing: 3) {
                 if state.activeTab.isPrimaryTab {
                     NookTabButton(symbol: "house", title: "Home", isSelected: state.activeTab == .home) { state.select(.home) }
-                    NookTabButton(symbol: "tray.full", title: "Files", isSelected: state.activeTab == .tray) { state.select(.tray) }
+                    NookTabButton(symbol: "tray.full", title: "Files", isSelected: state.activeTab == .tray, badge: state.tray.items.count) { state.select(.tray) }
                     NookTabButton(symbol: "doc.on.clipboard", title: "Clipboard", isSelected: state.activeTab == .clipboard) { state.select(.clipboard) }
                 } else {
                     Button { state.select(.home) } label: {
@@ -71,8 +99,6 @@ private struct NookHeader: View {
             Color.clear.frame(width: 560 - sideWidth * 2)
 
             HStack(spacing: 3) {
-                NookTabButton(symbol: "square.and.pencil", title: "Notes", isSelected: state.activeTab == .notes) { state.select(.notes) }
-                NookTabButton(symbol: "web.camera", title: "Mirror", isSelected: state.activeTab == .mirror) { state.select(.mirror) }
                 NookIconButton(symbol: "square.grid.2x2", title: "All features", selected: state.activeTab == .launcher) {
                     if state.activeTab == .launcher { state.select(.home) } else { state.select(.launcher) }
                 }
@@ -80,7 +106,6 @@ private struct NookHeader: View {
                     state.collapse()
                     state.onOpenSettings?()
                 }
-                NookIconButton(symbol: "xmark", title: "Close") { state.collapse() }
             }
             .padding(.trailing, 10)
             .frame(width: sideWidth, alignment: .trailing)
@@ -93,6 +118,7 @@ private struct NookTabButton: View {
     let symbol: String
     let title: String
     let isSelected: Bool
+    var badge = 0
     let action: () -> Void
     @State private var isHovering = false
 
@@ -115,6 +141,17 @@ private struct NookTabButton: View {
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(isSelected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.06) : .clear))
             )
+            .overlay(alignment: .topTrailing) {
+                if badge > 0 {
+                    Text("\(min(badge, 99))")
+                        .font(.system(size: 7, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 3)
+                        .frame(minWidth: 12, minHeight: 12)
+                        .background(Capsule().fill(Color(red: 0.04, green: 0.52, blue: 1)))
+                        .offset(x: 5, y: -4)
+                }
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -414,6 +451,16 @@ private struct CompactTray: View {
                             }
                         }
                     }
+                    Button { state.tray.airDrop(state.tray.items) } label: {
+                        Image(systemName: "wifi")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color(red: 0.35, green: 0.68, blue: 1))
+                            .frame(width: 26, height: 26)
+                            .background(Circle().fill(Color(red: 0.06, green: 0.22, blue: 0.36)))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Send with AirDrop")
+
                     Button { state.tray.clear() } label: {
                         Image(systemName: "xmark.bin.fill")
                             .font(.system(size: 11, weight: .semibold))
@@ -720,20 +767,5 @@ private struct CompactEmpty: View {
             Spacer()
         }
         .frame(maxHeight: .infinity)
-    }
-}
-
-private extension NSItemProvider {
-    @MainActor
-    func arrowslitFileURL() async -> URL? {
-        await withCheckedContinuation { continuation in
-            _ = loadDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
-                guard let data, let url = URL(dataRepresentation: data, relativeTo: nil) else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                continuation.resume(returning: url)
-            }
-        }
     }
 }

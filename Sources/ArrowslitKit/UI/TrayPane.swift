@@ -19,6 +19,15 @@ struct TrayPane: View {
                 }
                 Spacer()
                 if !state.tray.items.isEmpty {
+                    Button {
+                        state.tray.airDrop(state.tray.items)
+                    } label: {
+                        Label("AirDrop", systemImage: "wifi")
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.35, green: 0.68, blue: 1))
+
                     Button("Clear") { state.tray.clear() }
                         .buttonStyle(.plain)
                         .font(.system(size: 10, weight: .semibold))
@@ -61,13 +70,9 @@ struct TrayPane: View {
                     .foregroundStyle(ArrowTheme.faint)
             }
         }
-        .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
+        .onDrop(of: [.fileURL, .url], isTargeted: $isTargeted) { providers in
             Task { @MainActor in
-                var urls: [URL] = []
-                for provider in providers {
-                    if let url = await provider.fileURL() { urls.append(url) }
-                }
-                state.tray.add(urls)
+                state.tray.add(await FileDrop.urls(from: providers))
             }
             return true
         }
@@ -155,24 +160,10 @@ private struct TrayCell: View {
         .contextMenu {
             Button("Open") { state.tray.open(item) }
             Button("Show in Finder") { state.tray.reveal(item) }
+            Button("Send with AirDrop") { state.tray.airDrop([item]) }
             Divider()
             Button("Remove") { state.tray.remove(item.id) }
         }
         .help(item.name)
-    }
-}
-
-@MainActor
-private extension NSItemProvider {
-    func fileURL() async -> URL? {
-        await withCheckedContinuation { continuation in
-            _ = loadDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
-                guard let data, let url = URL(dataRepresentation: data, relativeTo: nil) else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                continuation.resume(returning: url)
-            }
-        }
     }
 }

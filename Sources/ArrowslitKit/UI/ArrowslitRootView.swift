@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ArrowslitRootView: View {
     @Bindable var state: AppState
@@ -35,6 +36,7 @@ private struct CompactBar: View {
     @Bindable var state: AppState
     let width: CGFloat
     let notchWidth: CGFloat
+    @State private var isDropTargeted = false
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
 
@@ -72,10 +74,19 @@ private struct CompactBar: View {
         .clipShape(SlitShape(radius: 12))
         .overlay {
             SlitShape(radius: 12)
-                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+                .stroke(isDropTargeted ? Color(red: 0.20, green: 0.55, blue: 1) : ArrowTheme.hairline, lineWidth: isDropTargeted ? 1.5 : 0.5)
         }
         .contentShape(SlitShape(radius: 12))
         .onTapGesture { state.expand(.home) }
+        .onDrop(of: [.fileURL, .url], isTargeted: $isDropTargeted) { providers in
+            Task { @MainActor in
+                let urls = await FileDrop.urls(from: providers)
+                if state.tray.add(urls) > 0 {
+                    state.expand(.tray)
+                }
+            }
+            return true
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(.isButton)
