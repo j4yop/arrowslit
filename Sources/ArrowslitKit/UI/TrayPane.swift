@@ -50,6 +50,7 @@ struct TrayPane: View {
                     .padding(.vertical, 4)
                 }
                 .frame(maxHeight: .infinity)
+                .nookScrollBounce()
             }
 
             HStack {

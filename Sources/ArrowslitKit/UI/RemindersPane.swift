@@ -39,6 +39,7 @@ struct RemindersPane: View {
                             }
                         }
                     }
+                    .nookScrollBounce()
                 }
             }
         }
