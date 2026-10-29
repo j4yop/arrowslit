@@ -39,6 +39,7 @@ struct ClipboardPane: View {
                         }
                     }
                 }
+                .nookScrollBounce()
             }
         }
     }
