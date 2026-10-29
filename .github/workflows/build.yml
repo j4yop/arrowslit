@@ -38,8 +38,18 @@ jobs:
           BUILD_NUMBER: "1"
         run: ./Scripts/build-app.sh
 
-      - name: Zip app
+      - name: Zip release app
         run: ditto -c -k --sequesterRsrc --keepParent "build/Arrowslit.app" build/Arrowslit.zip
+
+      - name: Build debug app
+        env:
+          CONFIG: debug
+          VERSION: "0.1.0"
+          BUILD_NUMBER: "1"
+          APP_OUTPUT: ${{ github.workspace }}/build/debug/Arrowslit.app
+        run: |
+          ./Scripts/build-app.sh
+          ditto -c -k --sequesterRsrc --keepParent "build/debug/Arrowslit.app" build/Arrowslit-debug.zip
 
       - name: Metadata
         run: |
@@ -66,5 +76,6 @@ jobs:
           name: arrowslit-0.1.0
           path: |
             build/Arrowslit.zip
+            build/Arrowslit-debug.zip
             build/build-metadata.txt
           if-no-files-found: error

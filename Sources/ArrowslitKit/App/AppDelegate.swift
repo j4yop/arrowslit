@@ -6,6 +6,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PanelController?
     private var statusItem: StatusItemController?
     private var settingsWindow: SettingsWindowController?
+    #if DEBUG
+    private var debugHooks: DebugHooks?
+    #endif
 
     public override init() {
         super.init()
@@ -26,6 +29,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         self.settingsWindow = settingsWindow
         panel = PanelController(state: state)
         statusItem = StatusItemController(state: state) { [weak settingsWindow] in settingsWindow?.show() }
+        #if DEBUG
+        debugHooks = DebugHooks(state: state)
+        #endif
         state.start()
     }
 
