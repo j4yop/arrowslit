@@ -289,9 +289,20 @@ private struct CompactTimer: View {
                         SmallAction(title: "Reset", symbol: "arrow.counterclockwise", filled: false) {
                             state.resetTimer()
                         }
+                    } else if timer.justFinished {
+                        SmallAction(
+                            title: timer.lastWasFocus ? "Break 5m" : "Focus 25m",
+                            symbol: "play.fill",
+                            filled: true
+                        ) {
+                            if timer.lastWasFocus { state.startBreak() } else { state.startFocus() }
+                        }
                     } else {
                         SmallAction(title: "Start \(timer.lastMinutes)m", symbol: "play.fill", filled: true) {
                             state.startTimer(minutes: timer.lastMinutes)
+                        }
+                        SmallAction(title: "Focus", symbol: "hand.raised.fill", filled: false) {
+                            state.startFocus()
                         }
                     }
                 }

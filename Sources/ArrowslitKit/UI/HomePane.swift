@@ -159,6 +159,15 @@ private struct TimerHomeRow: View {
                 Button("\(minutes)m") { state.startTimer(minutes: minutes) }
                     .buttonStyle(HomeChipStyle())
             }
+            Button { state.startFocus() } label: {
+                Image(systemName: "hand.raised.fill")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.ink)
+                    .frame(width: 26, height: 22)
+                    .background(Capsule().fill(ArrowTheme.amber))
+            }
+            .buttonStyle(.plain)
+            .help("Start a 25 minute focus session")
         }
     }
 }
