@@ -35,17 +35,22 @@ jobs:
         env:
           CONFIG: release
           VERSION: "0.1.0"
-          BUILD_NUMBER: "1"
+          BUILD_NUMBER: "4"
+          UNIVERSAL: "1"
         run: ./Scripts/build-app.sh
+
+      - name: Verify architectures
+        run: |
+          lipo -info build/Arrowslit.app/Contents/MacOS/Arrowslit
+          archs="$(lipo -archs build/Arrowslit.app/Contents/MacOS/Arrowslit)"
+          [[ "$archs" == *arm64* && "$archs" == *x86_64* ]]
 
       - name: Zip release app
         run: ditto -c -k --sequesterRsrc --keepParent "build/Arrowslit.app" build/Arrowslit.zip
 
       - name: Package DMG
         env:
-          CONFIG: release
-          VERSION: "0.1.0"
-          BUILD_NUMBER: "1"
+          SKIP_BUILD: "1"
         run: ./Scripts/make-dmg.sh
 
       - name: Build debug app
