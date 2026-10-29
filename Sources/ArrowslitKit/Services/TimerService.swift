@@ -8,6 +8,7 @@ public final class TimerService {
     public private(set) var countdown: Countdown?
     public private(set) var lastMinutes: Int = 25
     public private(set) var justFinished = false
+    public private(set) var lastWasFocus = false
 
     @ObservationIgnored private var ticker: Timer?
     @ObservationIgnored private var activity: NSObjectProtocol?
@@ -19,6 +20,16 @@ public final class TimerService {
     public var isPaused: Bool { countdown?.isPaused ?? false }
     public var remaining: TimeInterval { countdown?.remaining(at: Date()) ?? 0 }
     public var progress: Double { countdown?.progress(at: Date()) ?? 0 }
+
+    public func startFocus(minutes: Int = 25) {
+        start(minutes: minutes)
+        lastWasFocus = true
+    }
+
+    public func startBreak(minutes: Int = 5) {
+        start(minutes: minutes)
+        lastWasFocus = false
+    }
 
     public func start(minutes: Int) {
         stopTicker()

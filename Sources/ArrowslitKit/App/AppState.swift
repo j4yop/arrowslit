@@ -162,6 +162,16 @@ public final class AppState {
         collapse()
     }
 
+    public func startFocus() {
+        timer.startFocus()
+        collapse()
+    }
+
+    public func startBreak() {
+        timer.startBreak()
+        collapse()
+    }
+
     public func toggleTimer() {
         timer.togglePause()
     }

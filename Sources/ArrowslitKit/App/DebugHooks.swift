@@ -40,6 +40,10 @@ final class DebugHooks {
         case "settings":
             state.collapse()
             state.onOpenSettings?()
+        case "editshortcuts":
+            state.expand(.launcher)
+            state.isEditingShortcuts = true
+        case "focus": state.startFocus()
         case "start5": state.startTimer(minutes: 5)
         case "start25": state.startTimer(minutes: 25)
         case "toggle": state.toggleTimer()
