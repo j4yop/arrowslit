@@ -7,8 +7,8 @@ struct SettingsView: View {
     @State private var loginError: String?
 
     private let featureTabs: [WorkbenchTab] = [
-        .nowPlaying, .timer, .calendar, .clipboard,
-        .mirror, .notes, .stats
+        .nowPlaying, .timer, .stopwatch, .calendar,
+        .clipboard, .keepAwake, .mirror, .notes, .stats
     ]
 
     var body: some View {
