@@ -37,24 +37,12 @@ private struct CompactBar: View {
     let notchWidth: CGFloat
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
-    private var showsWordmark: Bool { ear >= 78 }
 
     var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 5) {
-                SlitMark(height: 13)
-                if showsWordmark {
-                    Text("ARROWSLIT")
-                        .font(.system(size: ear >= 104 ? 8.5 : 8, weight: .semibold))
-                        .tracking(ear >= 104 ? 2.2 : 0)
-                        .foregroundStyle(ArrowTheme.bone.opacity(0.88))
-                        .lineLimit(1)
-                        .fixedSize()
-                }
-            }
-            .padding(.leading, 10)
-            .frame(width: ear, alignment: .leading)
-            .clipped()
+            SlitMark(height: 14)
+                .padding(.leading, 12)
+                .frame(width: ear, alignment: .leading)
 
             Color.clear
                 .frame(width: notchWidth)
