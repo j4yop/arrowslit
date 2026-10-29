@@ -22,7 +22,7 @@ UNIVERSAL="${UNIVERSAL:-0}"
 if [[ "$UNIVERSAL" == "1" ]]; then
     mkdir -p "$ROOT/build"
     for arch in arm64 x86_64; do
-        echo "› Building $arch…"
+        echo "› Building ${arch}..."
         swift build --build-system native -c "$CONFIG" \
             --triple "${arch}-apple-macosx14.0" \
             --scratch-path "$ROOT/.build-$arch"
