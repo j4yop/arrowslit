@@ -1,0 +1,44 @@
+name: Hotfix build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Tests
+        run: swift test --build-system native
+
+      - name: Build app
+        env:
+          CONFIG: release
+          VERSION: "0.1.0"
+          BUILD_NUMBER: "3"
+        run: ./Scripts/build-app.sh
+
+      - name: Zip app
+        run: ditto -c -k --sequesterRsrc --keepParent "build/Arrowslit.app" build/Arrowslit.zip
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: arrowslit-hotfix
+          path: build/Arrowslit.zip
+          if-no-files-found: error
