@@ -98,3 +98,17 @@ struct ScreenGeometryTests {
         #expect(veryWide.earWidth(in: veryWide.compactWidth) == 80)
     }
 }
+
+@Suite("File drops")
+struct FileDropTests {
+    @Test func parsesTheFileURLDataFinderSends() {
+        let url = URL(fileURLWithPath: "/Users/jaygopal/Desktop/Arrowslit-Clock-IST.png")
+        let data = Data(url.absoluteString.utf8)
+        #expect(FileDrop.url(from: data) == url)
+    }
+
+    @Test func ignoresNonFileURLs() {
+        let data = Data("https://example.com".utf8)
+        #expect(FileDrop.url(from: data) == nil)
+    }
+}
