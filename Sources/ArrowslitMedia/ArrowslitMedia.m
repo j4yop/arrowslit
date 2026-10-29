@@ -49,7 +49,7 @@ static NSString *text(id value) {
     return string.length > maxTextLength ? [string substringToIndex:maxTextLength] : string;
 }
 
-static NSNumber *finite(id value) {
+static NSNumber *finiteNumber(id value) {
     if (![value isKindOfClass:[NSNumber class]]) {
         return nil;
     }
@@ -86,9 +86,9 @@ static void publish(NSDictionary *info, BOOL playing, int pid, NSString *bundleI
     payload[@"artist"] = text(info[@"kMRMediaRemoteNowPlayingInfoArtist"]);
     payload[@"album"] = text(info[@"kMRMediaRemoteNowPlayingInfoAlbum"]);
 
-    NSNumber *duration = finite(info[@"kMRMediaRemoteNowPlayingInfoDuration"]);
-    NSNumber *elapsed = finite(info[@"kMRMediaRemoteNowPlayingInfoElapsedTime"]);
-    NSNumber *rate = finite(info[@"kMRMediaRemoteNowPlayingInfoPlaybackRate"]);
+    NSNumber *duration = finiteNumber(info[@"kMRMediaRemoteNowPlayingInfoDuration"]);
+    NSNumber *elapsed = finiteNumber(info[@"kMRMediaRemoteNowPlayingInfoElapsedTime"]);
+    NSNumber *rate = finiteNumber(info[@"kMRMediaRemoteNowPlayingInfoPlaybackRate"]);
     NSDate *timestamp = info[@"kMRMediaRemoteNowPlayingInfoTimestamp"];
     if (duration != nil) payload[@"duration"] = duration;
     if (elapsed != nil) payload[@"elapsed"] = elapsed;
@@ -160,7 +160,7 @@ static void refreshNow(void) {
 
     dispatch_async(mediaQueue, ^{
         dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
-        NSNumber *rate = finite(info[@"kMRMediaRemoteNowPlayingInfoPlaybackRate"]);
+        NSNumber *rate = finiteNumber(info[@"kMRMediaRemoteNowPlayingInfoPlaybackRate"]);
         BOOL isPlaying = playing || (rate != nil && rate.doubleValue > 0);
         publish(info ?: @{}, isPlaying, pid, bundleID);
     });
