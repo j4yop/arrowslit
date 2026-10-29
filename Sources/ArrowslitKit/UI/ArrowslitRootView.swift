@@ -16,7 +16,7 @@ struct ArrowslitRootView: View {
                 CompactBar(
                     state: state,
                     width: geometry.compactWidth,
-                    notchWidth: geometry.housing.width
+                    notchWidth: geometry.notchWidth
                 )
                 .transition(.opacity)
             }

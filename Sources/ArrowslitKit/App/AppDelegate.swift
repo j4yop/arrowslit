@@ -33,6 +33,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         debugHooks = DebugHooks(state: state)
         #endif
         state.start()
+
+        if state.settings.openSettingsOnLaunch {
+            DispatchQueue.main.async { [weak settingsWindow] in
+                settingsWindow?.show()
+            }
+        }
     }
 
     public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
