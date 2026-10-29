@@ -90,6 +90,6 @@ struct ScreenGeometryTests {
     @Test func veryWideNotchGrowsTheStrip() {
         let veryWide = geometry(notchWidth: 250)
         #expect(veryWide.compactWidth == 410)
-        #expect(veryWide.earWidth(in: veryWide.compactWidth) == 70)
+        #expect(veryWide.earWidth(in: veryWide.compactWidth) == 80)
     }
 }
