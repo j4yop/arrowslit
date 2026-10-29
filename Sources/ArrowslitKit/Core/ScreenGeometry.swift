@@ -15,6 +15,10 @@ public struct ScreenGeometry: Equatable, Sendable {
 
     public var hasNotch: Bool { notch != nil }
 
+    /// The physical camera housing. Zero on a display without a notch, so the
+    /// compact strip does not reserve an empty gap where no housing exists.
+    public var notchWidth: CGFloat { notch?.width ?? 0 }
+
     /// The camera housing, or a virtual 160 pt notch at the top centre of a display without one.
     public var housing: CGRect {
         if let notch { return notch }

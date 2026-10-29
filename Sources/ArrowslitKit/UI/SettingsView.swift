@@ -1,3 +1,4 @@
+import AppKit
 import ServiceManagement
 import SwiftUI
 
@@ -14,7 +15,16 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                SlitMark(height: 26)
+                Group {
+                    if let icon = NSApp.applicationIconImage {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .interpolation(.high)
+                            .frame(width: 34, height: 34)
+                    } else {
+                        SlitMark(height: 26)
+                    }
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ARROWSLIT")
                         .font(.system(size: 14, weight: .bold))
@@ -32,6 +42,28 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 24)
             .frame(height: 74)
+
+            Divider().overlay(ArrowTheme.hairline)
+
+            HStack(alignment: .top, spacing: 10) {
+                Circle()
+                    .fill(ArrowTheme.green)
+                    .frame(width: 6, height: 6)
+                    .padding(.top, 4)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Arrowslit is live in the notch")
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone)
+                    Text("Hover the top of the screen, or click the slit in the menu bar. You can close this window; Arrowslit keeps running.")
+                        .font(.system(size: 10))
+                        .foregroundStyle(ArrowTheme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 10)
+            .background(Color.white.opacity(0.035))
 
             Divider().overlay(ArrowTheme.hairline)
 
@@ -53,6 +85,14 @@ struct SettingsView: View {
                     }
 
                     SettingsSection(title: "INTERFACE", note: "Keep Arrowslit close without taking over the menu bar.") {
+                        SettingsToggle(
+                            title: "Open Settings on launch",
+                            detail: "Show this window when Arrowslit starts.",
+                            isOn: Binding(
+                                get: { state.settings.openSettingsOnLaunch },
+                                set: { state.settings.openSettingsOnLaunch = $0 }
+                            )
+                        )
                         SettingsToggle(
                             title: "Open notch on hover",
                             detail: "Hold the pointer over the strip for 0.4 seconds.",

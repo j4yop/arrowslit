@@ -10,7 +10,9 @@ Install
 2. Open Applications, right-click Arrowslit, and choose Open.
    Arrowslit is ad-hoc signed (not notarized with an Apple Developer ID),
    so macOS will ask you to confirm the first launch. This is normal.
-3. Grant Camera, Calendars, or Reminders only if you want those features.
+3. Settings opens automatically on first launch. Choose the features you want,
+   then close the window. Arrowslit keeps running in the notch.
+4. Grant Camera, Calendars, or Reminders only if you want those features.
 
 If macOS says the app is damaged
 --------------------------------
