@@ -77,8 +77,8 @@ private struct CompactBar: View {
                 .frame(width: max(24, ear - 26), alignment: .trailing)
 
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 8.5, weight: .bold))
-                    .foregroundStyle(ArrowTheme.bone.opacity(0.5))
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone.opacity(0.6))
                     .frame(width: 10)
                     .accessibilityHidden(true)
             }
