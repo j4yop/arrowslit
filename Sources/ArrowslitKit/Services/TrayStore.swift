@@ -58,14 +58,13 @@ public final class TrayStore {
     }
 
     public func airDrop(_ items: [TrayItem]) {
-        let urls = items.map(\.url)
-        guard !urls.isEmpty else { return }
-        NSSharingService(named: .sendViaAirDrop)?.perform(withItems: urls)
+        airDrop(items.map(\.url))
     }
 
     public func airDrop(_ urls: [URL]) {
         let files = urls.filter(\.isFileURL)
         guard !files.isEmpty else { return }
+        NSApp.activate(ignoringOtherApps: true)
         NSSharingService(named: .sendViaAirDrop)?.perform(withItems: files)
     }
 

@@ -6,6 +6,11 @@ struct SettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
 
+    private let featureTabs: [WorkbenchTab] = [
+        .nowPlaying, .timer, .calendar, .clipboard,
+        .mirror, .notes, .stats
+    ]
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
@@ -32,31 +37,19 @@ struct SettingsView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 22) {
-                    SettingsSection(title: "FEATURES", note: "Everything runs on this Mac.") {
-                        SettingsToggle(
-                            title: "Clipboard history",
-                            detail: "Last 20 text copies, memory only. Password-manager items are skipped.",
-                            isOn: Binding(
-                                get: { state.settings.clipboardEnabled },
-                                set: { state.setClipboardEnabled($0) }
-                            )
-                        )
-                        SettingsToggle(
-                            title: "Scratchpad",
-                            detail: "One local note, saved as you type.",
-                            isOn: Binding(
-                                get: { state.settings.notesEnabled },
-                                set: { state.setNotesEnabled($0) }
-                            )
-                        )
-                        SettingsToggle(
-                            title: "System stats",
-                            detail: "CPU and memory, read from the kernel every two seconds.",
-                            isOn: Binding(
-                                get: { state.settings.statsEnabled },
-                                set: { state.setStatsEnabled($0) }
-                            )
-                        )
+                    SettingsSection(title: "LAUNCHER", note: "Choose which features appear in the grid. Clipboard history skips password-manager items.") {
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 8),
+                                GridItem(.flexible(), spacing: 8)
+                            ],
+                            spacing: 8
+                        ) {
+                            ForEach(featureTabs) { tab in
+                                FeatureSelectionButton(state: state, tab: tab)
+                            }
+                        }
+                        .padding(10)
                     }
 
                     SettingsSection(title: "INTERFACE", note: "Keep Arrowslit close without taking over the menu bar.") {
@@ -183,5 +176,42 @@ private struct SettingsToggle: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
+    }
+}
+
+
+private struct FeatureSelectionButton: View {
+    @Bindable var state: AppState
+    let tab: WorkbenchTab
+
+    private var isOn: Bool { state.settings.isTabEnabled(tab) }
+
+    var body: some View {
+        Button {
+            state.setTabEnabled(tab, !isOn)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: tab.symbol)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(isOn ? ArrowTheme.amber : ArrowTheme.faint)
+                    .frame(width: 16)
+                Text(tab.title)
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(isOn ? ArrowTheme.bone : ArrowTheme.muted)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(isOn ? ArrowTheme.amber : ArrowTheme.faint)
+            }
+            .padding(.horizontal, 9)
+            .frame(height: 32)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(isOn ? 0.07 : 0.03))
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
