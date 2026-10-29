@@ -30,7 +30,7 @@ jobs:
         env:
           CONFIG: release
           VERSION: "0.1.0"
-          BUILD_NUMBER: "4"
+          BUILD_NUMBER: "5"
           UNIVERSAL: "1"
         run: ./Scripts/build-app.sh
 

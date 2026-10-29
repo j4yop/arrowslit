@@ -10,7 +10,7 @@ struct NookView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            NookHeader(state: state, notchWidth: ScreenReader.current.housing.width)
+            NookHeader(state: state, notchWidth: ScreenReader.current.notchWidth)
             Group {
                 switch state.activeTab {
                 case .home: HomePane(state: state)
