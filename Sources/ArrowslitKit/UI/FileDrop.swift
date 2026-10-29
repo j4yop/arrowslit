@@ -4,26 +4,30 @@ import UniformTypeIdentifiers
 
 @MainActor
 extension NSItemProvider {
-    /// Resolves a Finder drag into a file URL. Finder offers file URLs as data,
-    /// while some apps offer them as URL objects, so try both shapes.
+    /// Resolves a Finder drag into a file URL. Finder hands over the URL as
+    /// UTF-8 data, while a few apps hand over bookmark data, so accept both.
     func arrowslitFileURL() async -> URL? {
         let types = [UTType.fileURL.identifier, UTType.url.identifier]
         for type in types where hasItemConformingToTypeIdentifier(type) {
-            if let item = try? await loadItem(forTypeIdentifier: type, options: nil) {
-                if let url = item as? URL, url.isFileURL { return url }
-                if let data = item as? Data,
-                   let url = URL(dataRepresentation: data, relativeTo: nil),
-                   url.isFileURL {
-                    return url
-                }
-            }
-            if let data = try? await loadDataRepresentation(forTypeIdentifier: type),
-               let url = URL(dataRepresentation: data, relativeTo: nil),
+            guard let data = await loadData(forTypeIdentifier: type) else { continue }
+            if let string = String(data: data, encoding: .utf8),
+               let url = URL(string: string),
                url.isFileURL {
+                return url
+            }
+            if let url = URL(dataRepresentation: data, relativeTo: nil), url.isFileURL {
                 return url
             }
         }
         return nil
+    }
+
+    private func loadData(forTypeIdentifier type: String) async -> Data? {
+        await withCheckedContinuation { continuation in
+            _ = loadDataRepresentation(forTypeIdentifier: type) { data, _ in
+                continuation.resume(returning: data)
+            }
+        }
     }
 }
 
