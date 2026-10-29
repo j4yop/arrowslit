@@ -1,0 +1,70 @@
+name: Build Arrowslit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select Xcode 26.4.1
+        run: sudo xcode-select -s /Applications/Xcode_26.4.1.app
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Tests
+        run: swift test --build-system native
+
+      - name: Build app
+        env:
+          CONFIG: release
+          VERSION: "0.1.0"
+          BUILD_NUMBER: "1"
+        run: ./Scripts/build-app.sh
+
+      - name: Zip app
+        run: ditto -c -k --sequesterRsrc --keepParent "build/Arrowslit.app" build/Arrowslit.zip
+
+      - name: Metadata
+        run: |
+          {
+            echo "=== toolchain ==="
+            sw_vers
+            xcodebuild -version
+            swift --version
+            echo
+            echo "=== Info.plist ==="
+            plutil -p "build/Arrowslit.app/Contents/Info.plist"
+            echo
+            echo "=== architectures ==="
+            lipo -info "build/Arrowslit.app/Contents/MacOS/Arrowslit"
+            echo
+            echo "=== codesign ==="
+            codesign -dv --verbose=4 "build/Arrowslit.app" 2>&1 || true
+          } > build/build-metadata.txt
+          cat build/build-metadata.txt
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: arrowslit-0.1.0
+          path: |
+            build/Arrowslit.zip
+            build/build-metadata.txt
+          if-no-files-found: error
