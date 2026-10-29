@@ -14,7 +14,7 @@ struct StopwatchPane: View {
                 Button(state.stopwatch.isRunning ? "Pause" : "Start") {
                     state.stopwatch.toggle()
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 14)
@@ -24,7 +24,7 @@ struct StopwatchPane: View {
                 Button("Reset") {
                     state.stopwatch.reset()
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(ArrowTheme.bone)
                 .padding(.horizontal, 14)
@@ -53,7 +53,7 @@ struct KeepAwakePane: View {
             Button(state.keepAwake.isOn ? "Turn Off" : "Turn On") {
                 state.keepAwake.toggle()
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NookPressStyle())
             .font(.system(size: 10.5, weight: .semibold))
             .foregroundStyle(ArrowTheme.ink)
             .padding(.horizontal, 14)

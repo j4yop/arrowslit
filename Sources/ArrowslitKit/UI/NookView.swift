@@ -6,6 +6,7 @@ struct NookView: View {
     @Bindable var state: AppState
     @State private var isDropTargeted = false
     @State private var dropPoint: CGPoint = .zero
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,7 +35,7 @@ struct NookView: View {
             .overlay {
                 if isDropTargeted {
                     NookDropOverlay(point: dropPoint, split: 336)
-                        .transition(.opacity)
+                        .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
                 }
             }
         }
@@ -64,7 +65,7 @@ struct NookView: View {
                 }
             )
         )
-        .animation(.easeOut(duration: 0.12), value: isDropTargeted)
+        .animation(NookMotion.reducing(NookMotion.quick, reduceMotion: reduceMotion), value: isDropTargeted)
     }
 }
 
@@ -111,7 +112,7 @@ private struct NookHeader: View {
                         }
                         .foregroundStyle(ArrowTheme.bone)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                 }
             }
             .padding(.leading, 10)
@@ -125,7 +126,7 @@ private struct NookHeader: View {
                         .font(.system(size: 9, weight: .semibold))
                         .foregroundStyle(ArrowTheme.muted)
                     Button("Done") { state.isEditingShortcuts = false }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 9.5, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
@@ -160,6 +161,7 @@ private struct NookTabButton: View {
     var badge = 0
     let action: () -> Void
     @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: action) {
@@ -178,8 +180,10 @@ private struct NookTabButton: View {
             .frame(height: 24)
             .background(
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(isSelected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.06) : .clear))
+                    .fill(isSelected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.07) : .clear))
             )
+            .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isSelected)
+            .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isHovering)
             .overlay(alignment: .topTrailing) {
                 if badge > 0 {
                     Text("\(min(badge, 99))")
@@ -193,7 +197,7 @@ private struct NookTabButton: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
         .onHover { isHovering = $0 }
         .help(title)
         .accessibilityLabel(title)
@@ -206,6 +210,8 @@ private struct NookIconButton: View {
     let title: String
     var selected = false
     let action: () -> Void
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: action) {
@@ -215,11 +221,13 @@ private struct NookIconButton: View {
                 .frame(width: 24, height: 26)
                 .background(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(selected ? Color.white.opacity(0.1) : .clear)
+                        .fill(selected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.06) : .clear))
                 )
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
+        .onHover { isHovering = $0 }
+        .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isHovering)
         .help(title)
         .accessibilityLabel(title)
     }
@@ -262,6 +270,7 @@ private struct CompactTimer: View {
                     .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.faint)
                 Text(ClockFormat.clock(seconds, roundingUp: true))
                     .font(.system(size: 42, weight: .light, design: .monospaced))
+                    .tracking(-0.5)
                     .foregroundStyle(timer.justFinished ? ArrowTheme.amber : ArrowTheme.bone)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -274,7 +283,7 @@ private struct CompactTimer: View {
                         Button(ClockFormat.presetLabel(minutes: minutes)) {
                             state.startTimer(minutes: minutes)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
                         .foregroundStyle(timer.lastMinutes == minutes && !timer.isActive ? ArrowTheme.ink : ArrowTheme.bone.opacity(0.8))
                         .frame(width: 42, height: 24)
@@ -335,7 +344,7 @@ private struct SmallAction: View {
             .background(Capsule().fill(filled ? ArrowTheme.amber : Color.white.opacity(0.07)))
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }
 
@@ -419,7 +428,7 @@ private struct MediaGlyph: View {
                 .background(Circle().fill(filled ? ArrowTheme.amber : Color.white.opacity(0.07)))
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }
 
@@ -452,7 +461,7 @@ private struct CompactCalendar: View {
                     .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(ArrowTheme.panel))
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
             } else {
                 CompactEmpty(symbol: "calendar.badge.checkmark", title: "Nothing this week", detail: "Your next event will appear here.")
             }
@@ -501,6 +510,8 @@ private struct CompactTray: View {
                             }
                         }
                     }
+                    .nookScrollEdgeFade()
+                    .nookScrollBounce()
                     Button { state.tray.airDrop(state.tray.items) } label: {
                         Image(systemName: "wifi")
                             .font(.system(size: 11, weight: .semibold))
@@ -508,7 +519,7 @@ private struct CompactTray: View {
                             .frame(width: 26, height: 26)
                             .background(Circle().fill(Color(red: 0.06, green: 0.22, blue: 0.36)))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                     .help("Send with AirDrop")
 
                     Button { state.tray.clear() } label: {
@@ -518,7 +529,7 @@ private struct CompactTray: View {
                             .frame(width: 26, height: 26)
                             .background(Circle().fill(Color.white.opacity(0.07)))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                     .help("Clear")
                 }
                 .frame(maxHeight: .infinity)
@@ -555,7 +566,7 @@ private struct AddFilesButton: View {
                 .frame(height: 26)
                 .background(Capsule().fill(ArrowTheme.amber))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }
 
@@ -586,7 +597,7 @@ private struct CompactTrayItem: View {
                         .frame(width: 14, height: 14)
                         .background(Circle().fill(Color.black.opacity(0.75)))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .padding(2)
             }
         }
@@ -624,7 +635,7 @@ private struct CompactMirror: View {
                         .font(.system(size: 11.5, weight: .medium))
                         .foregroundStyle(ArrowTheme.bone)
                     Button(camera.isCameraOff ? "Turn On Camera" : "Turn Off Camera") { camera.toggle() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(ArrowTheme.ink)
                         .padding(.horizontal, 10)
@@ -653,6 +664,8 @@ private struct CompactClipboard: View {
                         }
                     }
                 }
+                .nookScrollEdgeFade()
+                .nookScrollBounce()
                 Button { state.clipboard.clear() } label: {
                     Image(systemName: "xmark.bin.fill")
                         .font(.system(size: 11, weight: .semibold))
@@ -660,7 +673,7 @@ private struct CompactClipboard: View {
                         .frame(width: 26, height: 26)
                         .background(Circle().fill(Color.white.opacity(0.07)))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .help("Clear")
             }
         }
@@ -692,7 +705,7 @@ private struct CompactClipCard: View {
             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isHovering ? 0.1 : 0.05)))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
         .onHover { isHovering = $0 }
         .help("Copy again")
     }
@@ -832,7 +845,7 @@ private struct CompactReminders: View {
                             .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.045)))
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                     }
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
@@ -855,6 +868,7 @@ private struct CompactStopwatch: View {
                     .foregroundStyle(stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.faint)
                 Text(ClockFormat.clock(stopwatch.elapsed, tenths: true))
                     .font(.system(size: 42, weight: .light, design: .monospaced))
+                    .tracking(-0.5)
                     .foregroundStyle(ArrowTheme.bone)
                     .monospacedDigit()
             }
@@ -899,7 +913,7 @@ private struct CompactKeepAwake: View {
             Button(keepAwake.isOn ? "Turn Off" : "Turn On") {
                 keepAwake.toggle()
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NookPressStyle())
             .font(.system(size: 10, weight: .semibold))
             .foregroundStyle(ArrowTheme.ink)
             .padding(.horizontal, 12)
@@ -922,7 +936,7 @@ private struct CompactPrompt: View {
             Text(text).font(.system(size: 11.5)).foregroundStyle(ArrowTheme.muted).lineLimit(2)
             Spacer()
             Button(button, action: action)
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 11)

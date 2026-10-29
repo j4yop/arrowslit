@@ -71,7 +71,7 @@ struct MirrorPane: View {
                         Button(camera.isCameraOff ? "Turn On Camera" : "Turn Off Camera") {
                             camera.toggle()
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(ArrowTheme.ink)
                         .padding(.horizontal, 15)
@@ -98,7 +98,7 @@ struct MirrorPane: View {
                 .frame(maxWidth: 360)
             if let button {
                 Button(button, action: action)
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(ArrowTheme.ink)
                     .padding(.horizontal, 15)

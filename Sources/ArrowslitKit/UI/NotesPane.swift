@@ -58,7 +58,7 @@ struct NotesPane: View {
                     .foregroundStyle(ArrowTheme.faint)
                 Spacer()
                 Button("Clear") { state.notes.clear() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(ArrowTheme.muted)
             }

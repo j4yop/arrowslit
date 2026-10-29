@@ -38,22 +38,19 @@ final class PanelController {
         panel.orderOut(nil)
     }
 
+    /// One observation loop. The previous version re-installed two separate
+    /// trackings every time either property changed, which leaked observers
+    /// until the main thread spent all its time walking them.
     private func observe() {
         withObservationTracking {
             _ = state.isExpanded
-        } onChange: { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.updateFrame(animated: true)
-                self?.observe()
-            }
-        }
-
-        withObservationTracking {
             _ = state.activeTab
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
-                self?.keyboardFocus()
-                self?.observe()
+                await Task.yield()
+                guard let self else { return }
+                self.updateFrame(animated: true)
+                self.observe()
             }
         }
     }
@@ -72,10 +69,10 @@ final class PanelController {
     }
 
     private func startHoverPolling() {
-        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 0.12, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.pollPointer() }
         }
-        timer.tolerance = 0.03
+        timer.tolerance = 0.04
         RunLoop.main.add(timer, forMode: .common)
         hoverTimer = timer
     }
@@ -98,7 +95,9 @@ final class PanelController {
             } else if let started = leaveStartedAt {
                 if Date().timeIntervalSince(started) > 0.45 {
                     leaveStartedAt = nil
-                    state.collapse()
+                    DispatchQueue.main.async { [weak self] in
+                        self?.state.collapse()
+                    }
                 }
             } else {
                 leaveStartedAt = Date()
@@ -114,7 +113,9 @@ final class PanelController {
                 if let started = hoverStartedAt {
                     if Date().timeIntervalSince(started) >= 0.4 {
                         hoverStartedAt = nil
-                        state.expand(.home)
+                        DispatchQueue.main.async { [weak self] in
+                            self?.state.expand(.home)
+                        }
                     }
                 } else {
                     hoverStartedAt = Date()
@@ -130,7 +131,9 @@ final class PanelController {
             MainActor.assumeIsolated {
                 guard let self, self.state.isExpanded else { return }
                 if !self.panel.frame.contains(NSEvent.mouseLocation) {
-                    self.state.collapse()
+                    DispatchQueue.main.async { [weak self] in
+                        self?.state.collapse()
+                    }
                 }
             }
         }
@@ -151,10 +154,10 @@ final class PanelController {
         let x = (screen.frame.minX + geometry.centreX - width / 2).rounded()
         let y = screen.frame.maxY - height
         let frame = NSRect(x: x, y: y, width: width, height: height)
-        if animated {
+        if animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.22
-                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                context.duration = 0.24
+                context.timingFunction = CAMediaTimingFunction(controlPoints: 0.23, 1, 0.32, 1)
                 panel.animator().setFrame(frame, display: true)
             }
         } else {

@@ -83,7 +83,7 @@ struct CalendarPane: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
         .help("Open in Calendar")
     }
 
@@ -110,7 +110,7 @@ struct CalendarPane: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 360)
             Button(button, action: action)
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 15)
