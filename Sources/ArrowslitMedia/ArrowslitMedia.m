@@ -76,7 +76,7 @@ static NSString *clientIdentifier(id client) {
 static void publish(NSDictionary *info, BOOL playing, int pid, NSString *bundleID) {
     NSMutableDictionary *payload = [NSMutableDictionary dictionary];
     payload[@"type"] = @"track";
-    payload[@"hasInfo"] = @(info.count > 0);
+    payload[@"hasInfo"] = info.count > 0 ? @YES : @NO;
     payload[@"playing"] = @(playing);
     payload[@"pid"] = @(pid);
     if (bundleID.length > 0) {
