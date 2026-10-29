@@ -21,6 +21,8 @@ struct WorkbenchView: View {
                     case .clipboard: ClipboardPane(state: state)
                     case .notes: NotesPane(state: state)
                     case .stats: StatsPane(state: state)
+                    case .stopwatch: StopwatchPane(state: state)
+                    case .keepAwake: KeepAwakePane(state: state)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
