@@ -11,6 +11,9 @@ final class PanelController {
     private var screenObserver: NSObjectProtocol?
     private var mouseMonitor: Any?
     private var keyMonitor: Any?
+    private var hoverTimer: Timer?
+    private var hoverStartedAt: Date?
+    private var leaveStartedAt: Date?
 
     init(state: AppState) {
         self.state = state
@@ -23,12 +26,15 @@ final class PanelController {
         observe()
         observeScreens()
         installMonitors()
+        startHoverPolling()
     }
 
     func tearDown() {
         if let screenObserver { NotificationCenter.default.removeObserver(screenObserver) }
         if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        hoverTimer?.invalidate()
+        hoverTimer = nil
         panel.orderOut(nil)
     }
 
@@ -61,6 +67,60 @@ final class PanelController {
             MainActor.assumeIsolated {
                 self?.updateFrame(animated: false)
                 self?.panel.orderFrontRegardless()
+            }
+        }
+    }
+
+    private func startHoverPolling() {
+        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.pollPointer() }
+        }
+        timer.tolerance = 0.03
+        RunLoop.main.add(timer, forMode: .common)
+        hoverTimer = timer
+    }
+
+    private func pollPointer() {
+        guard let screen = ScreenReader.builtIn() else { return }
+        let mouse = NSEvent.mouseLocation
+        let frame = panel.frame
+
+        if state.isExpanded {
+            hoverStartedAt = nil
+            guard state.settings.collapseOnLeave,
+                  NSEvent.pressedMouseButtons == 0,
+                  !NSApp.isActive else {
+                leaveStartedAt = nil
+                return
+            }
+            if frame.insetBy(dx: -8, dy: -8).contains(mouse) {
+                leaveStartedAt = nil
+            } else if let started = leaveStartedAt {
+                if Date().timeIntervalSince(started) > 0.45 {
+                    leaveStartedAt = nil
+                    state.collapse()
+                }
+            } else {
+                leaveStartedAt = Date()
+            }
+        } else {
+            leaveStartedAt = nil
+            guard state.settings.openOnHover else {
+                hoverStartedAt = nil
+                return
+            }
+            let zone = frame.insetBy(dx: 0, dy: -3)
+            if zone.contains(mouse), screen.frame.contains(mouse) {
+                if let started = hoverStartedAt {
+                    if Date().timeIntervalSince(started) >= 0.4 {
+                        hoverStartedAt = nil
+                        state.expand(.home)
+                    }
+                } else {
+                    hoverStartedAt = Date()
+                }
+            } else {
+                hoverStartedAt = nil
             }
         }
     }

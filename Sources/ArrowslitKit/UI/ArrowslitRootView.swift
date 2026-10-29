@@ -50,9 +50,14 @@ private struct CompactBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            SlitMark(height: 14)
-                .padding(.leading, 12)
-                .frame(width: ear, alignment: .leading)
+            HStack(spacing: 7) {
+                SlitMark(height: 14)
+                if state.nowPlaying.isVisible {
+                    MusicBars(isPlaying: state.nowPlaying.track?.isPlaying ?? false, height: 13)
+                }
+            }
+            .padding(.leading, 12)
+            .frame(width: ear, alignment: .leading)
 
             Color.clear
                 .frame(width: notchWidth)
