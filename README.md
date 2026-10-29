@@ -11,15 +11,18 @@ gives a defender a full view and full control.
 
 ## Status
 
-Early build. The first milestone is a small, fast core:
+The first usable build is ready:
 
 - Menu-bar app, no Dock icon
 - Notch-fused compact strip
 - Expanded workbench with a vertical feature rail
-- Timer, clipboard history, scratchpad and CPU/memory stats
+- Now Playing (system media helper, optional), timer, calendar, file tray, clipboard,
+  scratchpad, CPU/memory stats
 - Local only: no account, no analytics, no network
+- GPL-3.0
 
-Calendar, Now Playing, file tray, mirror and multi-display support are next.
+Mirror, calls/microphone, charging/battery, volume/brightness, global hotkeys, multiple
+displays and signed updates are next. See [ROADMAP.md](ROADMAP.md).
 
 ## Build
 
