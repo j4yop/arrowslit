@@ -10,14 +10,7 @@ extension NSItemProvider {
         let types = [UTType.fileURL.identifier, UTType.url.identifier]
         for type in types where hasItemConformingToTypeIdentifier(type) {
             guard let data = await loadData(forTypeIdentifier: type) else { continue }
-            if let string = String(data: data, encoding: .utf8),
-               let url = URL(string: string),
-               url.isFileURL {
-                return url
-            }
-            if let url = URL(dataRepresentation: data, relativeTo: nil), url.isFileURL {
-                return url
-            }
+            if let url = FileDrop.url(from: data) { return url }
         }
         return nil
     }
@@ -33,6 +26,19 @@ extension NSItemProvider {
 
 @MainActor
 enum FileDrop {
+    /// Finder sends the URL as UTF-8 text; some apps send bookmark data.
+    static func url(from data: Data) -> URL? {
+        if let string = String(data: data, encoding: .utf8),
+           let url = URL(string: string),
+           url.isFileURL {
+            return url
+        }
+        if let url = URL(dataRepresentation: data, relativeTo: nil), url.isFileURL {
+            return url
+        }
+        return nil
+    }
+
     static func urls(from providers: [NSItemProvider]) async -> [URL] {
         var urls: [URL] = []
         for provider in providers {
