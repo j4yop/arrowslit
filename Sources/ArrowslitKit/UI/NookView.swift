@@ -25,7 +25,7 @@ struct NookView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .padding(.horizontal, 14)
             .padding(.top, 10)
-            .padding(.bottom, 14)
+            .padding(.bottom, 16)
         }
         .frame(width: 560, height: 178)
         .background(ArrowTheme.ink)
