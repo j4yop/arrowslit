@@ -27,6 +27,7 @@ final class DebugHooks {
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "tray": state.expand(.tray)
+        case "addfile": state.tray.add([URL(fileURLWithPath: "/etc/hosts")])
         case "mirror": state.expand(.mirror)
         case "clipboard": state.expand(.clipboard)
         case "notes": state.expand(.notes)
