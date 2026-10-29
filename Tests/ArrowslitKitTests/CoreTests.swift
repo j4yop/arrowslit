@@ -58,7 +58,7 @@ struct StatsMathTests {
     @Test func calculatesBusyShare() {
         let old = CPUSample(user: 100, system: 50, idle: 850, nice: 0)
         let new = CPUSample(user: 160, system: 70, idle: 870, nice: 0)
-        #expect(abs(StatsMath.cpuUsage(from: old, to: new) - 0.75) < 0.001)
+        #expect(abs(StatsMath.cpuUsage(from: old, to: new) - 0.8) < 0.001)
         #expect(StatsMath.level(0.5) == .normal)
         #expect(StatsMath.level(0.8) == .busy)
         #expect(StatsMath.level(0.95) == .high)
