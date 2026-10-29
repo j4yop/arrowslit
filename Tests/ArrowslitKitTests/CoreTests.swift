@@ -99,6 +99,7 @@ struct ScreenGeometryTests {
     }
 }
 
+@MainActor
 @Suite("File drops")
 struct FileDropTests {
     @Test func parsesTheFileURLDataFinderSends() {
