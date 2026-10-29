@@ -46,7 +46,7 @@ private struct MediaCard: View {
                         .font(.system(size: 11.5, weight: .semibold))
                         .foregroundStyle(ArrowTheme.bone)
                         .lineLimit(1)
-                    Text(track?.artist.isEmpty == false ? track!.artist : "Play something to fill this card")
+                    Text(track?.artist.isEmpty == false ? track!.artist : "Play something to begin")
                         .font(.system(size: 9.5))
                         .foregroundStyle(ArrowTheme.muted)
                         .lineLimit(1)
