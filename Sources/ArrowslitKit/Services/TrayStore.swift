@@ -57,6 +57,18 @@ public final class TrayStore {
         NSWorkspace.shared.activateFileViewerSelecting([item.url])
     }
 
+    public func airDrop(_ items: [TrayItem]) {
+        let urls = items.map(\.url)
+        guard !urls.isEmpty else { return }
+        NSSharingService(named: .sendViaAirDrop)?.perform(withItems: urls)
+    }
+
+    public func airDrop(_ urls: [URL]) {
+        let files = urls.filter(\.isFileURL)
+        guard !files.isEmpty else { return }
+        NSSharingService(named: .sendViaAirDrop)?.perform(withItems: files)
+    }
+
     public func icon(for item: TrayItem) -> NSImage {
         NSWorkspace.shared.icon(forFile: item.url.path)
     }
