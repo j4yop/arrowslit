@@ -270,6 +270,7 @@ private struct CompactTimer: View {
                     .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.faint)
                 Text(ClockFormat.clock(seconds, roundingUp: true))
                     .font(.system(size: 42, weight: .light, design: .monospaced))
+                    .tracking(-0.5)
                     .foregroundStyle(timer.justFinished ? ArrowTheme.amber : ArrowTheme.bone)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -867,6 +868,7 @@ private struct CompactStopwatch: View {
                     .foregroundStyle(stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.faint)
                 Text(ClockFormat.clock(stopwatch.elapsed, tenths: true))
                     .font(.system(size: 42, weight: .light, design: .monospaced))
+                    .tracking(-0.5)
                     .foregroundStyle(ArrowTheme.bone)
                     .monospacedDigit()
             }

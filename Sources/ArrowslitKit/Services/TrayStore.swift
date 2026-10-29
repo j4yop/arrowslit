@@ -34,6 +34,7 @@ public final class TrayStore {
         }
         guard !added.isEmpty else { return 0 }
         items = added.reversed() + items
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         return added.count
     }
 
