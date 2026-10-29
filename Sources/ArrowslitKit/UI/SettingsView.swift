@@ -103,7 +103,7 @@ struct SettingsView: View {
                 .padding(24)
             }
         }
-        .frame(width: 540, height: 520)
+        .frame(width: 540, height: 620)
         .background(ArrowTheme.ink)
         .onAppear { syncLogin() }
     }

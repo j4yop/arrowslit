@@ -4,6 +4,7 @@ import Observation
 
 public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case timer
+    case calendar
     case clipboard
     case notes
     case stats
@@ -13,6 +14,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     public var title: String {
         switch self {
         case .timer: "Timer"
+        case .calendar: "Calendar"
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "System"
@@ -22,6 +24,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     public var symbol: String {
         switch self {
         case .timer: "timer"
+        case .calendar: "calendar"
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
@@ -34,6 +37,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
 public final class AppState {
     public let settings: SettingsStore
     public let timer: TimerService
+    public let calendar: CalendarService
     public let clipboard: ClipboardService
     public let notes: NotesStore
     public let stats: StatsService
@@ -46,23 +50,27 @@ public final class AppState {
     public init(
         settings: SettingsStore = SettingsStore(),
         timer: TimerService = TimerService(),
+        calendar: CalendarService = CalendarService(),
         clipboard: ClipboardService = ClipboardService(),
         notes: NotesStore = NotesStore(),
         stats: StatsService = StatsService()
     ) {
         self.settings = settings
         self.timer = timer
+        self.calendar = calendar
         self.clipboard = clipboard
         self.notes = notes
         self.stats = stats
     }
 
     public func start() {
+        calendar.start()
         if settings.clipboardEnabled { clipboard.start() }
     }
 
     public func stop() {
         notes.save()
+        calendar.stop()
         clipboard.stop()
         stats.stop()
         timer.reset()
