@@ -14,7 +14,7 @@ struct RemindersPane: View {
                 Spacer()
                 if service.access == .granted {
                     Button("Refresh") { service.refresh() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(ArrowTheme.muted)
                 }
@@ -52,7 +52,7 @@ struct RemindersPane: View {
                 .font(.system(size: 12))
                 .foregroundStyle(ArrowTheme.muted)
             Button("Connect Reminders") { service.requestAccess() }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .font(.system(size: 10.5, weight: .semibold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 12)
@@ -68,7 +68,7 @@ struct RemindersPane: View {
                 .font(.system(size: 12))
                 .foregroundStyle(ArrowTheme.muted)
             Button("Open Privacy Settings") { service.openPrivacySettings() }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .font(.system(size: 10.5, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 12)
@@ -105,6 +105,6 @@ private struct ReminderRow: View {
             .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.045)))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }

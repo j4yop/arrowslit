@@ -18,7 +18,7 @@ struct ClipboardPane: View {
                 Spacer()
                 if !state.clipboard.entries.isEmpty {
                     Button("Clear") { state.clipboard.clear() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(ArrowTheme.muted)
                 }
@@ -105,7 +105,7 @@ private struct ClipboardRow: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
         .onHover { isHovering = $0 }
         .help("Copy again")
     }

@@ -167,6 +167,6 @@ private struct MediaButton: View {
                 )
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
     }
 }

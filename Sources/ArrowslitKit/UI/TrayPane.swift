@@ -24,12 +24,12 @@ struct TrayPane: View {
                     } label: {
                         Label("AirDrop", systemImage: "wifi")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(Color(red: 0.35, green: 0.68, blue: 1))
 
                     Button("Clear") { state.tray.clear() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(NookPressStyle())
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(ArrowTheme.muted)
                 }
@@ -63,7 +63,7 @@ struct TrayPane: View {
                         .frame(height: 30)
                         .background(Capsule().fill(ArrowTheme.amber))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 Spacer()
                 Text("\(state.tray.items.count) of \(TrayStore.capacity)")
                     .font(.system(size: 9.5, design: .monospaced))
@@ -150,7 +150,7 @@ private struct TrayCell: View {
                         .frame(width: 16, height: 16)
                         .background(Circle().fill(Color.black.opacity(0.7)))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(NookPressStyle())
                 .padding(3)
             }
         }

@@ -3,6 +3,8 @@ import SwiftUI
 /// Corbel-style feature launcher: large tiles, two rows, five across.
 struct LauncherPane: View {
     @Bindable var state: AppState
+    @State private var hoveredTab: WorkbenchTab?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var items: [WorkbenchTab] {
         [.nowPlaying, .timer, .stopwatch, .calendar, .keepAwake,
@@ -46,8 +48,9 @@ struct LauncherPane: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color.white.opacity(0.055))
+                                .fill(Color.white.opacity(hoveredTab == tab ? 0.09 : 0.055))
                         )
+                        .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: hoveredTab)
                         .overlay(alignment: .topTrailing) {
                             if state.isEditingShortcuts {
                                 shortcutBadge(for: tab)
@@ -63,7 +66,8 @@ struct LauncherPane: View {
                         .opacity(state.isEditingShortcuts && !state.settings.isShortcut(tab) ? 0.45 : 1)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NookPressStyle())
+                    .onHover { hoveredTab = $0 ? tab : nil }
                     .help(state.isEditingShortcuts ? "Toggle shortcut" : tab.title)
                 }
             }
