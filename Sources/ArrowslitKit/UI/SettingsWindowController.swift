@@ -13,7 +13,14 @@ final class SettingsWindowController {
     func show() {
         state.collapse()
         let window = window ?? makeWindow()
-        if !window.isVisible { window.center() }
+        if !window.isVisible, let screen = NSScreen.main {
+            let size = window.frame.size
+            let origin = NSPoint(
+                x: screen.visibleFrame.midX - size.width / 2,
+                y: screen.visibleFrame.midY - size.height / 2
+            )
+            window.setFrameOrigin(origin)
+        }
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()

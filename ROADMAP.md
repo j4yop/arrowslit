@@ -1,0 +1,66 @@
+# Arrowslit roadmap
+
+The goal is a quiet, fast, local-only notch utility — not a clone of any existing app. The
+feature set is inspired by the best free notch projects, but the interaction model, visual
+language and code are our own.
+
+## What exists today (0.1.0)
+
+- Menu-bar accessory, no Dock icon
+- Notch-fused compact strip with timer status
+- Expanded workbench: vertical feature rail, header, footer
+- Countdown timer with presets, pause/resume/reset
+- Clipboard history (20 text items, memory only, private markers skipped)
+- Scratchpad saved in UserDefaults
+- CPU / memory monitor
+- Settings window, launch at login, menu-bar icon toggle
+- App icon and ad-hoc signed app bundle
+- Swift Testing coverage for pure logic
+
+## Phase 1 — daily driver
+
+- **Now Playing**: a small helper that reads system media state and sends play/pause/next;
+  artwork, title/artist, progress, multiple players. Must remain a separate optional helper.
+- **Calendar next event**: already scaffolded; add permission flow, menus, Join links.
+- **Multiple displays**: virtual notch on external screens, display picker, follow pointer.
+- **Keyboard**: global hotkey to open, Escape/arrow navigation, quick timer shortcuts.
+- **Timer polish**: notification + sound choice, repeat, custom minutes, menu bar status.
+- **Clipboard polish**: search, pin, remove, source app icons.
+- **Notes polish**: rich text or Markdown preview, export.
+- **Settings polish**: per-feature toggles, reset, diagnostics.
+- **Accessibility**: full labels, reduce motion, keyboard-only operation.
+
+## Phase 2 — files and camera
+
+- File tray (session-only references, drag in/out, QuickLook, clear on quit)
+- AirDrop from the tray
+- Mirror (camera preview with explicit permission, camera off when hidden)
+- Downloads heads-up
+- Window-drag capture (Accessibility, opt-in)
+
+## Phase 3 — presence
+
+- Call/microphone activity (Core Audio)
+- Camera-in-use indicator
+- Charging / low battery
+- Bluetooth headphone connection
+- Volume / brightness indicators
+- Lock-screen display (opt-in, private APIs)
+
+## Phase 4 — platform
+
+- A small widget/extension API so the community can add modules
+- Themes / density / typography
+- Localization
+- Signed updates with an Ed25519 manifest
+- Homebrew cask, notarized build
+- Documentation site and contributor guide
+
+## Quality bar
+
+- Idle CPU near zero; no polling when nothing is visible
+- No network unless the user explicitly checks for updates
+- No account, no analytics, no telemetry
+- Every feature has a clear privacy note
+- Tests for pure logic; manual QA for system integration
+- No copied code, assets or UI text from other notch apps
