@@ -38,7 +38,6 @@ final class SettingsWindowController {
         window.isReleasedWhenClosed = false
         window.titlebarAppearsTransparent = true
         window.backgroundColor = NSColor(ArrowTheme.ink)
-        window.setFrameAutosaveName("ArrowslitSettings")
         self.window = window
         return window
     }
