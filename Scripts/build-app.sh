@@ -18,14 +18,40 @@ fi
 
 cd "$ROOT"
 echo "› Building ($CONFIG)…"
-swift build --build-system native -c "$CONFIG"
-BIN_DIR="$(swift build --build-system native -c "$CONFIG" --show-bin-path)"
+UNIVERSAL="${UNIVERSAL:-0}"
+if [[ "$UNIVERSAL" == "1" ]]; then
+    mkdir -p "$ROOT/build"
+    for arch in arm64 x86_64; do
+        echo "› Building $arch…"
+        swift build --build-system native -c "$CONFIG" \
+            --triple "${arch}-apple-macosx14.0" \
+            --scratch-path "$ROOT/.build-$arch"
+        BIN_DIR="$(swift build --build-system native -c "$CONFIG" \
+            --triple "${arch}-apple-macosx14.0" \
+            --scratch-path "$ROOT/.build-$arch" \
+            --show-bin-path)"
+        cp "$BIN_DIR/Arrowslit" "$ROOT/build/Arrowslit-$arch"
+        cp "$BIN_DIR/libArrowslitMedia.dylib" "$ROOT/build/libArrowslitMedia-$arch.dylib"
+    done
+else
+    swift build --build-system native -c "$CONFIG"
+    BIN_DIR="$(swift build --build-system native -c "$CONFIG" --show-bin-path)"
+fi
 
 echo "› Assembling app bundle…"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
-cp "$BIN_DIR/Arrowslit" "$APP/Contents/MacOS/Arrowslit"
-cp "$BIN_DIR/libArrowslitMedia.dylib" "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
+if [[ "$UNIVERSAL" == "1" ]]; then
+    lipo -create "$ROOT/build/Arrowslit-arm64" "$ROOT/build/Arrowslit-x86_64" \
+        -output "$APP/Contents/MacOS/Arrowslit"
+    lipo -create "$ROOT/build/libArrowslitMedia-arm64.dylib" "$ROOT/build/libArrowslitMedia-x86_64.dylib" \
+        -output "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
+    lipo -info "$APP/Contents/MacOS/Arrowslit"
+    lipo -info "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
+else
+    cp "$BIN_DIR/Arrowslit" "$APP/Contents/MacOS/Arrowslit"
+    cp "$BIN_DIR/libArrowslitMedia.dylib" "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
+fi
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD_NUMBER/" -e "s/__BUNDLE_ID__/$BUNDLE_ID/" \
     "$ROOT/Support/Info.plist" > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist" > /dev/null
