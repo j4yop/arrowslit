@@ -119,6 +119,7 @@ struct SettingsView: View {
                 }
                 .padding(24)
             }
+            .nookScrollBounce()
         }
         .frame(width: 540, height: 620)
         .background(ArrowTheme.ink)
@@ -207,6 +208,7 @@ private struct SettingsToggle: View {
 private struct FeatureSelectionButton: View {
     @Bindable var state: AppState
     let tab: WorkbenchTab
+    @State private var isHovering = false
 
     private var isOn: Bool { state.settings.isTabEnabled(tab) }
 
@@ -232,10 +234,11 @@ private struct FeatureSelectionButton: View {
             .frame(height: 32)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.white.opacity(isOn ? 0.07 : 0.03))
+                    .fill(Color.white.opacity(isOn ? (isHovering ? 0.1 : 0.07) : (isHovering ? 0.06 : 0.03)))
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NookPressStyle())
+        .onHover { isHovering = $0 }
     }
 }
