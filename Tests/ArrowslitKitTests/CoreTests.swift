@@ -64,3 +64,32 @@ struct StatsMathTests {
         #expect(StatsMath.level(0.95) == .high)
     }
 }
+
+@Suite("Screen geometry")
+struct ScreenGeometryTests {
+    private func geometry(notchWidth: CGFloat) -> ScreenGeometry {
+        ScreenGeometry(
+            size: CGSize(width: 1470, height: 956),
+            notch: CGRect(x: (1470 - notchWidth) / 2, y: 0, width: notchWidth, height: 32),
+            menuBarHeight: 32
+        )
+    }
+
+    @Test func compactStripKeepsAnEarOnEachSideOfANormalNotch() {
+        let normal = geometry(notchWidth: 100)
+        #expect(normal.compactWidth == 320)
+        #expect(normal.earWidth(in: normal.compactWidth) == 110)
+    }
+
+    @Test func wideNotchStillLeavesRoomForTheClock() {
+        let wide = geometry(notchWidth: 179)
+        #expect(wide.compactWidth == 320)
+        #expect(wide.earWidth(in: wide.compactWidth) == 70.5)
+    }
+
+    @Test func veryWideNotchGrowsTheStrip() {
+        let veryWide = geometry(notchWidth: 250)
+        #expect(veryWide.compactWidth == 390)
+        #expect(veryWide.earWidth(in: veryWide.compactWidth) == 70)
+    }
+}

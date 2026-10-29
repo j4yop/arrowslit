@@ -24,6 +24,16 @@ public struct ScreenGeometry: Equatable, Sendable {
     }
 
     public var centreX: CGFloat { housing.midX }
+
+    /// The compact strip never gets narrower than the notch plus two readable ears.
+    public var compactWidth: CGFloat {
+        max(320, min(420, (housing.width + 140).rounded()))
+    }
+
+    /// Space available on each side of the camera housing inside a panel of `width`.
+    public func earWidth(in width: CGFloat) -> CGFloat {
+        max(0, (width - housing.width) / 2)
+    }
 }
 
 @MainActor
@@ -47,5 +57,17 @@ public enum ScreenReader {
 
     public static func builtIn() -> NSScreen? {
         NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main ?? NSScreen.screens.first
+    }
+
+    /// Geometry for the display the panel is on, with a safe fallback.
+    public static var current: ScreenGeometry {
+        if let screen = builtIn() {
+            return geometry(for: screen)
+        }
+        return ScreenGeometry(
+            size: CGSize(width: 1440, height: 900),
+            notch: nil,
+            menuBarHeight: 24
+        )
     }
 }
