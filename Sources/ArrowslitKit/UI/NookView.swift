@@ -21,6 +21,7 @@ struct NookView: View {
                 case .clipboard: CompactClipboard(state: state)
                 case .notes: CompactNotes(state: state)
                 case .stats: CompactStats(state: state)
+                case .reminders: CompactReminders(state: state)
                 case .stopwatch: CompactStopwatch(state: state)
                 case .keepAwake: CompactKeepAwake(state: state)
                 case .launcher: LauncherPane(state: state)
@@ -764,6 +765,69 @@ private struct CompactStat: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: 10).fill(ArrowTheme.panel))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5))
+    }
+}
+
+private struct CompactReminders: View {
+    @Bindable var state: AppState
+    private var reminders: RemindersService { state.reminders }
+
+    var body: some View {
+        switch reminders.access {
+        case .notAsked:
+            CompactPrompt(
+                symbol: "checklist",
+                text: "See today's to-dos from Reminders here.",
+                button: "Connect Reminders"
+            ) {
+                reminders.requestAccess()
+            }
+        case .denied:
+            CompactPrompt(
+                symbol: "checklist",
+                text: "Reminders access is off for Arrowslit.",
+                button: "Open Privacy Settings"
+            ) {
+                reminders.openPrivacySettings()
+            }
+        case .granted:
+            if reminders.items.isEmpty {
+                CompactEmpty(
+                    symbol: "checkmark.circle",
+                    title: "Nothing due today",
+                    detail: "Today's reminders will appear here."
+                )
+            } else {
+                VStack(spacing: 4) {
+                    ForEach(reminders.items.prefix(3)) { item in
+                        Button { reminders.complete(item) } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: item.completed ? "checkmark.circle.fill" : "circle")
+                                    .font(.system(size: 12, weight: .regular))
+                                    .foregroundStyle(item.completed ? ArrowTheme.green : Color(red: 0.30, green: 0.60, blue: 1))
+                                Text(item.title)
+                                    .font(.system(size: 11.5, weight: .medium))
+                                    .foregroundStyle(ArrowTheme.bone)
+                                    .lineLimit(1)
+                                Spacer()
+                                if let due = item.due {
+                                    Text(due.formatted(date: .omitted, time: .shortened))
+                                        .font(.system(size: 9, design: .monospaced))
+                                        .foregroundStyle(ArrowTheme.faint)
+                                }
+                            }
+                            .padding(.horizontal, 9)
+                            .frame(height: 28)
+                            .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.045)))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .top)
+                .onAppear { reminders.refresh() }
+            }
+        }
     }
 }
 

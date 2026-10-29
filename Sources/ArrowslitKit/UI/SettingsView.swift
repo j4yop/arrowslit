@@ -8,7 +8,7 @@ struct SettingsView: View {
 
     private let featureTabs: [WorkbenchTab] = [
         .nowPlaying, .timer, .stopwatch, .calendar,
-        .clipboard, .keepAwake, .mirror, .notes, .stats
+        .clipboard, .keepAwake, .mirror, .notes, .stats, .reminders
     ]
 
     var body: some View {

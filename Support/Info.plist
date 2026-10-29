@@ -34,6 +34,10 @@
 	<string>Arrowslit shows your next calendar event in the notch.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Arrowslit shows your next calendar event in the notch.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Arrowslit shows today's reminders in the notch and lets you tick them off.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Arrowslit shows today's reminders in the notch and lets you tick them off.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Jay Gopal and contributors. GPL-3.0.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
