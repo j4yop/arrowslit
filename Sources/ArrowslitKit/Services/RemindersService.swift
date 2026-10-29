@@ -61,7 +61,22 @@ public final class RemindersService {
             ending: end,
             calendars: nil
         )
-        store.fetchReminders(matching: predicate) { [weak self] reminders in
+        Self.fetch(store: store, predicate: predicate) { [weak self] items in
+            Task { @MainActor in
+                self?.items = items
+            }
+        }
+    }
+
+    /// EventKit calls its completion on a private queue. Keeping this helper
+    /// nonisolated prevents the closure from inheriting the main actor, which
+    /// would trip Swift's executor check on that queue.
+    nonisolated private static func fetch(
+        store: EKEventStore,
+        predicate: NSPredicate,
+        completion: @escaping @Sendable ([ReminderItem]) -> Void
+    ) {
+        store.fetchReminders(matching: predicate) { reminders in
             let mapped = (reminders ?? []).compactMap { reminder -> ReminderItem? in
                 guard let title = reminder.title, !title.isEmpty else { return nil }
                 return ReminderItem(
@@ -72,9 +87,7 @@ public final class RemindersService {
                 )
             }
             .sorted { ($0.due ?? .distantFuture) < ($1.due ?? .distantFuture) }
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.items = mapped }
-            }
+            completion(mapped)
         }
     }
 
