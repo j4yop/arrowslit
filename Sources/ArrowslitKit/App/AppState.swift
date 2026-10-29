@@ -3,6 +3,7 @@ import Foundation
 import Observation
 
 public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
+    case home
     case nowPlaying
     case timer
     case calendar
@@ -11,11 +12,13 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case clipboard
     case notes
     case stats
+    case launcher
 
     public var id: String { rawValue }
 
     public var title: String {
         switch self {
+        case .home: "Home"
         case .nowPlaying: "Now Playing"
         case .timer: "Timer"
         case .calendar: "Calendar"
@@ -24,11 +27,13 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "System"
+        case .launcher: "All Features"
         }
     }
 
     public var symbol: String {
         switch self {
+        case .home: "house"
         case .nowPlaying: "music.note"
         case .timer: "timer"
         case .calendar: "calendar"
@@ -37,7 +42,17 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
+        case .launcher: "square.grid.2x2"
         }
+    }
+
+    /// Tabs that live in the top strip beside the camera.
+    public var isPrimaryTab: Bool {
+        self == .home || self == .tray || self == .clipboard
+    }
+
+    public var isSecondaryTab: Bool {
+        self == .notes || self == .mirror
     }
 }
 
@@ -54,7 +69,7 @@ public final class AppState {
     public let notes: NotesStore
     public let stats: StatsService
 
-    public private(set) var activeTab: WorkbenchTab = .timer
+    public private(set) var activeTab: WorkbenchTab = .home
     public private(set) var isExpanded = false
 
     @ObservationIgnored public var onOpenSettings: (() -> Void)?

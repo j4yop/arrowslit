@@ -11,6 +11,8 @@ struct WorkbenchView: View {
                 Divider().overlay(ArrowTheme.hairline)
                 Group {
                     switch state.activeTab {
+                    case .home: HomePane(state: state)
+                    case .launcher: LauncherPane(state: state)
                     case .nowPlaying: NowPlayingPane(state: state)
                     case .timer: TimerPane(state: state)
                     case .calendar: CalendarPane(state: state)

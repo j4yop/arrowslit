@@ -1,12 +1,12 @@
 import SwiftUI
 
 public enum ArrowTheme {
-    public static let ink = Color(red: 0.055, green: 0.050, blue: 0.045)
-    public static let panel = Color(red: 0.086, green: 0.078, blue: 0.070)
-    public static let raised = Color(red: 0.125, green: 0.112, blue: 0.098)
-    public static let amber = Color(red: 0.910, green: 0.640, blue: 0.240)
-    public static let amberSoft = Color(red: 0.910, green: 0.640, blue: 0.240).opacity(0.16)
-    public static let bone = Color(red: 0.960, green: 0.925, blue: 0.860)
+    public static let ink = Color.black
+    public static let panel = Color(red: 0.035, green: 0.035, blue: 0.035)
+    public static let raised = Color(red: 0.085, green: 0.085, blue: 0.085)
+    public static let amber = Color(red: 1.0, green: 0.624, blue: 0.039)
+    public static let amberSoft = Color(red: 1.0, green: 0.624, blue: 0.039).opacity(0.16)
+    public static let bone = Color.white
     public static let muted = Color.white.opacity(0.52)
     public static let faint = Color.white.opacity(0.28)
     public static let hairline = Color.white.opacity(0.085)

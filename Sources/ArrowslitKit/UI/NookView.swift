@@ -8,9 +8,9 @@ struct NookView: View {
     var body: some View {
         VStack(spacing: 0) {
             NookHeader(state: state)
-            Rectangle().fill(ArrowTheme.hairline).frame(height: 0.5)
             Group {
                 switch state.activeTab {
+                case .home: HomePane(state: state)
                 case .nowPlaying: CompactNowPlaying(state: state)
                 case .timer: CompactTimer(state: state)
                 case .calendar: CompactCalendar(state: state)
@@ -19,13 +19,13 @@ struct NookView: View {
                 case .clipboard: CompactClipboard(state: state)
                 case .notes: CompactNotes(state: state)
                 case .stats: CompactStats(state: state)
+                case .launcher: LauncherPane(state: state)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .padding(.horizontal, 14)
-            .padding(.top, 8)
-            .padding(.bottom, 6)
-            NookFooter()
+            .padding(.top, 10)
+            .padding(.bottom, 14)
         }
         .frame(width: 560, height: 178)
         .background(ArrowTheme.ink)
@@ -41,33 +41,44 @@ private struct NookHeader: View {
     @Bindable var state: AppState
 
     var body: some View {
-        HStack(spacing: 4) {
-            SlitMark(height: 13)
-                .padding(.leading, 12)
-                .padding(.trailing, 4)
-
-            ForEach(WorkbenchTab.allCases) { tab in
-                NookTabButton(
-                    symbol: tab.symbol,
-                    title: tab.title,
-                    isSelected: state.activeTab == tab
-                ) {
-                    state.select(tab)
+        HStack(spacing: 0) {
+            HStack(spacing: 3) {
+                if state.activeTab.isPrimaryTab {
+                    NookTabButton(symbol: "house", title: "Home", isSelected: state.activeTab == .home) { state.select(.home) }
+                    NookTabButton(symbol: "tray.full", title: "Files", isSelected: state.activeTab == .tray) { state.select(.tray) }
+                    NookTabButton(symbol: "doc.on.clipboard", title: "Clipboard", isSelected: state.activeTab == .clipboard) { state.select(.clipboard) }
+                } else {
+                    Button { state.select(.home) } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.backward").font(.system(size: 9, weight: .semibold))
+                            Text(state.activeTab.title).font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
+                        }
+                        .foregroundStyle(ArrowTheme.bone)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+            .frame(width: 185, alignment: .leading)
+            .padding(.leading, 10)
 
-            Spacer(minLength: 4)
+            Color.clear.frame(width: 170)
 
-            NookIconButton(symbol: "gearshape", title: "Settings") {
-                state.collapse()
-                state.onOpenSettings?()
+            HStack(spacing: 3) {
+                NookTabButton(symbol: "square.and.pencil", title: "Notes", isSelected: state.activeTab == .notes) { state.select(.notes) }
+                NookTabButton(symbol: "web.camera", title: "Mirror", isSelected: state.activeTab == .mirror) { state.select(.mirror) }
+                NookIconButton(symbol: "square.grid.2x2", title: "All features", selected: state.activeTab == .launcher) {
+                    if state.activeTab == .launcher { state.select(.home) } else { state.select(.launcher) }
+                }
+                NookIconButton(symbol: "gearshape", title: "Settings") {
+                    state.collapse()
+                    state.onOpenSettings?()
+                }
+                NookIconButton(symbol: "xmark", title: "Close") { state.collapse() }
             }
-            NookIconButton(symbol: "xmark", title: "Close") {
-                state.collapse()
-            }
-            .padding(.trailing, 8)
+            .frame(width: 185, alignment: .trailing)
+            .padding(.trailing, 10)
         }
-        .frame(height: 34)
+        .frame(height: 32)
     }
 }
 
@@ -80,20 +91,24 @@ private struct NookTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 11.5, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? ArrowTheme.amber : ArrowTheme.muted)
-                .frame(width: 25, height: 28)
-                .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isSelected ? ArrowTheme.amberSoft : (isHovering ? Color.white.opacity(0.06) : .clear))
-                )
-                .overlay(alignment: .bottom) {
-                    if isSelected {
-                        Capsule().fill(ArrowTheme.amber).frame(width: 12, height: 2)
-                    }
+            HStack(spacing: 4) {
+                Image(systemName: symbol)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                if isSelected {
+                    Text(title)
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .lineLimit(1)
+                        .fixedSize()
                 }
-                .contentShape(Rectangle())
+            }
+            .foregroundStyle(isSelected ? ArrowTheme.bone : ArrowTheme.muted)
+            .padding(.horizontal, isSelected ? 7 : 5)
+            .frame(height: 24)
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(isSelected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.06) : .clear))
+            )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
@@ -106,14 +121,19 @@ private struct NookTabButton: View {
 private struct NookIconButton: View {
     let symbol: String
     let title: String
+    var selected = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(ArrowTheme.muted)
+                .foregroundStyle(selected ? ArrowTheme.bone : ArrowTheme.muted)
                 .frame(width: 24, height: 26)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(selected ? Color.white.opacity(0.1) : .clear)
+                )
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -554,7 +574,7 @@ private struct CompactClipCard: View {
                 Text(ClipboardRules.preview(entry.text, limit: 120))
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(ArrowTheme.bone)
-                    .lineLimit(3)
+                    .lineLimit(4)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 HStack(spacing: 4) {
                     if let app = entry.appName { Text(app).lineLimit(1); Text("·") }
@@ -564,7 +584,7 @@ private struct CompactClipCard: View {
                 .foregroundStyle(ArrowTheme.faint)
             }
             .padding(9)
-            .frame(width: 142, height: 94)
+            .frame(width: 150, height: 100)
             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isHovering ? 0.1 : 0.05)))
             .contentShape(Rectangle())
         }
