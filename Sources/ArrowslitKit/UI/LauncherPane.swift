@@ -5,8 +5,8 @@ struct LauncherPane: View {
     @Bindable var state: AppState
 
     private var items: [WorkbenchTab] {
-        [.nowPlaying, .timer, .calendar, .tray,
-         .mirror, .clipboard, .notes, .stats]
+        [.nowPlaying, .timer, .stopwatch, .calendar, .keepAwake,
+         .clipboard, .tray, .notes, .mirror, .stats]
             .filter { state.settings.isTabEnabled($0) }
     }
 
@@ -23,7 +23,7 @@ struct LauncherPane: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
+                columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5),
                 spacing: 8
             ) {
             ForEach(items) { tab in
@@ -61,6 +61,8 @@ struct LauncherPane: View {
         case .clipboard, .tray: Color(red: 0.35, green: 0.68, blue: 1)
         case .stats: ArrowTheme.green
         case .notes: Color(red: 1, green: 0.84, blue: 0.35)
+        case .stopwatch: Color(red: 1, green: 0.62, blue: 0.23)
+        case .keepAwake: Color(red: 1, green: 0.84, blue: 0.30)
         case .home, .launcher: ArrowTheme.bone
         }
     }

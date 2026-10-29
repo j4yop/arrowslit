@@ -12,6 +12,8 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case clipboard
     case notes
     case stats
+    case stopwatch
+    case keepAwake
     case launcher
 
     public var id: String { rawValue }
@@ -27,6 +29,8 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "System"
+        case .stopwatch: "Stopwatch"
+        case .keepAwake: "Keep Awake"
         case .launcher: "All Features"
         }
     }
@@ -42,6 +46,8 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
+        case .stopwatch: "stopwatch"
+        case .keepAwake: "cup.and.saucer.fill"
         case .launcher: "square.grid.2x2"
         }
     }
@@ -68,6 +74,8 @@ public final class AppState {
     public let clipboard: ClipboardService
     public let notes: NotesStore
     public let stats: StatsService
+    public let stopwatch = StopwatchService()
+    public let keepAwake = KeepAwakeService()
 
     public private(set) var activeTab: WorkbenchTab = .home
     public private(set) var isExpanded = false
@@ -159,6 +167,10 @@ public final class AppState {
 
     public func setNotesEnabled(_ enabled: Bool) {
         setTabEnabled(.notes, enabled)
+    }
+
+    public func setMenuBarIconVisible(_ visible: Bool) {
+        settings.showMenuBarIcon = visible
     }
 
     public func setTabEnabled(_ tab: WorkbenchTab, _ enabled: Bool) {

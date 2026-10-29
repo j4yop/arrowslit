@@ -21,6 +21,8 @@ struct NookView: View {
                 case .clipboard: CompactClipboard(state: state)
                 case .notes: CompactNotes(state: state)
                 case .stats: CompactStats(state: state)
+                case .stopwatch: CompactStopwatch(state: state)
+                case .keepAwake: CompactKeepAwake(state: state)
                 case .launcher: LauncherPane(state: state)
                 }
             }
@@ -730,6 +732,74 @@ private struct CompactStat: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: 10).fill(ArrowTheme.panel))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5))
+    }
+}
+
+private struct CompactStopwatch: View {
+    @Bindable var state: AppState
+    private var stopwatch: StopwatchService { state.stopwatch }
+
+    var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(stopwatch.isRunning ? "RUNNING" : (stopwatch.elapsed > 0 ? "PAUSED" : "READY"))
+                    .font(.system(size: 7.5, weight: .bold))
+                    .tracking(1.2)
+                    .foregroundStyle(stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.faint)
+                Text(ClockFormat.clock(stopwatch.elapsed, tenths: true))
+                    .font(.system(size: 42, weight: .light, design: .monospaced))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .monospacedDigit()
+            }
+            .frame(width: 190, alignment: .leading)
+
+            HStack(spacing: 8) {
+                SmallAction(
+                    title: stopwatch.isRunning ? "Pause" : "Start",
+                    symbol: stopwatch.isRunning ? "pause.fill" : "play.fill",
+                    filled: true
+                ) {
+                    stopwatch.toggle()
+                }
+                SmallAction(title: "Reset", symbol: "arrow.counterclockwise", filled: false) {
+                    stopwatch.reset()
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxHeight: .infinity, alignment: .center)
+    }
+}
+
+private struct CompactKeepAwake: View {
+    @Bindable var state: AppState
+    private var keepAwake: KeepAwakeService { state.keepAwake }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "cup.and.saucer.fill")
+                .font(.system(size: 24, weight: .light))
+                .foregroundStyle(keepAwake.isOn ? ArrowTheme.amber : ArrowTheme.faint)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(keepAwake.isOn ? "This Mac stays awake." : "Keep this Mac awake.")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                Text("Display sleep is still allowed.")
+                    .font(.system(size: 9.5))
+                    .foregroundStyle(ArrowTheme.faint)
+            }
+            Spacer()
+            Button(keepAwake.isOn ? "Turn Off" : "Turn On") {
+                keepAwake.toggle()
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(ArrowTheme.ink)
+            .padding(.horizontal, 12)
+            .frame(height: 27)
+            .background(Capsule().fill(ArrowTheme.amber))
+        }
+        .frame(maxHeight: .infinity)
     }
 }
 
