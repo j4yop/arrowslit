@@ -32,8 +32,10 @@ struct CountdownTests {
     @Test func finishesOnlyAfterTheDeadline() {
         let start = Date(timeIntervalSince1970: 1_000)
         var timer = Countdown(minutes: 1, now: start)
-        #expect(!timer.finishIfDue(at: start.addingTimeInterval(59)))
-        #expect(timer.finishIfDue(at: start.addingTimeInterval(60)))
+        let early = timer.finishIfDue(at: start.addingTimeInterval(59))
+        #expect(!early)
+        let late = timer.finishIfDue(at: start.addingTimeInterval(60))
+        #expect(late)
         #expect(timer.isFinished)
         #expect(timer.remaining(at: start.addingTimeInterval(61)) == 0)
     }
