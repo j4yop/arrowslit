@@ -22,6 +22,7 @@ final class DebugHooks {
     private func run(_ command: String) {
         switch command {
         case "expand": state.expand(.timer)
+        case "home": state.expand(.home)
         case "collapse": state.collapse()
         case "nowplaying": state.expand(.nowPlaying)
         case "timer": state.expand(.timer)
