@@ -14,12 +14,12 @@ final class SettingsWindowController {
         state.collapse()
         let window = window ?? makeWindow()
         if !window.isVisible, let screen = NSScreen.main {
-            let size = window.frame.size
+            let size = NSSize(width: 540, height: 652)
             let origin = NSPoint(
-                x: screen.visibleFrame.midX - size.width / 2,
-                y: screen.visibleFrame.midY - size.height / 2
+                x: screen.visibleFrame.minX + (screen.visibleFrame.width - size.width) / 2,
+                y: screen.visibleFrame.minY + (screen.visibleFrame.height - size.height) / 2
             )
-            window.setFrameOrigin(origin)
+            window.setFrame(NSRect(origin: origin, size: size), display: true)
         }
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
