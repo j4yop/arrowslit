@@ -162,6 +162,7 @@ private struct TrayCell: View {
     }
 }
 
+@MainActor
 private extension NSItemProvider {
     func fileURL() async -> URL? {
         await withCheckedContinuation { continuation in
