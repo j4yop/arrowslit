@@ -86,8 +86,8 @@ final class PanelController {
     private func updateFrame(animated: Bool) {
         guard let screen = ScreenReader.builtIn() else { return }
         let geometry = ScreenReader.geometry(for: screen)
-        let width: CGFloat = state.isExpanded ? 720 : 360
-        let height: CGFloat = state.isExpanded ? 420 : 36
+        let width: CGFloat = state.isExpanded ? 560 : 320
+        let height: CGFloat = state.isExpanded ? 178 : 32
         let x = (screen.frame.minX + geometry.centreX - width / 2).rounded()
         let y = screen.frame.maxY - height
         let frame = NSRect(x: x, y: y, width: width, height: height)

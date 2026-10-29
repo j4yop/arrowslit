@@ -6,7 +6,7 @@ struct ArrowslitRootView: View {
     var body: some View {
         ZStack(alignment: .top) {
             if state.isExpanded {
-                WorkbenchView(state: state)
+                NookView(state: state)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             } else {
                 CompactBar(state: state)
@@ -14,8 +14,8 @@ struct ArrowslitRootView: View {
             }
         }
         .frame(
-            width: state.isExpanded ? 720 : 360,
-            height: state.isExpanded ? 420 : 36,
+            width: state.isExpanded ? 560 : 320,
+            height: state.isExpanded ? 178 : 32,
             alignment: .top
         )
         .animation(.spring(response: 0.34, dampingFraction: 0.86), value: state.isExpanded)
@@ -28,9 +28,9 @@ private struct CompactBar: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            SlitMark(height: 15)
+            SlitMark(height: 13)
             Text("ARROWSLIT")
-                .font(.system(size: 9.5, weight: .semibold))
+                .font(.system(size: 8.5, weight: .semibold))
                 .tracking(2.2)
                 .foregroundStyle(ArrowTheme.bone.opacity(0.88))
 
@@ -53,8 +53,8 @@ private struct CompactBar: View {
                 .font(.system(size: 8, weight: .bold))
                 .foregroundStyle(ArrowTheme.faint)
         }
-        .padding(.horizontal, 14)
-        .frame(width: 360, height: 36)
+        .padding(.horizontal, 11)
+        .frame(width: 320, height: 32)
         .background(ArrowTheme.ink)
         .clipShape(SlitShape(radius: 12))
         .overlay {
