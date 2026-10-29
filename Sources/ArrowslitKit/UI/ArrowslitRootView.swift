@@ -37,22 +37,22 @@ private struct CompactBar: View {
     let notchWidth: CGFloat
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
-    private var showsWordmark: Bool { ear >= 100 }
+    private var showsWordmark: Bool { ear >= 78 }
 
     var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 7) {
+            HStack(spacing: 5) {
                 SlitMark(height: 13)
                 if showsWordmark {
                     Text("ARROWSLIT")
-                        .font(.system(size: 8, weight: .semibold))
-                        .tracking(1.8)
+                        .font(.system(size: ear >= 104 ? 8.5 : 8, weight: .semibold))
+                        .tracking(ear >= 104 ? 2.2 : 0)
                         .foregroundStyle(ArrowTheme.bone.opacity(0.88))
                         .lineLimit(1)
                         .fixedSize()
                 }
             }
-            .padding(.leading, 12)
+            .padding(.leading, 10)
             .frame(width: ear, alignment: .leading)
             .clipped()
 
@@ -62,7 +62,7 @@ private struct CompactBar: View {
             HStack(spacing: 4) {
                 VStack(alignment: .trailing, spacing: 0) {
                     Text(state.compactValue)
-                        .font(.system(size: 11, weight: .semibold, design: state.timer.isActive ? .monospaced : .default))
+                        .font(.system(size: 12, weight: .semibold, design: state.timer.isActive ? .monospaced : .default))
                         .monospacedDigit()
                         .foregroundStyle(state.timer.isActive ? ArrowTheme.amber : ArrowTheme.bone)
                         .lineLimit(1)
