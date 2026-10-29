@@ -2,16 +2,18 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class SettingsWindowController {
+final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let state: AppState
     private var window: NSWindow?
 
     init(state: AppState) {
         self.state = state
+        super.init()
     }
 
     func show() {
         state.collapse()
+        NSApp.setActivationPolicy(.regular)
         let window = window ?? makeWindow()
         if !window.isVisible, let screen = NSScreen.main {
             let size = NSSize(width: 540, height: 652)
@@ -36,9 +38,14 @@ final class SettingsWindowController {
         window.title = "Arrowslit Settings"
         window.contentViewController = NSHostingController(rootView: SettingsView(state: state))
         window.isReleasedWhenClosed = false
+        window.delegate = self
         window.titlebarAppearsTransparent = true
         window.backgroundColor = NSColor(ArrowTheme.ink)
         self.window = window
         return window
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
     }
 }
