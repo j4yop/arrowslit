@@ -28,64 +28,116 @@ private struct MediaCard: View {
     private var service: NowPlayingService { state.nowPlaying }
 
     var body: some View {
-        let track = service.track
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 9) {
-                Group {
-                    if let image = service.artwork {
-                        Image(nsImage: image).resizable().interpolation(.high).aspectRatio(contentMode: .fill)
-                    } else {
-                        ZStack { Color.white.opacity(0.12); Image(systemName: "music.note").font(.system(size: 16, weight: .semibold)).foregroundStyle(.white.opacity(0.7)) }
-                    }
-                }
-                .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(track?.title.isEmpty == false ? track!.title : "Nothing playing")
-                        .font(.system(size: 11.5, weight: .semibold))
-                        .foregroundStyle(ArrowTheme.bone)
-                        .lineLimit(1)
-                    Text(track?.artist.isEmpty == false ? track!.artist : "Play something to begin")
-                        .font(.system(size: 9.5))
-                        .foregroundStyle(ArrowTheme.muted)
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                if let track {
-                    MusicBars(isPlaying: track.isPlaying, color: state.nowPlaying.accent.color, height: 16)
-                        .padding(.top, 1)
-                }
-            }
-
-            if let track {
-                TimelineView(.animation(minimumInterval: 1, paused: !track.isPlaying)) { context in
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.white.opacity(0.18))
-                            Capsule().fill(ArrowTheme.bone.opacity(0.8))
-                                .frame(width: geometry.size.width * CGFloat(track.progress(at: context.date) ?? 0))
-                        }
-                    }
-                }
-                .frame(height: 3)
-
-                HStack(spacing: 16) {
-                    Button { service.previous() } label: { Image(systemName: "backward.fill").font(.system(size: 10, weight: .semibold)) }
-                    Button { service.toggle() } label: { Image(systemName: track.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 13, weight: .semibold)) }
-                    Button { service.next() } label: { Image(systemName: "forward.fill").font(.system(size: 10, weight: .semibold)) }
-                }
-                .buttonStyle(NookPressStyle())
-                .foregroundStyle(ArrowTheme.bone)
-                .frame(maxWidth: .infinity)
+        VStack(spacing: 6) {
+            if let track = service.track, track.hasContent {
+                playing(track)
             } else {
-                Spacer(minLength: 0)
+                empty
             }
         }
         .padding(9)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .background(RoundedRectangle(cornerRadius: 13, style: .continuous).fill(Color.white.opacity(0.07)))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.04))
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+        }
+    }
+
+    private func playing(_ track: NowPlayingTrack) -> some View {
+        VStack(spacing: 6) {
+            HStack(alignment: .top, spacing: 9) {
+                Group {
+                    if let artwork = service.artwork {
+                        Image(nsImage: artwork)
+                            .resizable()
+                            .interpolation(.high)
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        ZStack {
+                            ArrowTheme.panel
+                            SlitMark(height: 20, color: ArrowTheme.amber.opacity(0.8))
+                        }
+                    }
+                }
+                .frame(width: 58, height: 58)
+                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .contentShape(Rectangle())
+                .onTapGesture { state.expand(.nowPlaying) }
+                .help("Open the music nudge")
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .top, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(track.title)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(ArrowTheme.bone)
+                                .lineLimit(1)
+                            Text(track.artist.isEmpty ? "Unknown artist" : track.artist)
+                                .font(.system(size: 9.5))
+                                .foregroundStyle(ArrowTheme.muted)
+                                .lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture { state.expand(.nowPlaying) }
+
+                        MusicBars(
+                            isPlaying: track.isPlaying,
+                            color: service.accent.color,
+                            height: 10,
+                            width: 12
+                        )
+                    }
+
+                    Spacer(minLength: 0)
+
+                    HStack(spacing: 8) {
+                        PlayerGlyphButton(symbol: "backward.fill", size: 11, label: "Previous Track") {
+                            service.previous()
+                        }
+                        PlayerGlyphButton(
+                            symbol: track.isPlaying ? "pause.fill" : "play.fill",
+                            size: 16,
+                            label: track.isPlaying ? "Pause" : "Play"
+                        ) {
+                            service.toggle()
+                        }
+                        PlayerGlyphButton(symbol: "forward.fill", size: 11, label: "Next Track") {
+                            service.next()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            PlayerProgressRow(state: state)
+        }
+    }
+
+    private var empty: some View {
+        HStack(spacing: 9) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
+                Image(systemName: "music.note")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(ArrowTheme.muted)
+            }
+            .frame(width: 58, height: 58)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Nothing playing")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                Text("Play something to begin")
+                    .font(.system(size: 9.5))
+                    .foregroundStyle(ArrowTheme.muted)
+            }
+            Spacer(minLength: 0)
+        }
     }
 }
 
