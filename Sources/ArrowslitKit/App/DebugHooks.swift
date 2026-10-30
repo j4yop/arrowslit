@@ -17,6 +17,9 @@ final class DebugHooks {
             guard let command = notification.object as? String else { return }
             MainActor.assumeIsolated { self?.run(command) }
         }
+        if let command = ProcessInfo.processInfo.environment["ARROWSLIT_DEBUG_COMMAND"] {
+            run(command)
+        }
     }
 
     private func run(_ command: String) {
