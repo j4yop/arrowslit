@@ -54,7 +54,7 @@ private struct MediaCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 if let track {
-                    MusicBars(isPlaying: track.isPlaying, height: 16)
+                    MusicBars(isPlaying: track.isPlaying, color: state.nowPlaying.accent.color, height: 16)
                         .padding(.top, 1)
                 }
             }

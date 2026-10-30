@@ -255,4 +255,65 @@ struct NotchPanelMetricsTests {
         let size = NotchPanelMetrics.size(for: .alert(event()), geometry: geometry)
         #expect(size == CGSize(width: 560, height: 86))
     }
+
+    @Test func nowPlayingUsesTheCompactPlayerPanel() {
+        let size = NotchPanelMetrics.size(for: .expanded(.nowPlaying), geometry: geometry)
+        #expect(size == CGSize(width: 390, height: 218))
+    }
+}
+
+@Suite("Synced lyrics")
+struct SyncedLyricsTests {
+    @Test func parsesTimedLinesAndIgnoresTags() {
+        let lyrics = SyncedLyrics(lrc: """
+        [ar:The Weeknd]
+        [00:12.50]First line
+        [00:20.00][00:40.00]Repeated
+        [01:02.25]Last line
+        """)
+
+        #expect(lyrics?.lines.count == 4)
+        #expect(lyrics?.lines.first?.text == "First line")
+        #expect(lyrics?.lines.first?.time == 12.5)
+        #expect(lyrics?.lines.last?.time == 62.25)
+    }
+
+    @Test func returnsNilForPlainLyrics() {
+        #expect(SyncedLyrics(lrc: "Just words\nWithout a time") == nil)
+    }
+
+    @Test func findsTheLineAtTheCurrentTime() {
+        let lyrics = SyncedLyrics(lrc: "[00:01.00]One\n[00:05.00]Two\n[00:09.00]Three")
+        #expect(lyrics?.index(at: 0.5) == nil)
+        #expect(lyrics?.index(at: 4.9) == 0)
+        #expect(lyrics?.index(at: 5.0) == 1)
+        #expect(lyrics?.index(at: 20) == 2)
+    }
+}
+
+@Suite("Lyrics lookup")
+struct LyricsLookupTests {
+    @Test func buildsARequestWithOnlySongMetadata() {
+        let key = LyricsKey(title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", duration: 200)!
+        let url = LyricsLookup.getURL(for: key)
+        let items = URLComponents(url: url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+
+        #expect(url?.host == "lrclib.net")
+        #expect(items.contains { $0.name == "track_name" && $0.value == "Blinding Lights" })
+        #expect(items.contains { $0.name == "artist_name" && $0.value == "The Weeknd" })
+        #expect(items.contains { $0.name == "duration" && $0.value == "200" })
+    }
+
+    @Test func rejectsLyricsFromADifferentLength() {
+        let key = LyricsKey(title: "Song", artist: "Artist", album: "", duration: 200)!
+        let record = LyricsLookup.Record(duration: 260, instrumental: false, syncedLyrics: "[00:01.00]Words")
+        #expect(LyricsLookup.lyrics(from: record, for: key) == nil)
+    }
+}
+
+@Suite("Artwork accent")
+struct ArtworkAccentTests {
+    @Test func unreadableArtworkFallsBackToWhite() {
+        #expect(ArtworkAccentReader.accent(from: Data([0, 1, 2, 3])) == .white)
+    }
 }

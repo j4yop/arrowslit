@@ -66,3 +66,10 @@ public struct SlitMark: View {
         .accessibilityHidden(true)
     }
 }
+
+extension ArtworkAccent {
+    /// SwiftUI colour for the music bars.
+    public var color: Color {
+        Color(red: red, green: green, blue: blue)
+    }
+}
