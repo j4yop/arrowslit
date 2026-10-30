@@ -78,6 +78,7 @@ public final class AppState {
     public let notes: NotesStore
     public let stats: StatsService
     public let reminders: RemindersService
+    public let lyrics = LyricsService()
     public let stopwatch = StopwatchService()
     public let keepAwake = KeepAwakeService()
 
