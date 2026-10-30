@@ -37,6 +37,7 @@ public struct NowPlayingTrack: Equatable, Sendable {
 public final class NowPlayingService {
     public private(set) var track: NowPlayingTrack?
     public private(set) var artwork: NSImage?
+    public private(set) var accent: ArtworkAccent = .white
     public private(set) var isAvailable = true
 
     @ObservationIgnored private let reader = MediaLineReader()
@@ -65,6 +66,7 @@ public final class NowPlayingService {
         reader.reset()
         track = nil
         artwork = nil
+        accent = .white
     }
 
     public func toggle() {
@@ -172,23 +174,25 @@ public final class NowPlayingService {
         }
     }
 
-    private func apply(_ messages: [WireMessage]) {
-        for message in messages {
+    private func apply(_ messages: [ParsedWireMessage]) {
+        for parsed in messages {
+            let message = parsed.message
             switch message.type {
             case "ready":
                 isAvailable = true
             case "track":
-                applyTrack(message)
+                applyTrack(message, accent: parsed.accent)
             default:
                 break
             }
         }
     }
 
-    private func applyTrack(_ message: WireMessage) {
+    private func applyTrack(_ message: WireMessage, accent: ArtworkAccent?) {
         guard message.hasInfo == true else {
             track = nil
             artwork = nil
+            self.accent = .white
             return
         }
         let title = message.title ?? ""
@@ -196,6 +200,7 @@ public final class NowPlayingService {
         guard !title.isEmpty || !artist.isEmpty else {
             track = nil
             artwork = nil
+            self.accent = .white
             return
         }
         let newTrack = NowPlayingTrack(
@@ -212,8 +217,10 @@ public final class NowPlayingService {
         )
         if let encoded = message.artwork, let data = Data(base64Encoded: encoded), let image = NSImage(data: data) {
             artwork = image
-        } else if newTrack.artworkKey == nil || newTrack.artworkKey != track?.artworkKey {
+            self.accent = accent ?? .white
+        } else if newTrack.artworkKey == nil || newTrack.artworkKey != track?.artworkKey || artwork == nil {
             artwork = nil
+            self.accent = .white
         }
         track = newTrack
     }
@@ -247,6 +254,11 @@ public final class NowPlayingService {
     }
 }
 
+private struct ParsedWireMessage: Sendable {
+    let message: WireMessage
+    let accent: ArtworkAccent?
+}
+
 private struct WireMessage: Decodable, Sendable {
     let type: String
     let hasInfo: Bool?
@@ -272,16 +284,19 @@ private final class MediaLineReader: @unchecked Sendable {
         queue.sync { buffer.removeAll() }
     }
 
-    func append(_ data: Data, deliver: @escaping @Sendable ([WireMessage]) -> Void) {
+    func append(_ data: Data, deliver: @escaping @Sendable ([ParsedWireMessage]) -> Void) {
         queue.async {
             self.buffer.append(data)
-            var messages: [WireMessage] = []
+            var messages: [ParsedWireMessage] = []
             while let newline = self.buffer.firstIndex(of: 0x0A) {
                 let line = Data(self.buffer[self.buffer.startIndex..<newline])
                 self.buffer.removeSubrange(self.buffer.startIndex...newline)
                 guard !line.isEmpty else { continue }
                 if let message = try? JSONDecoder().decode(WireMessage.self, from: line) {
-                    messages.append(message)
+                    let accent = message.artwork
+                        .flatMap { Data(base64Encoded: $0) }
+                        .map { ArtworkAccentReader.accent(from: $0) }
+                    messages.append(ParsedWireMessage(message: message, accent: accent))
                 }
             }
             if self.buffer.count > Self.maximumBuffer {
