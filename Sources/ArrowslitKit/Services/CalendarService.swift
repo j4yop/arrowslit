@@ -161,6 +161,8 @@ public final class CalendarService {
                 )
             }
         if fresh != events { events = fresh }
+        // Keep the remembered IDs bounded to the events still in view.
+        reminded.formIntersection(Set(fresh.map(\.id)))
         scheduleReminder()
     }
 

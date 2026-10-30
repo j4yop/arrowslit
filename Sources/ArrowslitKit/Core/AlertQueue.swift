@@ -43,9 +43,9 @@ public struct AlertQueue: Equatable, Sendable {
     @discardableResult
     public mutating func present(now: Date, allowNonUrgent: Bool) -> Bool {
         guard current == nil else { return false }
-        guard let index = pending.firstIndex(where: { allowNonUrgent || $0.isUrgent }) else {
-            return false
-        }
+        let index = pending.firstIndex(where: \.isUrgent)
+            ?? (allowNonUrgent ? pending.firstIndex(where: { !$0.isUrgent }) : nil)
+        guard let index else { return false }
         current = pending.remove(at: index)
         shownAt = now
         return true
