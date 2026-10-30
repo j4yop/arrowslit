@@ -1,4 +1,4 @@
-Arrowslit 0.1.0
+Arrowslit 0.2.0
 =============
 
 A local-only notch utility for macOS 14 or later.
@@ -13,7 +13,7 @@ quarantine flag after installation, so the app opens normally.
 
 Manual install
 --------------
-1. Open Arrowslit-0.1.0.dmg and drag Arrowslit into Applications.
+1. Open Arrowslit-0.2.0.dmg and drag Arrowslit into Applications.
 2. Open Applications and double-click Arrowslit. macOS will refuse the first
    launch because Arrowslit is not notarized yet. Click Done.
 3. Open System Settings -> Privacy & Security and scroll down. Click
