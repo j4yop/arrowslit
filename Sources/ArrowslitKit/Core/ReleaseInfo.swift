@@ -41,6 +41,24 @@ public struct ReleaseInfo: Equatable, Sendable {
         )
     }
 
+    /// Build the release from the final URL of `/releases/latest`. This avoids GitHub's
+    /// anonymous API rate limit while using the stable release redirect.
+    public static func fromLatestRedirect(_ url: URL) -> ReleaseInfo? {
+        guard url.scheme?.lowercased() == "https",
+              url.host?.lowercased() == "github.com",
+              url.path.contains("/releases/tag/"),
+              let tag = url.pathComponents.last,
+              let version = SemanticVersion(tag) else {
+            return nil
+        }
+        let base = "https://github.com/j4yop/arrowslit/releases/download/v\(version)/"
+        guard let diskImage = URL(string: base + "Arrowslit-\(version).dmg"),
+              let checksum = URL(string: base + "Arrowslit-\(version).dmg.sha256") else {
+            return nil
+        }
+        return ReleaseInfo(version: version, page: url, diskImage: diskImage, checksum: checksum)
+    }
+
     /// Release URLs are metadata, not a trust anchor. Keep them on GitHub.
     public static func isAllowedURL(_ url: URL, forAsset: Bool) -> Bool {
         guard url.scheme?.lowercased() == "https", let host = url.host?.lowercased() else { return false }
