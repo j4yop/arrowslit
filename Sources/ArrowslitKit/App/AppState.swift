@@ -173,7 +173,20 @@ public final class AppState {
     }
 
     public func toggle() {
-        if isExpanded { collapse() } else { expand(.timer) }
+        if isExpanded { collapse() } else { expandDefault() }
+    }
+
+    /// What opening the notch should show when the user hasn't picked a tab.
+    /// Media takes precedence; everything else falls back to Home.
+    public var defaultTab: WorkbenchTab {
+        if settings.isTabEnabled(.nowPlaying), nowPlaying.isVisible {
+            return .nowPlaying
+        }
+        return .home
+    }
+
+    public func expandDefault() {
+        expand(defaultTab)
     }
 
     public func select(_ tab: WorkbenchTab) {
