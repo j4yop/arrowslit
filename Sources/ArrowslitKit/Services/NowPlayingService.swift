@@ -45,6 +45,9 @@ public final class NowPlayingService {
     @ObservationIgnored private var input: FileHandle?
     @ObservationIgnored private var isStopping = false
     @ObservationIgnored private var launches: [Date] = []
+    #if DEBUG
+    @ObservationIgnored private var isDemo = false
+    #endif
 
     public init() {}
 
@@ -83,6 +86,7 @@ public final class NowPlayingService {
         self.artwork = artwork
         self.accent = accent
         isAvailable = true
+        isDemo = true
     }
     #endif
 
@@ -218,6 +222,9 @@ public final class NowPlayingService {
     }
 
     private func applyTrack(_ message: WireMessage, accent: ArtworkAccent?) {
+        #if DEBUG
+        if isDemo { return }
+        #endif
         guard message.hasInfo == true else {
             track = nil
             artwork = nil

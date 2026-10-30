@@ -18,7 +18,10 @@ final class DebugHooks {
             MainActor.assumeIsolated { self?.run(command) }
         }
         if let command = ProcessInfo.processInfo.environment["ARROWSLIT_DEBUG_COMMAND"] {
-            run(command)
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(2))
+                self?.run(command)
+            }
         }
     }
 
