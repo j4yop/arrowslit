@@ -21,11 +21,12 @@ that still gives a defender a full view and full control.
 ## Install with Homebrew
 
 ```bash
-brew install --cask j4yop/tap/arrowslit
+brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
 ```
 
-Homebrew downloads the release without the quarantine flag, so there is no
-Gatekeeper detour.
+Homebrew 7 asks you to trust a third-party tap once. The cask clears the
+quarantine flag after installation, so there is no Gatekeeper detour. Review the
+public source and cask before trusting the tap.
 
 ## Install manually
 

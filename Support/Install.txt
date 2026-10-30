@@ -6,9 +6,10 @@ Universal build: Apple Silicon and Intel.
 
 Homebrew (recommended)
 -----------------------
-    brew install --cask j4yop/tap/arrowslit
+    brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
 
-Homebrew installs the app without the quarantine flag, so it opens normally.
+Homebrew 7 asks you to trust a third-party tap once. The cask clears the
+quarantine flag after installation, so the app opens normally.
 
 Manual install
 --------------
