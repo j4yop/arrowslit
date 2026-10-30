@@ -258,11 +258,9 @@ struct NotchPanelMetricsTests {
         #expect(size == CGSize(width: 560, height: 86))
     }
 
-    @Test func nowPlayingUsesTheNudgePanel() {
+    @Test func nowPlayingUsesTheTallPlayerPanel() {
         let size = NotchPanelMetrics.size(for: .expanded(.nowPlaying), geometry: geometry)
-        #expect(size == CGSize(width: 306, height: 146))
-        let withLyrics = NotchPanelMetrics.size(for: .expanded(.nowPlaying), geometry: geometry, lyrics: true)
-        #expect(withLyrics == CGSize(width: 306, height: 172))
+        #expect(size == CGSize(width: 390, height: 218))
     }
 }
 
