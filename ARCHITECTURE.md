@@ -54,14 +54,17 @@ the current alert before closing the workbench.
 ## Now Playing nudge
 
 The compact strip shows album art on the left and four animated bars on the right. Clicking it
-opens `NowPlayingPlayerView`, a 306 × 146 pt nudge that floats just below the camera housing.
-It uses the wide, short layout of a system now-playing nudge: 110 pt artwork, title/artist,
-centered back/pause/forward controls, and a blue scrubber with elapsed/remaining times. If timed
-lyrics are enabled and available, the nudge grows to 306 × 172 and adds one animated lyric line.
+opens `NowPlayingPlayerView`, the 390 × 218 expanded player: 56 pt artwork, title/artist,
+waveform, optional lyric line, white scrubber and back/pause/forward controls.
 
-`NotchPanelMetrics` owns both sizes. `PanelController` uses the same value for the window frame
-and offsets only the music nudge below the housing, so the card cannot drift away from the notch.
-Album artwork is tinted on the media reader's background queue and the bars animate with Core
+Home uses the same visual language in a fixed **306 × 146** nudge card on the left. The Home
+panel is **560 × 204** only on the Home tab so that card keeps the nudge geometry; every other
+tab stays 560 × 178. Home uses the blue nudge scrubber and times, while the tall player uses the
+inline white scrubber.
+
+`NotchPanelMetrics` owns the compact, Home, player and alert sizes. `PanelController` uses the
+same value for the window frame, so the visible surface and window cannot disagree. Album
+artwork is tinted on the media reader's background queue and the bars animate with Core
 Animation, keeping both off the main render path.
 
 Lyrics are optional and off by default. When enabled, `LyricsService` sends only the song's
