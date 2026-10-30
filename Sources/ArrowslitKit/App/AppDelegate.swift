@@ -47,6 +47,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
+    public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     public func applicationWillTerminate(_ notification: Notification) {
         state?.stop()
         panel?.tearDown()

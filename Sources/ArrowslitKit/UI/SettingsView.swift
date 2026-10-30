@@ -140,6 +140,35 @@ struct SettingsView: View {
                         }
                     }
 
+                    SettingsSection(title: "ACCESS", note: "macOS remembers these for the installed copy. Allow them once; Arrowslit never asks in the background.") {
+                        AccessStatusRow(
+                            title: "Calendar",
+                            symbol: "calendar",
+                            detail: calendarDetail,
+                            tint: calendarTint,
+                            actionTitle: calendarActionTitle,
+                            action: calendarAction
+                        )
+                        Divider().overlay(ArrowTheme.hairline)
+                        AccessStatusRow(
+                            title: "Reminders",
+                            symbol: "checklist",
+                            detail: remindersDetail,
+                            tint: remindersTint,
+                            actionTitle: remindersActionTitle,
+                            action: remindersAction
+                        )
+                        Divider().overlay(ArrowTheme.hairline)
+                        AccessStatusRow(
+                            title: "Camera",
+                            symbol: "person.crop.square",
+                            detail: cameraDetail,
+                            tint: cameraTint,
+                            actionTitle: cameraActionTitle,
+                            action: cameraAction
+                        )
+                    }
+
                     SettingsSection(title: "ABOUT", note: "A narrow aperture. A wider day.") {
                         HStack(alignment: .top, spacing: 12) {
                             VStack(alignment: .leading, spacing: 3) {
@@ -164,6 +193,104 @@ struct SettingsView: View {
         .frame(width: 540, height: 620)
         .background(ArrowTheme.ink)
         .onAppear { syncLogin() }
+    }
+
+    private var calendarDetail: String {
+        switch state.calendar.access {
+        case .granted: "Allowed — your next event will appear in the notch"
+        case .notAsked: "Not connected"
+        case .denied: "Permission denied — open Privacy Settings"
+        case .limited: "Limited access — open Privacy Settings"
+        }
+    }
+
+    private var calendarTint: Color {
+        switch state.calendar.access {
+        case .granted: ArrowTheme.green
+        case .denied, .limited: ArrowTheme.red
+        case .notAsked: ArrowTheme.faint
+        }
+    }
+
+    private var calendarActionTitle: String? {
+        switch state.calendar.access {
+        case .granted: nil
+        case .notAsked: "Connect"
+        case .denied, .limited: "Open Settings"
+        }
+    }
+
+    private func calendarAction() {
+        switch state.calendar.access {
+        case .notAsked: state.calendar.requestAccess()
+        case .denied, .limited: state.calendar.openPrivacySettings()
+        case .granted: break
+        }
+    }
+
+    private var remindersDetail: String {
+        switch state.reminders.access {
+        case .granted: "Allowed — today's to-dos appear in the notch"
+        case .notAsked: "Not connected"
+        case .denied: "Permission denied — open Privacy Settings"
+        }
+    }
+
+    private var remindersTint: Color {
+        switch state.reminders.access {
+        case .granted: ArrowTheme.green
+        case .denied: ArrowTheme.red
+        case .notAsked: ArrowTheme.faint
+        }
+    }
+
+    private var remindersActionTitle: String? {
+        switch state.reminders.access {
+        case .granted: nil
+        case .notAsked: "Connect"
+        case .denied: "Open Settings"
+        }
+    }
+
+    private func remindersAction() {
+        switch state.reminders.access {
+        case .notAsked: state.reminders.requestAccess()
+        case .denied: state.reminders.openPrivacySettings()
+        case .granted: break
+        }
+    }
+
+    private var cameraDetail: String {
+        switch state.camera.state {
+        case .granted: "Allowed — local preview only"
+        case .notAsked: "Not connected"
+        case .denied: "Permission denied — open Privacy Settings"
+        case .noCamera: "No camera found"
+        }
+    }
+
+    private var cameraTint: Color {
+        switch state.camera.state {
+        case .granted: ArrowTheme.green
+        case .denied: ArrowTheme.red
+        case .notAsked, .noCamera: ArrowTheme.faint
+        }
+    }
+
+    private var cameraActionTitle: String? {
+        switch state.camera.state {
+        case .granted, .noCamera: nil
+        case .notAsked: "Connect"
+        case .denied: "Open Settings"
+        }
+    }
+
+    private func cameraAction() {
+        switch state.camera.state {
+        case .notAsked: state.camera.request()
+        case .denied: state.camera.openPrivacySettings()
+        case .granted, .noCamera: break
+        }
     }
 
     private func syncLogin() {
@@ -214,6 +341,49 @@ private struct SettingsSection<Content: View>: View {
                     .stroke(ArrowTheme.hairline, lineWidth: 0.5)
             }
         }
+    }
+}
+
+private struct AccessStatusRow: View {
+    let title: String
+    let symbol: String
+    let detail: String
+    let tint: Color
+    let actionTitle: String?
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone)
+                Text(detail)
+                    .font(.system(size: 10))
+                    .foregroundStyle(ArrowTheme.muted)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 8)
+            if let actionTitle {
+                Button(actionTitle, action: action)
+                    .buttonStyle(NookPressStyle())
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.ink)
+                    .padding(.horizontal, 10)
+                    .frame(height: 26)
+                    .background(Capsule().fill(ArrowTheme.amber))
+            } else {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(tint)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }
 

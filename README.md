@@ -111,6 +111,19 @@ Tests:
 swift test
 ```
 
+## Permissions
+
+Calendar, Reminders and Camera are managed by macOS and remembered for the
+installed copy of Arrowslit. Arrowslit never asks in the background: you press
+**Connect** once from Settings or a pane, allow it, and macOS keeps that choice
+across quitting and reopening the app. Use one installed copy (the one in
+Applications); launching a second copy from the DMG or a duplicate folder makes
+macOS treat it as a different app.
+
+Replacing an unnotarized build with a new build can make macOS ask once more.
+A notarized release with a stable Developer ID will remove that last prompt
+across updates.
+
 ## Privacy
 
 Arrowslit has no account, analytics, or network access. Clipboard history, notes,
