@@ -26,6 +26,31 @@ Sources/
 └── ArrowslitMedia/               Optional ObjC media helper, loaded by Perl
 ```
 
+## Alerts and presentations
+
+Calendar reminders and future system events share one path:
+
+```text
+CalendarService  ──5 min before──▶  AppState.receive(.upcomingEvent)
+                                          │
+                                          ▼
+                                     AlertQueue
+                          one at a time · same-kind coalescing
+                          urgency · expiry · pending
+                                          │
+                                          ▼
+                                 PresentationResolver
+                       alert > expanded (unless urgent) > compact
+                                          │
+                                          ▼
+                                   NotchAlertView
+```
+
+`NotchPresentation` is the single answer to “what is the notch showing?”. `PanelController` and
+`ArrowslitRootView` both read it, so the window size and the visible surface cannot disagree.
+Alerts wait while the workbench is open unless they are urgent; outside-click and Escape dismiss
+the current alert before closing the workbench.
+
 ## Data flow
 
 1. Services publish state with `@Observable`.
