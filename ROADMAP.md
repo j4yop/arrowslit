@@ -4,7 +4,7 @@ The goal is a quiet, fast, local-only notch utility — not a clone of any exist
 feature set is inspired by the best free notch projects, but the interaction model, visual
 language and code are our own.
 
-## What exists today (0.4.4)
+## What exists today (0.4.5)
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status
@@ -15,6 +15,7 @@ language and code are our own.
 - One-alert-at-a-time notch notifications with expiry, urgency and dismissal
 - Media-aware default: opening the notch shows the player when music/video is playing, otherwise Home
 - Daily GitHub update check, checksum-verified DMG download and Download & Open button
+- Rate-limit-safe latest-release check through the GitHub releases redirect
 - Full 390×218 Now Playing player with lyrics
 - Apple Music-style 306×146 nudge in the Home media card
 - Optional timed lyrics, off by default

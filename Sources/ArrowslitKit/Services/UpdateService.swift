@@ -30,7 +30,7 @@ public final class UpdateService {
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var task: Task<Void, Never>?
 
-    private static let latestRelease = URL(string: "https://api.github.com/repos/j4yop/arrowslit/releases/latest")!
+    private nonisolated static let latestRelease = URL(string: "https://api.github.com/repos/j4yop/arrowslit/releases/latest")!
     private static let checkInterval: TimeInterval = 24 * 3600
     private static let maximumDiskImageBytes = 50 * 1024 * 1024
     private static let maximumChecksumBytes = 4 * 1024
@@ -76,14 +76,7 @@ public final class UpdateService {
         task = Task { [weak self] in
             guard let self else { return }
             do {
-                var request = URLRequest(url: Self.latestRelease, timeoutInterval: 20)
-                request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-                request.setValue("Arrowslit/\(currentVersion?.description ?? "0.0.0")", forHTTPHeaderField: "User-Agent")
-                let (data, response) = try await session.data(for: request)
-                guard (response as? HTTPURLResponse)?.statusCode == 200,
-                      let release = ReleaseInfo.parse(data) else {
-                    throw UpdateError.unreadable
-                }
+                let release = try await Self.fetchLatest(session: session, userAgent: "Arrowslit/\(currentVersion?.description ?? "0.0.0")")
                 defaults.set(Date(), forKey: Key.lastCheck)
                 if let current = currentVersion, release.version > current {
                     availableRelease = release
@@ -158,6 +151,28 @@ public final class UpdateService {
                 state = .failed("The update couldn't be downloaded. Try again, or download it from GitHub.")
             }
         }
+    }
+
+    nonisolated private static func fetchLatest(session: URLSession, userAgent: String) async throws -> ReleaseInfo {
+        var request = URLRequest(url: URL(string: "https://github.com/j4yop/arrowslit/releases/latest")!, timeoutInterval: 20)
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        if let (_, response) = try? await session.data(for: request),
+           let http = response as? HTTPURLResponse, http.statusCode == 200,
+           let finalURL = response.url,
+           let release = ReleaseInfo.fromLatestRedirect(finalURL) {
+            return release
+        }
+
+        // Fallback for networks where the redirect is unavailable.
+        var api = URLRequest(url: latestRelease, timeoutInterval: 20)
+        api.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        api.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        let (data, response) = try await session.data(for: api)
+        guard (response as? HTTPURLResponse)?.statusCode == 200,
+              let release = ReleaseInfo.parse(data) else {
+            throw UpdateError.unreadable
+        }
+        return release
     }
 
     #if DEBUG
