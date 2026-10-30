@@ -79,6 +79,7 @@ public final class AppState {
     public let stats: StatsService
     public let reminders: RemindersService
     public let lyrics = LyricsService()
+    public let updater = UpdateService()
     public let stopwatch = StopwatchService()
     public let keepAwake = KeepAwakeService()
 
@@ -126,6 +127,7 @@ public final class AppState {
         nowPlaying.start()
         calendar.start()
         if settings.clipboardEnabled { clipboard.start() }
+        if settings.checksForUpdates { updater.startAutomaticChecks() }
     }
 
     public func stop() {
@@ -136,6 +138,7 @@ public final class AppState {
         clipboard.stop()
         stats.stop()
         timer.reset()
+        updater.stop()
         alertTask?.cancel()
         alertTask = nil
         alerts = AlertQueue()
@@ -236,6 +239,11 @@ public final class AppState {
 
     public func setMenuBarIconVisible(_ visible: Bool) {
         settings.showMenuBarIcon = visible
+    }
+
+    public func setChecksForUpdates(_ enabled: Bool) {
+        settings.checksForUpdates = enabled
+        if enabled { updater.startAutomaticChecks() } else { updater.stop() }
     }
 
     public func toggleShortcut(_ tab: WorkbenchTab) {
