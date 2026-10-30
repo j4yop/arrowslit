@@ -319,3 +319,42 @@ struct ArtworkAccentTests {
         #expect(ArtworkAccentReader.accent(from: Data([0, 1, 2, 3])) == .white)
     }
 }
+
+
+@Suite("Semantic versions")
+struct SemanticVersionTests {
+    @Test func comparesNumberByNumber() {
+        #expect(SemanticVersion("0.4.4")! > SemanticVersion("0.4.3")!)
+        #expect(SemanticVersion("v0.5.0")! > SemanticVersion("0.4.9")!)
+        #expect(SemanticVersion("0.4")! == SemanticVersion("0.4.0")!)
+        #expect(SemanticVersion("nope") == nil)
+    }
+}
+
+@Suite("Release parsing")
+struct ReleaseInfoTests {
+    private let json = """
+    {
+      "tag_name": "v0.4.4",
+      "html_url": "https://github.com/j4yop/arrowslit/releases/tag/v0.4.4",
+      "assets": [
+        {"name": "Arrowslit-0.4.4.dmg", "browser_download_url": "https://github.com/j4yop/arrowslit/releases/download/v0.4.4/Arrowslit-0.4.4.dmg"},
+        {"name": "Arrowslit-0.4.4.dmg.sha256", "browser_download_url": "https://github.com/j4yop/arrowslit/releases/download/v0.4.4/Arrowslit-0.4.4.dmg.sha256"}
+      ]
+    }
+    """
+
+    @Test func parsesTheLatestReleaseAndItsAssets() {
+        let release = ReleaseInfo.parse(Data(json.utf8))
+        #expect(release?.version == SemanticVersion("0.4.4"))
+        #expect(release?.diskImage.lastPathComponent == "Arrowslit-0.4.4.dmg")
+        #expect(release?.checksum?.lastPathComponent == "Arrowslit-0.4.4.dmg.sha256")
+    }
+
+    @Test func rejectsForeignHostsAndMissingImages() {
+        let foreign = json.replacingOccurrences(of: "github.com/j4yop", with: "example.com/j4yop")
+        #expect(ReleaseInfo.parse(Data(foreign.utf8)) == nil)
+        let noImage = json.replacingOccurrences(of: "Arrowslit-0.4.4.dmg", with: "other.dmg")
+        #expect(ReleaseInfo.parse(Data(noImage.utf8)) == nil)
+    }
+}

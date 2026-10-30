@@ -71,6 +71,17 @@ Lyrics are optional and off by default. When enabled, `LyricsService` sends only
 title, artist, album and length to lrclib.net, matches the timed LRC to the song length, and
 keeps the answer in memory.
 
+## Updates
+
+`UpdateService` asks GitHub's latest-release API at most once a day (and on demand) for a newer
+semantic version. A release is accepted only when its page and assets are on approved GitHub
+hosts. The Settings › Updates row shows the version, a **Download & Open** button, download
+progress and errors.
+
+The button downloads the DMG to Downloads, verifies the published SHA-256 when available, then
+opens the image. Installing remains deliberate: the user drags Arrowslit into Applications. The
+app never replaces itself, and the update check can be disabled in Settings.
+
 ## Data flow
 
 1. Services publish state with `@Observable`.
@@ -84,7 +95,7 @@ keeps the answer in memory.
 
 ## Design principles
 
-- **Local first**: no account, analytics or telemetry. Lyrics lookup is optional and off by default.
+- **Local first**: no account, analytics or telemetry. Update checks contact GitHub once a day and can be turned off; lyrics lookup is optional and off by default.
 - **Quiet**: idle CPU near zero; stats only sample while visible.
 - **Small surface**: one vertical rail; no infinite widget grid.
 - **Original expression**: no third-party source, assets, strings or icons are copied. Visual
