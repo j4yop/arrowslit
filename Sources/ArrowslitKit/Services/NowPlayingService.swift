@@ -57,6 +57,35 @@ public final class NowPlayingService {
         launch()
     }
 
+    #if DEBUG
+    /// Debug builds only: show a known track and artwork for visual QA.
+    public func showDemo(
+        title: String,
+        artist: String,
+        album: String,
+        artwork: NSImage?,
+        accent: ArtworkAccent,
+        duration: TimeInterval,
+        elapsed: TimeInterval
+    ) {
+        track = NowPlayingTrack(
+            title: title,
+            artist: artist,
+            album: album,
+            duration: duration,
+            elapsed: elapsed,
+            sampledAt: Date(),
+            rate: 1,
+            isPlaying: true,
+            bundleIdentifier: nil,
+            artworkKey: "demo"
+        )
+        self.artwork = artwork
+        self.accent = accent
+        isAvailable = true
+    }
+    #endif
+
     public func stop() {
         isStopping = true
         try? input?.close()

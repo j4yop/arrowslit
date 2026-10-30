@@ -28,6 +28,18 @@ final class DebugHooks {
         case "home": state.expand(.home)
         case "collapse": state.collapse()
         case "nowplaying": state.expand(.nowPlaying)
+        case "nowplaying-demo":
+            state.nowPlaying.showDemo(
+                title: "Blinding Lights",
+                artist: "The Weeknd",
+                album: "After Hours",
+                artwork: demoArtwork(),
+                accent: ArtworkAccent(red: 1, green: 0.55, blue: 0.12),
+                duration: 202,
+                elapsed: 4
+            )
+            state.settings.lyricsEnabled = true
+            state.expand(.nowPlaying)
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "calendaralert":
@@ -68,6 +80,19 @@ final class DebugHooks {
         case "reset": state.resetTimer()
         default: break
         }
+    }
+
+    private func demoArtwork() -> NSImage {
+        let image = NSImage(size: NSSize(width: 112, height: 112))
+        image.lockFocus()
+        NSColor(red: 0.92, green: 0.42, blue: 0.12, alpha: 1).setFill()
+        NSBezierPath(rect: NSRect(x: 0, y: 0, width: 112, height: 112)).fill()
+        NSColor.black.withAlphaComponent(0.72).setFill()
+        NSBezierPath(ovalIn: NSRect(x: 14, y: 28, width: 84, height: 84)).fill()
+        NSColor.white.withAlphaComponent(0.9).setFill()
+        NSBezierPath(roundedRect: NSRect(x: 22, y: 74, width: 68, height: 8), xRadius: 4, yRadius: 4).fill()
+        image.unlockFocus()
+        return image
     }
 }
 #endif
