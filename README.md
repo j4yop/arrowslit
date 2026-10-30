@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -33,17 +33,18 @@ Here is what it shows:
 * Whatever music is playing, with the track title and little animated music bars
 * Timers, counting down right next to the camera
 * A live wall clock in India Standard Time or local time
+* A five-minute heads-up when your next meeting starts, with a Join button
 * A drop target for files right on the closed notch
 
 And when you click it, you get a little home base right under the notch:
 
 * **Home** with your music, next event, quick timer presets, a 25/5 focus session, and live CPU/memory stats
-* **Files Tray**, a handy spot to drop files you will need again in a minute. Drag files onto the notch to put them there, and drag them back out when you are ready
+* **Files Tray**, a handy spot to drop files you will need again in a minute. Drag files onto the notch to put them there
 * **Clipboard**, the last 20 things you copied. Click one to copy it again. Passwords from password managers are skipped and nothing is saved to disk
 * **Notes**, a little scratchpad for phone numbers, ideas, whatever. Saves as you type
 * **Mirror**, a quick look at your camera before you hop on a call, with a button to turn the camera off
-* **Timer**, with quick presets (5m, 10m, 25m, 50m), a 25-minute Pomodoro focus session with 5-minute break cycling, and a tenths-of-a-second stopwatch
-* **Calendar**, your next event with start times and countdowns
+* **Timer**, with quick presets (5m, 10m, 25m, 50m), a 25-minute Focus session, a separate break timer, and a tenths-of-a-second stopwatch
+* **Calendar**, your next event with start times, a five-minute heads-up, and a Join button for Meet, Zoom, Teams and Webex
 * **Reminders**, today's to-dos from Apple Reminders that you can tick off right in the notch
 * **System Stats**, CPU core usage and memory pressure that only sample while you look at them, keeping idle battery draw at zero
 * **Keep Awake**, keeps your Mac from sleeping with one tap while still letting the screen dim
@@ -54,7 +55,7 @@ Everything else lives behind the grid button at the top right: the timer, stopwa
 
 Next to Home at the top left sit up to three shortcuts of your own. They start as Files and Clipboard, and Files shows how many things are in your Tray. To change them, open the grid, click the pencil, and pick your favorites. Click **Done** when you are happy.
 
-Got a second screen? Arrowslit stays on your MacBook by default. Screens without a notch get a virtual notch too: it stays out of sight until you rest your pointer at the top center of the screen for a moment.
+Arrowslit lives on your MacBook's built-in display for now. Multi-display support is planned.
 
 It does not need an account and does not track anything. It has no network code, no analytics, and no background telemetry. Everything stays on your Mac. All of this is free and open source.
 
@@ -78,7 +79,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg)** and open it.
+1. Download **[Arrowslit-0.2.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -95,9 +96,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.1.0 (build 7) |
-| **Direct Download** | [Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg) |
-| **SHA-256** | `996cd86d1c860a471cd861cbc454ddb895c7846bca5c428bec91c7414cfc01ab` |
+| **Version** | 0.2.0 (build 9) |
+| **Direct Download** | [Arrowslit-0.2.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -137,14 +138,15 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.1.0
+## What is in 0.2.0
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
 * Countdown timer with presets, pause/resume, and 25/5 Focus sessions
 * Precision stopwatch with tenths-of-a-second readout
 * Now Playing with track artwork and animated music bars
-* Next calendar event and today's to-dos from Reminders
+* Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
+* Today's to-dos from Reminders
 * File tray with drag-and-drop shelf and 1-click AirDrop
 * In-memory clipboard history that skips password managers
 * Persistent scratchpad saved locally as you type
@@ -152,6 +154,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Mach CPU and Darwin memory gauges with zero idle draw
 * Keep Awake system sleep prevention
 * Customizable shortcut slots beside Home
+* One-alert-at-a-time notch notifications with expiry, urgency and dismissal
 
 ## Want to build it yourself?
 
