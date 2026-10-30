@@ -241,6 +241,8 @@ public final class NowPlayingService {
             track = nil
             artwork = nil
             self.accent = .white
+            expectedPlayState = nil
+            endLinger()
             return
         }
         let title = message.title ?? ""
@@ -249,6 +251,8 @@ public final class NowPlayingService {
             track = nil
             artwork = nil
             self.accent = .white
+            expectedPlayState = nil
+            endLinger()
             return
         }
         var newTrack = NowPlayingTrack(

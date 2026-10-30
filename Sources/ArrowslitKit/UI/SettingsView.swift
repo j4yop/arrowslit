@@ -162,7 +162,7 @@ struct SettingsView: View {
                             Text("Version \(version)")
                                 .font(ArrowTheme.detail)
                                 .foregroundStyle(ArrowTheme.muted)
-                            Text("Local-only. No account, no analytics, no network.")
+                            Text("Local-first. No account, no analytics. Lyrics lookup is optional.")
                                 .font(ArrowTheme.detail)
                                 .foregroundStyle(ArrowTheme.muted)
                             Text("GPL-3.0 · © 2026 Jay Gopal and contributors")
