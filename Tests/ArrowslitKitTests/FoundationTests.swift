@@ -351,6 +351,14 @@ struct ReleaseInfoTests {
         #expect(release?.checksum?.lastPathComponent == "Arrowslit-0.4.4.dmg.sha256")
     }
 
+    @Test func buildsAReleaseFromTheLatestRedirect() {
+        let release = ReleaseInfo.fromLatestRedirect(URL(string: "https://github.com/j4yop/arrowslit/releases/tag/v0.4.4")!)
+        #expect(release?.version == SemanticVersion("0.4.4"))
+        #expect(release?.diskImage.lastPathComponent == "Arrowslit-0.4.4.dmg")
+        #expect(release?.checksum?.lastPathComponent == "Arrowslit-0.4.4.dmg.sha256")
+        #expect(ReleaseInfo.fromLatestRedirect(URL(string: "https://example.com/releases/tag/v0.4.4")!) == nil)
+    }
+
     @Test func rejectsForeignHostsAndMissingImages() {
         let foreign = json.replacingOccurrences(of: "github.com/j4yop", with: "example.com/j4yop")
         #expect(ReleaseInfo.parse(Data(foreign.utf8)) == nil)
