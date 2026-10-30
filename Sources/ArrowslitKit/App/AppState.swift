@@ -259,6 +259,10 @@ public final class AppState {
 
     public var currentAlert: NotchAlert? { alerts.current }
 
+    public var showsLyrics: Bool {
+        settings.lyricsEnabled && lyrics.current != nil
+    }
+
     public var activeActivities: Set<NotchActivity> {
         var active = Set<NotchActivity>()
         if timer.isActive { active.insert(.timer) }
