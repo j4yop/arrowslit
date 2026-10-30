@@ -14,77 +14,34 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Group {
-                    if let icon = NSApp.applicationIconImage {
-                        Image(nsImage: icon)
-                            .resizable()
-                            .interpolation(.high)
-                            .frame(width: 34, height: 34)
-                    } else {
-                        SlitMark(height: 26)
-                    }
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("ARROWSLIT")
-                        .font(.system(size: 14, weight: .bold))
-                        .tracking(3)
-                        .foregroundStyle(ArrowTheme.bone)
-                    Text("SETTINGS")
-                        .font(.system(size: 8.5, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.amber)
-                }
-                Spacer()
-                Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0")")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(ArrowTheme.faint)
-            }
-            .padding(.horizontal, 24)
-            .frame(height: 74)
-
-            Divider().overlay(ArrowTheme.hairline)
-
-            HStack(alignment: .top, spacing: 10) {
-                Circle()
-                    .fill(ArrowTheme.green)
-                    .frame(width: 6, height: 6)
-                    .padding(.top, 4)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Arrowslit is live in the notch")
-                        .font(.system(size: 11.5, weight: .semibold))
-                        .foregroundStyle(ArrowTheme.bone)
-                    Text("Hover the top of the screen, or click the slit in the menu bar. You can close this window; Arrowslit keeps running.")
-                        .font(.system(size: 10))
-                        .foregroundStyle(ArrowTheme.muted)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 10)
-            .background(Color.white.opacity(0.035))
+            header
 
             Divider().overlay(ArrowTheme.hairline)
 
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 22) {
-                    SettingsSection(title: "LAUNCHER", note: "Choose which features appear in the grid. Clipboard history skips password-manager items.") {
+                VStack(alignment: .leading, spacing: 24) {
+                    SettingsSection(
+                        title: "Features",
+                        note: "Choose what appears in the launcher."
+                    ) {
                         LazyVGrid(
                             columns: [
-                                GridItem(.flexible(), spacing: 8),
-                                GridItem(.flexible(), spacing: 8)
+                                GridItem(.flexible(), spacing: 4),
+                                GridItem(.flexible(), spacing: 4)
                             ],
-                            spacing: 8
+                            spacing: 0
                         ) {
                             ForEach(featureTabs) { tab in
                                 FeatureSelectionButton(state: state, tab: tab)
                             }
                         }
-                        .padding(10)
+                        .padding(6)
                     }
 
-                    SettingsSection(title: "INTERFACE", note: "Keep Arrowslit close without taking over the menu bar.") {
+                    SettingsSection(
+                        title: "Interface",
+                        note: "How the notch behaves while you work."
+                    ) {
                         SettingsToggle(
                             title: "Open Settings on launch",
                             detail: "Show this window when Arrowslit starts.",
@@ -93,22 +50,25 @@ struct SettingsView: View {
                                 set: { state.settings.openSettingsOnLaunch = $0 }
                             )
                         )
+                        SettingsRowDivider()
                         SettingsToggle(
                             title: "Open notch on hover",
-                            detail: "Hold the pointer over the strip for 0.4 seconds.",
+                            detail: "Hold the pointer over the strip for a moment.",
                             isOn: Binding(
                                 get: { state.settings.openOnHover },
                                 set: { state.settings.openOnHover = $0 }
                             )
                         )
+                        SettingsRowDivider()
                         SettingsToggle(
                             title: "Collapse when the pointer leaves",
-                            detail: "Close the nook after a short pause outside it.",
+                            detail: "Close the notch after a short pause.",
                             isOn: Binding(
                                 get: { state.settings.collapseOnLeave },
                                 set: { state.settings.collapseOnLeave = $0 }
                             )
                         )
+                        SettingsRowDivider()
                         SettingsToggle(
                             title: "Haptic feedback",
                             detail: "A small tap when the notch opens.",
@@ -117,14 +77,16 @@ struct SettingsView: View {
                                 set: { state.settings.hapticFeedback = $0 }
                             )
                         )
+                        SettingsRowDivider()
                         SettingsToggle(
                             title: "Show menu bar icon",
-                            detail: "A small slit in the menu bar. Turn it off to keep only the notch.",
+                            detail: "Keep a small slit in the menu bar.",
                             isOn: Binding(
                                 get: { state.settings.showMenuBarIcon },
                                 set: { state.setMenuBarIconVisible($0) }
                             )
                         )
+                        SettingsRowDivider()
                         SettingsToggle(
                             title: "Open at login",
                             detail: "Start Arrowslit when you sign in.",
@@ -134,59 +96,71 @@ struct SettingsView: View {
                             setLaunchAtLogin(value)
                         }
                         if let loginError {
+                            SettingsRowDivider()
                             Text(loginError)
-                                .font(.system(size: 10))
+                                .font(ArrowTheme.caption)
                                 .foregroundStyle(ArrowTheme.red)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
                         }
                     }
 
-                    SettingsSection(title: "ACCESS", note: "macOS remembers these for the installed copy. Allow them once; Arrowslit never asks in the background.") {
+                    SettingsSection(
+                        title: "Access",
+                        note: "Allow these once. macOS remembers your choice for the installed app."
+                    ) {
                         AccessStatusRow(
                             title: "Calendar",
                             symbol: "calendar",
                             detail: calendarDetail,
                             tint: calendarTint,
+                            granted: state.calendar.access == .granted,
                             actionTitle: calendarActionTitle,
                             action: calendarAction
                         )
-                        Divider().overlay(ArrowTheme.hairline)
+                        SettingsRowDivider()
                         AccessStatusRow(
                             title: "Reminders",
                             symbol: "checklist",
                             detail: remindersDetail,
                             tint: remindersTint,
+                            granted: state.reminders.access == .granted,
                             actionTitle: remindersActionTitle,
                             action: remindersAction
                         )
-                        Divider().overlay(ArrowTheme.hairline)
+                        SettingsRowDivider()
                         AccessStatusRow(
                             title: "Camera",
                             symbol: "person.crop.square",
                             detail: cameraDetail,
                             tint: cameraTint,
+                            granted: state.camera.state == .granted,
                             actionTitle: cameraActionTitle,
                             action: cameraAction
                         )
                     }
 
-                    SettingsSection(title: "ABOUT", note: "A narrow aperture. A wider day.") {
-                        HStack(alignment: .top, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Arrowslit 0.1.0")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(ArrowTheme.bone)
-                                Text("Local-only. No account, no analytics, no network.")
-                                    .font(.system(size: 10.5))
-                                    .foregroundStyle(ArrowTheme.muted)
-                                Text("GPL-3.0 · © 2026 Jay Gopal and contributors")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(ArrowTheme.faint)
-                            }
-                            Spacer()
+                    SettingsSection(title: "About") {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Arrowslit")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(ArrowTheme.bone)
+                            Text("Version \(version)")
+                                .font(ArrowTheme.detail)
+                                .foregroundStyle(ArrowTheme.muted)
+                            Text("Local-only. No account, no analytics, no network.")
+                                .font(ArrowTheme.detail)
+                                .foregroundStyle(ArrowTheme.muted)
+                            Text("GPL-3.0 · © 2026 Jay Gopal and contributors")
+                                .font(ArrowTheme.caption)
+                                .foregroundStyle(ArrowTheme.faint)
+                                .padding(.top, 2)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(14)
                     }
                 }
-                .padding(24)
+                .padding(20)
             }
             .nookScrollBounce()
         }
@@ -195,12 +169,42 @@ struct SettingsView: View {
         .onAppear { syncLogin() }
     }
 
+    private var header: some View {
+        HStack(spacing: 12) {
+            Group {
+                if let icon = NSApp.applicationIconImage {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .interpolation(.high)
+                        .frame(width: 32, height: 32)
+                } else {
+                    SlitMark(height: 24)
+                }
+            }
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Arrowslit")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                Text("Settings")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .frame(height: 64)
+    }
+
+    private var version: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0"
+    }
+
     private var calendarDetail: String {
         switch state.calendar.access {
-        case .granted: "Allowed — your next event will appear in the notch"
-        case .notAsked: "Not connected"
-        case .denied: "Permission denied — open Privacy Settings"
-        case .limited: "Limited access — open Privacy Settings"
+        case .granted: "Your next event appears in the notch."
+        case .notAsked: "Not connected."
+        case .denied: "Access is off. Open Privacy & Security to allow it."
+        case .limited: "Access is limited. Open Privacy & Security to change it."
         }
     }
 
@@ -230,9 +234,9 @@ struct SettingsView: View {
 
     private var remindersDetail: String {
         switch state.reminders.access {
-        case .granted: "Allowed — today's to-dos appear in the notch"
-        case .notAsked: "Not connected"
-        case .denied: "Permission denied — open Privacy Settings"
+        case .granted: "Today's reminders appear in the notch."
+        case .notAsked: "Not connected."
+        case .denied: "Access is off. Open Privacy & Security to allow it."
         }
     }
 
@@ -262,10 +266,10 @@ struct SettingsView: View {
 
     private var cameraDetail: String {
         switch state.camera.state {
-        case .granted: "Allowed — local preview only"
-        case .notAsked: "Not connected"
-        case .denied: "Permission denied — open Privacy Settings"
-        case .noCamera: "No camera found"
+        case .granted: "Shows a local preview. Nothing is recorded."
+        case .notAsked: "Not connected."
+        case .denied: "Access is off. Open Privacy & Security to allow it."
+        case .noCamera: "No camera found on this Mac."
         }
     }
 
@@ -307,7 +311,7 @@ struct SettingsView: View {
             }
             loginError = nil
         } catch {
-            loginError = "Could not change login item: \(error.localizedDescription)"
+            loginError = "Could not change the login item. \(error.localizedDescription)"
             syncLogin()
         }
     }
@@ -315,32 +319,48 @@ struct SettingsView: View {
 
 private struct SettingsSection<Content: View>: View {
     let title: String
-    let note: String
+    let note: String?
     @ViewBuilder var content: Content
 
+    init(title: String, note: String? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.note = note
+        self.content = content()
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 9, weight: .bold))
-                    .tracking(1.4)
-                    .foregroundStyle(ArrowTheme.amber)
-                Text(note)
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(ArrowTheme.faint)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                if let note {
+                    Text(note)
+                        .font(ArrowTheme.detail)
+                        .foregroundStyle(ArrowTheme.muted)
+                }
             }
             VStack(spacing: 0) {
                 content
             }
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(ArrowTheme.panel)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.white.opacity(0.045))
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .stroke(ArrowTheme.hairline, lineWidth: 0.5)
             }
         }
+    }
+}
+
+private struct SettingsRowDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(ArrowTheme.hairline)
+            .frame(height: 0.5)
+            .padding(.leading, 14)
     }
 }
 
@@ -349,21 +369,23 @@ private struct AccessStatusRow: View {
     let symbol: String
     let detail: String
     let tint: Color
+    let granted: Bool
     let actionTitle: String?
     let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(tint)
                 .frame(width: 18)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Text(detail)
-                    .font(.system(size: 10))
+                    .font(ArrowTheme.detail)
                     .foregroundStyle(ArrowTheme.muted)
                     .lineLimit(2)
             }
@@ -371,15 +393,23 @@ private struct AccessStatusRow: View {
             if let actionTitle {
                 Button(actionTitle, action: action)
                     .buttonStyle(NookPressStyle())
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.ink)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone)
                     .padding(.horizontal, 10)
-                    .frame(height: 26)
-                    .background(Capsule().fill(ArrowTheme.amber))
-            } else {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 14, weight: .semibold))
+                    .frame(height: 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.white.opacity(0.08))
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+                    }
+            } else if granted {
+                Label("Allowed", systemImage: "checkmark")
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(tint)
+                    .labelStyle(.titleAndIcon)
             }
         }
         .padding(.horizontal, 14)
@@ -396,10 +426,11 @@ private struct SettingsToggle: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Text(detail)
-                    .font(.system(size: 10))
+                    .font(ArrowTheme.detail)
                     .foregroundStyle(ArrowTheme.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -407,13 +438,13 @@ private struct SettingsToggle: View {
             Toggle("", isOn: $isOn)
                 .labelsHidden()
                 .toggleStyle(.switch)
+                .controlSize(.small)
                 .tint(ArrowTheme.amber)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 11)
+        .padding(.vertical, 9)
     }
 }
-
 
 private struct FeatureSelectionButton: View {
     @Bindable var state: AppState
@@ -426,25 +457,27 @@ private struct FeatureSelectionButton: View {
         Button {
             state.setTabEnabled(tab, !isOn)
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: tab.symbol)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(isOn ? ArrowTheme.amber : ArrowTheme.faint)
-                    .frame(width: 16)
+                    .frame(width: 18)
                 Text(tab.title)
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(ArrowTheme.body)
                     .foregroundStyle(isOn ? ArrowTheme.bone : ArrowTheme.muted)
                     .lineLimit(1)
                 Spacer(minLength: 4)
-                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                Image(systemName: "checkmark")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(isOn ? ArrowTheme.amber : ArrowTheme.faint)
+                    .foregroundStyle(ArrowTheme.amber)
+                    .frame(width: 12)
+                    .opacity(isOn ? 1 : 0)
             }
-            .padding(.horizontal, 9)
+            .padding(.horizontal, 8)
             .frame(height: 32)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.white.opacity(isOn ? (isHovering ? 0.1 : 0.07) : (isHovering ? 0.06 : 0.03)))
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(isHovering ? Color.white.opacity(0.06) : .clear)
             )
             .contentShape(Rectangle())
         }

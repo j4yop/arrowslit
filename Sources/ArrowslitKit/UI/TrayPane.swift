@@ -7,17 +7,7 @@ struct TrayPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("FILES")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("A shelf of references. Originals are never copied or deleted.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(ArrowTheme.muted)
-                }
-                Spacer()
+            PaneHeader("Files", detail: "Drop files to keep a reference. Originals stay where they are.") {
                 if !state.tray.items.isEmpty {
                     Button {
                         state.tray.airDrop(state.tray.items)
@@ -25,12 +15,12 @@ struct TrayPane: View {
                         Label("AirDrop", systemImage: "wifi")
                     }
                     .buttonStyle(NookPressStyle())
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(Color(red: 0.35, green: 0.68, blue: 1))
 
                     Button("Clear") { state.tray.clear() }
                         .buttonStyle(NookPressStyle())
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
             }
@@ -62,13 +52,17 @@ struct TrayPane: View {
                         .foregroundStyle(ArrowTheme.ink)
                         .padding(.horizontal, 14)
                         .frame(height: 30)
-                        .background(Capsule().fill(ArrowTheme.amber))
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(ArrowTheme.amber)
+                        )
                 }
                 .buttonStyle(NookPressStyle())
                 Spacer()
                 Text("\(state.tray.items.count) of \(TrayStore.capacity)")
-                    .font(.system(size: 9.5, design: .monospaced))
-                    .foregroundStyle(ArrowTheme.faint)
+                    .font(ArrowTheme.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.muted)
             }
         }
         .onDrop(of: [.fileURL, .url], isTargeted: $isTargeted) { providers in

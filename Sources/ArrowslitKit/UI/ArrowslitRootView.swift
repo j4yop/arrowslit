@@ -116,7 +116,7 @@ private struct CompactBar: View {
 
     private func timeText(_ value: String, color: Color) -> some View {
         Text(value)
-            .font(.system(size: 13, weight: .semibold, design: state.timer.isActive ? .monospaced : .default))
+            .font(.system(size: 13, weight: .semibold))
             .monospacedDigit()
             .foregroundStyle(color)
             .lineLimit(1)
@@ -126,7 +126,7 @@ private struct CompactBar: View {
     }
 
     private var accessibilityLabel: String {
-        state.compactLabel == "READY"
+        state.compactLabel == "Ready"
             ? "Arrowslit. \(state.compactValue)"
             : "Arrowslit. \(state.compactLabel) \(state.compactValue)"
     }

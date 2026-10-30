@@ -10,10 +10,10 @@ struct TimerPane: View {
     }
 
     private var status: String {
-        if timer.justFinished { return "COMPLETE" }
-        if timer.isPaused { return "PAUSED" }
-        if timer.isActive { return "RUNNING" }
-        return "READY"
+        if timer.justFinished { return "Complete" }
+        if timer.isPaused { return "Paused" }
+        if timer.isActive { return "Running" }
+        return "Ready"
     }
 
     var body: some View {
@@ -21,11 +21,11 @@ struct TimerPane: View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(status)
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.faint)
+                        .font(ArrowTheme.label)
+                        .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.muted)
                     Text(ClockFormat.clock(shownSeconds, roundingUp: true))
-                        .font(.system(size: 62, weight: .light, design: .monospaced))
+                        .font(.system(size: 62, weight: .light))
+                        .monospacedDigit()
                         .foregroundStyle(timer.justFinished ? ArrowTheme.amber : ArrowTheme.bone)
                         .contentTransition(.numericText())
                         .lineLimit(1)
@@ -33,14 +33,14 @@ struct TimerPane: View {
 
                 Spacer(minLength: 16)
 
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text("FOCUS WINDOW")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1.2)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("\(timer.lastMinutes) MIN")
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Session")
+                        .font(ArrowTheme.detail)
                         .foregroundStyle(ArrowTheme.muted)
+                    Text("\(timer.lastMinutes) min")
+                        .font(.system(size: 13, weight: .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(ArrowTheme.bone)
                 }
             }
 
@@ -107,13 +107,15 @@ private struct PresetButton: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .font(.system(size: 11, weight: .medium))
+                .monospacedDigit()
                 .foregroundStyle(isSelected ? ArrowTheme.ink : ArrowTheme.bone.opacity(0.8))
                 .frame(width: 54, height: 30)
                 .background(
-                    Capsule().fill(isSelected ? ArrowTheme.amber : Color.white.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(isSelected ? ArrowTheme.amber : Color.white.opacity(0.06))
                 )
-                .contentShape(Capsule())
+                .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
         .buttonStyle(NookPressStyle())
     }
@@ -135,9 +137,10 @@ private struct ActionButton: View {
             .padding(.horizontal, 16)
             .frame(height: 34)
             .background(
-                Capsule().fill(filled ? ArrowTheme.amber : Color.white.opacity(0.07))
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(filled ? ArrowTheme.amber : Color.white.opacity(0.07))
             )
-            .contentShape(Capsule())
+            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(NookPressStyle())
     }

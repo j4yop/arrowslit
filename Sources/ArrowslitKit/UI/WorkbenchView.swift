@@ -29,8 +29,7 @@ struct WorkbenchView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(.horizontal, 22)
                 .padding(.top, 16)
-                .padding(.bottom, 10)
-                Footer(state: state)
+                .padding(.bottom, 16)
             }
         }
         .frame(width: 720, height: 420)
@@ -118,28 +117,22 @@ private struct Header: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("ARROWSLIT")
-                    .font(.system(size: 12, weight: .bold))
-                    .tracking(3)
-                    .foregroundStyle(ArrowTheme.bone)
-                Text("LOCAL / PRIVATE")
-                    .font(.system(size: 8, weight: .bold))
-                    .tracking(1.4)
-                    .foregroundStyle(ArrowTheme.amber.opacity(0.8))
-            }
+            Text("Arrowslit")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(ArrowTheme.bone)
 
             Spacer(minLength: 8)
 
             Text(ClockFormat.wallClock())
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .font(ArrowTheme.body)
+                .monospacedDigit()
                 .foregroundStyle(ArrowTheme.muted)
 
             Button {
                 state.collapse()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(ArrowTheme.muted)
                     .frame(width: 24, height: 24)
                     .background(Circle().fill(Color.white.opacity(0.06)))
@@ -149,28 +142,6 @@ private struct Header: View {
             .accessibilityLabel("Close")
         }
         .padding(.horizontal, 22)
-        .frame(height: 58)
-    }
-}
-
-private struct Footer: View {
-    @Bindable var state: AppState
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(ArrowTheme.green)
-                .frame(width: 5, height: 5)
-            Text("NO ACCOUNT · NO ANALYTICS · NO NETWORK")
-                .font(.system(size: 8, weight: .semibold))
-                .tracking(1.05)
-                .foregroundStyle(ArrowTheme.faint)
-            Spacer()
-            Text("⌘,")
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                .foregroundStyle(ArrowTheme.faint)
-        }
-        .padding(.horizontal, 22)
-        .frame(height: 28)
+        .frame(height: 54)
     }
 }
