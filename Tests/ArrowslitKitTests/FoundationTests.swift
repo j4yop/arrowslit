@@ -55,6 +55,16 @@ struct AlertQueueTests {
         #expect(queue.current == .charging(level: 80, isCharging: true))
     }
 
+    @Test func urgentAlertJumpsAheadOfAnEarlierWaitingAlert() {
+        var queue = AlertQueue()
+        queue.enqueue(.charging(level: 80, isCharging: true), now: base)
+        queue.enqueue(.timerFinished, now: base.addingTimeInterval(1))
+
+        queue.present(now: base.addingTimeInterval(2), allowNonUrgent: true)
+        #expect(queue.current == .timerFinished)
+        #expect(queue.pending == [.charging(level: 80, isCharging: true)])
+    }
+
     @Test func nonUrgentAlertWaitsWhileAnExpandedViewIsOpen() {
         var queue = AlertQueue()
         queue.enqueue(event(), now: base)
