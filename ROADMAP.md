@@ -4,7 +4,7 @@ The goal is a quiet, fast, local-only notch utility — not a clone of any exist
 feature set is inspired by the best free notch projects, but the interaction model, visual
 language and code are our own.
 
-## What exists today (0.4.0)
+## What exists today (0.4.1)
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status
@@ -13,7 +13,7 @@ language and code are our own.
 - Calendar next event with EventKit permission flow
 - Five-minute calendar heads-up with Join buttons for Meet, Zoom, Teams and Webex
 - One-alert-at-a-time notch notifications with expiry, urgency and dismissal
-- Apple Music-style Now Playing nudge with large album art, scrubber, back/pause/forward and album-art accent bars
+- Apple Music-style Now Playing nudge in the floating player and Home media card
 - Optional timed lyrics, off by default
 - File tray (drop targets, file picker, Quick Look icons)
 - Camera mirror with explicit permission

@@ -246,9 +246,11 @@ struct NotchPanelMetricsTests {
         #expect(size == CGSize(width: geometry.compactWidth, height: 32))
     }
 
-    @Test func expandedUsesTheWorkbenchSize() {
+    @Test func homeUsesTheTallerNudgeBody() {
         let size = NotchPanelMetrics.size(for: .expanded(.home), geometry: geometry)
-        #expect(size == CGSize(width: 560, height: 178))
+        #expect(size == CGSize(width: 560, height: 204))
+        let other = NotchPanelMetrics.size(for: .expanded(.timer), geometry: geometry)
+        #expect(other == CGSize(width: 560, height: 178))
     }
 
     @Test func alertUsesItsOwnShortPanel() {
