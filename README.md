@@ -18,6 +18,17 @@ that still gives a defender a full view and full control.
 - Apple Silicon or Intel Mac
 - No account, no analytics, no network
 
+## Download
+
+| | |
+| --- | --- |
+| **Latest release** | [Arrowslit 0.1.0](https://github.com/j4yop/arrowslit/releases/tag/v0.1.0) |
+| **Direct download** | [Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg) |
+| **SHA-256** | `307ecf6433fe5dfdec07515a736f84cbe17a91cd0725fc056395632cd4475244` |
+| **Homebrew tap** | [j4yop/homebrew-tap](https://github.com/j4yop/homebrew-tap) |
+
+The DMG is a universal build for Apple Silicon and Intel.
+
 ## Install with Homebrew
 
 ```bash
@@ -28,10 +39,15 @@ Homebrew 7 asks you to trust a third-party tap once. The cask clears the
 quarantine flag after installation, so there is no Gatekeeper detour. Review the
 public source and cask before trusting the tap.
 
+On Homebrew versions before 7, this is enough:
+
+```bash
+brew install --cask j4yop/tap/arrowslit
+```
+
 ## Install manually
 
-1. Download `Arrowslit-0.1.0.dmg` from
-   [Releases](https://github.com/j4yop/arrowslit/releases).
+1. Download [Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg).
 2. Open the DMG and drag **Arrowslit** into Applications.
 3. Open Applications and double-click Arrowslit. macOS will refuse the first
    launch because Arrowslit is not yet notarized. Click **Done**.
@@ -100,6 +116,13 @@ swift test
 Arrowslit has no account, analytics, or network access. Clipboard history, notes,
 the file tray and timers stay on this Mac. Camera, Calendars and Reminders are
 only requested when you turn those features on.
+
+## Release
+
+- Version 0.1.0 (build 6)
+- Universal (`x86_64` + `arm64`)
+- Universal DMG: [Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg)
+- Homebrew cask: [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb)
 
 ## License
 
