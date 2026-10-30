@@ -8,7 +8,7 @@ public enum ArrowTheme {
     public static let amberSoft = Color(red: 1.0, green: 0.624, blue: 0.039).opacity(0.16)
     public static let bone = Color.white
     public static let muted = Color.white.opacity(0.62)
-    public static let faint = Color.white.opacity(0.42)
+    public static let faint = Color.white.opacity(0.48)
     public static let hairline = Color.white.opacity(0.09)
     public static let green = Color(red: 0.420, green: 0.780, blue: 0.580)
     public static let red = Color(red: 0.910, green: 0.400, blue: 0.360)
