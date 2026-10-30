@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import os
 
 /// A song lookup key. Lyrics are fetched once per key and kept only in memory.
 public struct LyricsKey: Hashable, Sendable {
@@ -76,7 +75,6 @@ public final class LyricsService {
     @ObservationIgnored private var cacheOrder: [LyricsKey] = []
     @ObservationIgnored private var lookupTask: Task<Void, Never>?
     @ObservationIgnored private let session: URLSession
-    @ObservationIgnored private let log = Logger(subsystem: "com.j4yop.arrowslit", category: "lyrics")
     private static let cacheLimit = 100
 
     public init(session: URLSession = .shared) {
@@ -85,7 +83,6 @@ public final class LyricsService {
 
     public func update(for track: NowPlayingTrack?, enabled: Bool) {
         let key = enabled ? LyricsKey(track: track) : nil
-        log.notice("update enabled=\(enabled, privacy: .public) key=\(key?.title ?? "-", privacy: .public)")
         guard key != currentKey else { return }
         currentKey = key
         lookupTask?.cancel()
@@ -107,11 +104,9 @@ public final class LyricsService {
             guard !Task.isCancelled, let self else { return }
             switch found {
             case .found(let lyrics):
-                self.log.notice("found lines=\(lyrics?.lines.count ?? 0, privacy: .public)")
                 self.remember(lyrics, for: key)
                 if self.currentKey == key { self.current = lyrics }
             case .failed:
-                self.log.notice("lookup failed")
                 // Offline or a server error: leave it uncached so it can be tried again.
                 if self.currentKey == key { self.current = nil }
             }
