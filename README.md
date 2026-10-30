@@ -1,28 +1,76 @@
 # Arrowslit
 
+![Arrowslit](Support/AppIcon-1024.png)
+
 A quiet control surface for the MacBook notch.
 
-Arrowslit is a from-scratch, local-only macOS utility. The notch becomes a narrow aperture:
-it stays out of the way until you need it, then opens into a compact workbench for timers,
-clipboard, notes and system stats.
+Arrowslit is a from-scratch, local-only macOS utility. The notch becomes a narrow
+aperture: it stays out of the way until you need it, then opens into a compact
+workbench for media, timers, calendar, files, clipboard, notes, reminders and
+system stats.
 
-The name comes from the narrow opening in a fortress wall: the smallest aperture that still
-gives a defender a full view and full control.
+The name comes from the narrow opening in a fortress wall: the smallest aperture
+that still gives a defender a full view and full control.
 
-## Status
+## Requirements
 
-The first usable build is ready:
+- macOS 14 Sonoma or later
+- Apple Silicon or Intel Mac
+- No account, no analytics, no network
 
-- Menu-bar app, no Dock icon
-- Notch-fused compact strip
-- Expanded workbench with a vertical feature rail
-- Now Playing (system media helper, optional), timer, calendar, file tray, clipboard,
-  scratchpad, CPU/memory stats
-- Local only: no account, no analytics, no network
-- GPL-3.0
+## Install with Homebrew
 
-Mirror, calls/microphone, charging/battery, volume/brightness, global hotkeys, multiple
-displays and signed updates are next. See [ROADMAP.md](ROADMAP.md).
+```bash
+brew install --cask j4yop/tap/arrowslit
+```
+
+Homebrew downloads the release without the quarantine flag, so there is no
+Gatekeeper detour.
+
+## Install manually
+
+1. Download `Arrowslit-0.1.0.dmg` from
+   [Releases](https://github.com/j4yop/arrowslit/releases).
+2. Open the DMG and drag **Arrowslit** into Applications.
+3. Open Applications and double-click Arrowslit. macOS will refuse the first
+   launch because Arrowslit is not yet notarized. Click **Done**.
+4. Open **System Settings → Privacy & Security**, scroll down, and click
+   **Open Anyway** next to Arrowslit. Confirm with Touch ID or your password and
+   click **Open Anyway** once more.
+5. Settings opens automatically. Choose your features, close the window, and
+   Arrowslit stays live in the notch.
+
+If you prefer Terminal, after dragging the app into Applications:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
+open "/Applications/Arrowslit.app"
+```
+
+Arrowslit is ad-hoc signed for now. A future release can be notarized with an
+Apple Developer ID so the manual install no longer needs the extra approval.
+
+## Using it
+
+- Hover the top of the screen for 0.4 seconds, or click the strip, to open.
+- Click the slit in the menu bar if the strip is hard to reach.
+- Open **Settings** from the menu bar or by reopening Arrowslit to choose which
+  features appear in the launcher.
+- Close Settings and Arrowslit keeps running in the notch.
+
+## Features
+
+- Now Playing with artwork, progress and transport controls
+- Timer, a 25/5 focus session, and Stopwatch
+- Calendar and Reminders
+- File tray with drag-and-drop and AirDrop
+- Clipboard history that skips password-manager items
+- Scratchpad, camera mirror, CPU/memory stats
+- Keep Awake
+- Up to three feature shortcuts beside Home; hold the launcher or use the pencil
+  to edit them
+- Hover, press, scroll and Reduce Motion polish throughout
+- Universal build for Apple Silicon and Intel
 
 ## Build
 
@@ -33,17 +81,24 @@ Requires Swift 6 / Xcode 16 or newer (tested with Xcode 26.4.1).
 open "build/Arrowslit.app"
 ```
 
-For a debug build:
+Universal release DMG:
 
 ```bash
-CONFIG=debug ./Scripts/build-app.sh
+UNIVERSAL=1 CONFIG=release ./Scripts/build-app.sh
+SKIP_BUILD=1 ./Scripts/make-dmg.sh
 ```
 
-## Tests
+Tests:
 
 ```bash
 swift test
 ```
+
+## Privacy
+
+Arrowslit has no account, analytics, or network access. Clipboard history, notes,
+the file tray and timers stay on this Mac. Camera, Calendars and Reminders are
+only requested when you turn those features on.
 
 ## License
 
