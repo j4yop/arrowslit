@@ -13,6 +13,7 @@ public final class SettingsStore {
     public var statsEnabled: Bool { didSet { defaults.set(statsEnabled, forKey: Key.stats) } }
     public var notesEnabled: Bool { didSet { defaults.set(notesEnabled, forKey: Key.notes) } }
     public var lyricsEnabled: Bool { didSet { defaults.set(lyricsEnabled, forKey: Key.lyrics) } }
+    public var checksForUpdates: Bool { didSet { defaults.set(checksForUpdates, forKey: Key.checksForUpdates) } }
     public var enabledTabs: Set<String> { didSet { defaults.set(Array(enabledTabs).sorted(), forKey: Key.tabs) } }
     public var shortcutTabs: [String] { didSet { defaults.set(shortcutTabs, forKey: Key.shortcuts) } }
     public static let shortcutLimit = 3
@@ -30,6 +31,7 @@ public final class SettingsStore {
         statsEnabled = defaults.object(forKey: Key.stats) as? Bool ?? true
         notesEnabled = defaults.object(forKey: Key.notes) as? Bool ?? true
         lyricsEnabled = defaults.object(forKey: Key.lyrics) as? Bool ?? false
+        checksForUpdates = defaults.object(forKey: Key.checksForUpdates) as? Bool ?? true
         enabledTabs = Set(defaults.stringArray(forKey: Key.tabs) ?? WorkbenchTab.allCases.map(\.rawValue))
         let defaultsShortcuts = [WorkbenchTab.tray.rawValue, WorkbenchTab.clipboard.rawValue]
         let valid = Set(WorkbenchTab.allCases.map(\.rawValue))
@@ -84,6 +86,7 @@ public final class SettingsStore {
         static let stats = "arrowslit.statsEnabled"
         static let notes = "arrowslit.notesEnabled"
         static let lyrics = "arrowslit.lyricsEnabled"
+        static let checksForUpdates = "arrowslit.checksForUpdates"
         static let tabs = "arrowslit.enabledTabs"
         static let shortcuts = "arrowslit.shortcutTabs"
     }

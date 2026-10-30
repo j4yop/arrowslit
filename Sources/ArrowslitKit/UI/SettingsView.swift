@@ -154,6 +154,22 @@ struct SettingsView: View {
                         )
                     }
 
+                    SettingsSection(
+                        title: "Updates",
+                        note: "Checks github.com once a day. No account or tracking."
+                    ) {
+                        SettingsToggle(
+                            title: "Check for updates automatically",
+                            detail: "Once a day, ask GitHub for the latest release.",
+                            isOn: Binding(
+                                get: { state.settings.checksForUpdates },
+                                set: { state.setChecksForUpdates($0) }
+                            )
+                        )
+                        SettingsRowDivider()
+                        UpdateStatusRow(state: state)
+                    }
+
                     SettingsSection(title: "About") {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Arrowslit")
@@ -162,7 +178,7 @@ struct SettingsView: View {
                             Text("Version \(version)")
                                 .font(ArrowTheme.detail)
                                 .foregroundStyle(ArrowTheme.muted)
-                            Text("Local-first. No account, no analytics. Lyrics lookup is optional.")
+                            Text("Local-first. No account or analytics. Update checks contact GitHub; lyrics are optional.")
                                 .font(ArrowTheme.detail)
                                 .foregroundStyle(ArrowTheme.muted)
                             Text("GPL-3.0 · © 2026 Jay Gopal and contributors")
@@ -497,5 +513,143 @@ private struct FeatureSelectionButton: View {
         }
         .buttonStyle(NookPressStyle())
         .onHover { isHovering = $0 }
+    }
+}
+
+
+private struct UpdateStatusRow: View {
+    @Bindable var state: AppState
+
+    private var updater: UpdateService { state.updater }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(tint)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Text(detail)
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 8)
+            trailing
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder private var trailing: some View {
+        switch updater.state {
+        case .checking:
+            ProgressView()
+                .controlSize(.small)
+        case .downloading(let progress):
+            ProgressView(value: progress)
+                .progressViewStyle(.linear)
+                .frame(width: 92)
+        case .available(let release):
+            UpdateActionButton(title: "Download & Open", primary: true) {
+                updater.downloadAndOpen(release)
+            }
+        case .downloaded(let url):
+            UpdateActionButton(title: "Open DMG", primary: true) {
+                NSWorkspace.shared.open(url)
+            }
+        case .failed:
+            UpdateActionButton(title: "Try Again", primary: true) {
+                if let release = updater.availableRelease {
+                    updater.downloadAndOpen(release)
+                } else {
+                    updater.check()
+                }
+            }
+        case .upToDate:
+            UpdateActionButton(title: "Check Again") { updater.check() }
+        case .idle:
+            UpdateActionButton(title: "Check for Updates") { updater.check() }
+        }
+    }
+
+    private var symbol: String {
+        switch updater.state {
+        case .available: "arrow.down.circle.fill"
+        case .checking, .downloading: "arrow.triangle.2.circlepath"
+        case .downloaded, .upToDate: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        case .idle: "arrow.down.circle"
+        }
+    }
+
+    private var tint: Color {
+        switch updater.state {
+        case .available, .downloading: ArrowTheme.amber
+        case .downloaded, .upToDate: ArrowTheme.green
+        case .failed: ArrowTheme.red
+        case .checking, .idle: ArrowTheme.muted
+        }
+    }
+
+    private var title: String {
+        switch updater.state {
+        case .available(let release): "Arrowslit \(release.version) is available"
+        case .checking: "Checking for updates"
+        case .downloading: "Downloading Arrowslit\(updater.availableRelease.map { " \($0.version)" } ?? "")"
+        case .downloaded: "Update downloaded"
+        case .upToDate: "You're up to date"
+        case .failed: "Couldn't update"
+        case .idle: "Arrowslit \(updater.currentVersion?.description ?? "0.0.0")"
+        }
+    }
+
+    private var detail: String {
+        switch updater.state {
+        case .available: "Download the DMG, then drag Arrowslit into Applications."
+        case .checking: "Contacting GitHub…"
+        case .downloading(let progress): "\(Int((progress * 100).rounded()))% downloaded"
+        case .downloaded: "Open the DMG and drag Arrowslit into Applications."
+        case .upToDate: "This is the latest version."
+        case .failed(let message): message
+        case .idle: "Check GitHub for a newer version."
+        }
+    }
+}
+
+private struct UpdateActionButton: View {
+    let title: String
+    var primary = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if primary {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                Text(title)
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(primary ? ArrowTheme.ink : ArrowTheme.bone)
+            .padding(.horizontal, 10)
+            .frame(height: 28)
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(primary ? ArrowTheme.amber : Color.white.opacity(0.08))
+            )
+            .overlay {
+                if !primary {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+                }
+            }
+        }
+        .buttonStyle(NookPressStyle())
     }
 }
