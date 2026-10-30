@@ -87,7 +87,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(quit)
     }
 
-    @objc private func openAction() { state.expand(.timer) }
+    @objc private func openAction() { state.expandDefault() }
     @objc private func toggleTimerAction() { state.toggleTimer() }
     @objc private func resetTimerAction() { state.resetTimer() }
     @objc private func startTimerAction(_ sender: NSMenuItem) { state.startTimer(minutes: sender.tag) }

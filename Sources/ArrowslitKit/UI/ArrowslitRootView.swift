@@ -110,7 +110,7 @@ private struct CompactBar: View {
                 .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isDropTargeted)
         }
         .contentShape(SlitShape(radius: 12))
-        .onTapGesture { state.expand(musicTrack == nil ? .home : .nowPlaying) }
+        .onTapGesture { state.expandDefault() }
         .onDrop(of: [.fileURL, .url], isTargeted: $isDropTargeted) { providers in
             Task { @MainActor in
                 let urls = await FileDrop.urls(from: providers)

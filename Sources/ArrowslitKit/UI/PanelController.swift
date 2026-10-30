@@ -119,7 +119,7 @@ final class PanelController {
                     if Date().timeIntervalSince(started) >= 0.4 {
                         hoverStartedAt = nil
                         DispatchQueue.main.async { [weak self] in
-                            self?.state.expand(.home)
+                            self?.state.expandDefault()
                         }
                     }
                 } else {

@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.2/Arrowslit-0.4.2.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.3/Arrowslit-0.4.3.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -81,7 +81,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.4.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.2/Arrowslit-0.4.2.dmg)** and open it.
+1. Download **[Arrowslit-0.4.3.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.3/Arrowslit-0.4.3.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -98,16 +98,16 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.4.2 (build 13) |
-| **Direct Download** | [Arrowslit-0.4.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.2/Arrowslit-0.4.2.dmg) |
-| **SHA-256** | `f72aa1f49de0c911b15f924b9714e50d0129cf8888d826fb6b185fe528b48786` |
+| **Version** | 0.4.3 (build 14) |
+| **Direct Download** | [Arrowslit-0.4.3.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.3/Arrowslit-0.4.3.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
 
 | If you want to | Do this |
 | :--- | :--- |
-| Open Home or one of your shortcuts | Click the notch strip, or hover the top center for 0.4 seconds |
+| Open the notch | Click the strip or hover the top center. Music/video opens the player; otherwise it opens Home |
 | Open anything else | Click the grid button at the top right |
 | Change your top shortcuts | Open the grid, click the pencil, and select up to three favorites |
 | Start a timer, focus session or stopwatch | Tap a preset button or hit Focus on Home |
@@ -140,12 +140,13 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.4.2
+## What is in 0.4.3
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
 * Countdown timer with presets, pause/resume, and 25/5 Focus sessions
 * Precision stopwatch with tenths-of-a-second readout
+* Music/video opens the 390×218 player by default; otherwise the notch opens Home
 * Full 390×218 Now Playing player with lyrics, plus the 306×146 Apple Music-style nudge on Home
 * Optional timed lyrics from lrclib.net, off by default
 * Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
