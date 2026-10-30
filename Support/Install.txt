@@ -27,6 +27,17 @@ If you prefer Terminal, after dragging the app into Applications:
     xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
     open "/Applications/Arrowslit.app"
 
+Permissions
+-----------
+Calendar, Reminders and Camera are remembered by macOS for this installed
+copy. Press Connect once in Settings, allow access, and macOS keeps that choice
+across quitting and reopening. Arrowslit never asks in the background. Use one
+installed copy (Applications); a second copy or the Desktop alias is treated as
+the same installed app only when it points back to Applications.
+
+Updating an unnotarized build can ask once more. A future notarized release
+will remove that prompt.
+
 Using it
 --------
 Hover the top of the screen for 0.4 seconds, or click the strip, to open.
