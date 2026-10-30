@@ -32,17 +32,11 @@ final class DebugHooks {
         case "collapse": state.collapse()
         case "nowplaying": state.expand(.nowPlaying)
         case "nowplaying-demo":
-            state.nowPlaying.showDemo(
-                title: "Blinding Lights",
-                artist: "The Weeknd",
-                album: "After Hours",
-                artwork: demoArtwork(),
-                accent: ArtworkAccent(red: 1, green: 0.55, blue: 0.12),
-                duration: 202,
-                elapsed: 4
-            )
-            state.settings.lyricsEnabled = false
+            showDemoTrack()
             state.expand(.nowPlaying)
+        case "home-demo":
+            showDemoTrack()
+            state.expand(.home)
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "calendaralert":
@@ -83,6 +77,19 @@ final class DebugHooks {
         case "reset": state.resetTimer()
         default: break
         }
+    }
+
+    private func showDemoTrack() {
+        state.nowPlaying.showDemo(
+            title: "Blinding Lights",
+            artist: "The Weeknd",
+            album: "After Hours",
+            artwork: demoArtwork(),
+            accent: ArtworkAccent(red: 1, green: 0.55, blue: 0.12),
+            duration: 202,
+            elapsed: 4
+        )
+        state.settings.lyricsEnabled = false
     }
 
     private func demoArtwork() -> NSImage {

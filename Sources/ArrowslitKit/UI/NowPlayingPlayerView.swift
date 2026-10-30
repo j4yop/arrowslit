@@ -154,7 +154,7 @@ struct NowPlayingPlayerView: View {
     }
 }
 
-private struct PlayerProgressRow: View {
+struct PlayerProgressRow: View {
     @Bindable var state: AppState
     @State private var scrubProgress: Double?
 
@@ -187,7 +187,7 @@ private struct PlayerProgressRow: View {
     }
 }
 
-private struct PlayerScrubBar: View {
+struct PlayerScrubBar: View {
     var progress: Double
     var isEnabled: Bool
     var onScrub: (Double, Bool) -> Void
@@ -228,7 +228,7 @@ private struct PlayerScrubBar: View {
     }
 }
 
-private struct PlayerGlyphButton: View {
+struct PlayerGlyphButton: View {
     let symbol: String
     let size: CGFloat
     let label: String
@@ -248,7 +248,7 @@ private struct PlayerGlyphButton: View {
     }
 }
 
-private struct PlayerPressStyle: ButtonStyle {
+struct PlayerPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.9 : 1)
