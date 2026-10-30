@@ -30,19 +30,20 @@ struct CalendarPane: View {
     }
 
     private func eventCard(_ event: CalendarEvent) -> some View {
-        Button {
-            calendar.open(event)
-        } label: {
-            HStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(ArrowTheme.amber)
-                    .frame(width: 3, height: 64)
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(ArrowTheme.amber)
+                .frame(width: 3, height: 64)
+
+            Button {
+                calendar.open(event)
+            } label: {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(event.title)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(ArrowTheme.bone)
                         .lineLimit(1)
-                    Text(timeLabel(event))
+                    Text(CalendarRules.timeRange(for: event, at: Date()))
                         .font(.system(size: 11, weight: .medium))
                         .monospacedDigit()
                         .foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted)
@@ -50,25 +51,47 @@ struct CalendarPane: View {
                         .font(.system(size: 10))
                         .foregroundStyle(ArrowTheme.faint)
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(NookPressStyle())
+            .help("Open in Calendar")
+
+            if event.joinURL != nil {
+                Button(joinTitle(event)) {
+                    calendar.join(event)
+                }
+                .buttonStyle(NookPressStyle())
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(ArrowTheme.ink)
+                .padding(.horizontal, 12)
+                .frame(height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
+                .help("Join the meeting")
+            } else {
                 Image(systemName: "arrow.up.forward")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(ArrowTheme.faint)
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(ArrowTheme.panel)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
-            }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(NookPressStyle())
-        .help("Open in Calendar")
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(ArrowTheme.panel)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+        }
+    }
+
+    private func joinTitle(_ event: CalendarEvent) -> String {
+        guard let provider = event.joinProvider else { return "Join" }
+        return "Join \(provider.displayName)"
     }
 
     private var empty: some View {
@@ -107,11 +130,4 @@ struct CalendarPane: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func timeLabel(_ event: CalendarEvent) -> String {
-        if event.isAllDay { return "All day" }
-        let end = event.end.formatted(date: .omitted, time: .shortened)
-        if event.isHappening(at: Date()) { return "Now · until \(end)" }
-        let start = event.start.formatted(date: .omitted, time: .shortened)
-        return "\(start) – \(end)"
-    }
 }
