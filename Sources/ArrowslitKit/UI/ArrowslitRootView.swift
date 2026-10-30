@@ -8,7 +8,7 @@ struct ArrowslitRootView: View {
     var body: some View {
         let geometry = ScreenReader.current
         let presentation = state.presentation
-        let size = NotchPanelMetrics.size(for: presentation, geometry: geometry)
+        let size = NotchPanelMetrics.size(for: presentation, geometry: geometry, lyrics: state.showsLyrics)
 
         ZStack(alignment: .top) {
             switch presentation {
