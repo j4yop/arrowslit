@@ -6,21 +6,10 @@ struct MirrorPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("MIRROR")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("A quick look before a call. Nothing is recorded.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(ArrowTheme.muted)
-                }
-                Spacer()
+            PaneHeader("Mirror") {
                 if camera.state == .granted {
-                    Text("CAMERA")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1)
+                    Text("Camera on")
+                        .font(ArrowTheme.caption)
                         .foregroundStyle(ArrowTheme.green)
                 }
             }
@@ -29,7 +18,7 @@ struct MirrorPane: View {
             case .notAsked:
                 prompt(
                     symbol: "person.crop.square",
-                    message: "Arrowslit can show a local camera preview. The camera turns off when you leave this tab.",
+                    message: "Show a local camera preview. The camera turns off when you leave this tab.",
                     button: "Turn On Camera"
                 ) { camera.request() }
             case .denied:
@@ -64,7 +53,7 @@ struct MirrorPane: View {
                     .frame(maxWidth: 380, maxHeight: .infinity)
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(camera.isCameraOff ? "Camera preview is off." : "Check how you look, then close this tab.")
+                        Text(camera.isCameraOff ? "Camera preview is off." : "Check how you look before a call.")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(ArrowTheme.bone)
                             .fixedSize(horizontal: false, vertical: true)
@@ -76,7 +65,10 @@ struct MirrorPane: View {
                         .foregroundStyle(ArrowTheme.ink)
                         .padding(.horizontal, 15)
                         .frame(height: 32)
-                        .background(Capsule().fill(ArrowTheme.amber))
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(ArrowTheme.amber)
+                        )
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -103,7 +95,10 @@ struct MirrorPane: View {
                     .foregroundStyle(ArrowTheme.ink)
                     .padding(.horizontal, 15)
                     .frame(height: 32)
-                    .background(Capsule().fill(ArrowTheme.amber))
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(ArrowTheme.amber)
+                    )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

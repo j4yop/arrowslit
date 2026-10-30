@@ -6,23 +6,14 @@ struct NowPlayingPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("NOW PLAYING")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("Whatever is playing on this Mac.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(ArrowTheme.muted)
-                }
-                Spacer()
+            PaneHeader("Now Playing") {
                 if service.isVisible {
-                    Circle().fill(ArrowTheme.green).frame(width: 5, height: 5)
-                    Text("LIVE")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1)
-                        .foregroundStyle(ArrowTheme.green)
+                    HStack(spacing: 5) {
+                        Circle().fill(ArrowTheme.green).frame(width: 5, height: 5)
+                        Text("Live")
+                            .font(ArrowTheme.caption)
+                            .foregroundStyle(ArrowTheme.green)
+                    }
                 }
             }
 
@@ -31,14 +22,14 @@ struct NowPlayingPane: View {
             } else if !service.isAvailable {
                 empty(
                     symbol: "waveform.slash",
-                    title: "Media bridge unavailable",
+                    title: "Media access is unavailable",
                     detail: "System media access is blocked on this Mac. Everything else still works."
                 )
             } else {
                 empty(
                     symbol: "music.note",
-                    title: "Play something",
-                    detail: "Music, a podcast, a video — Arrowslit will show it here."
+                    title: "Nothing is playing",
+                    detail: "Start something in Music, Podcasts or a browser."
                 )
             }
         }
@@ -77,7 +68,8 @@ struct NowPlayingPane: View {
                             Spacer()
                             Text(track.duration.map { "-" + ClockFormat.clock(max(0, $0 - elapsed), roundingUp: true) } ?? "--:--")
                         }
-                        .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                        .font(.system(size: 9.5, weight: .medium))
+                        .monospacedDigit()
                         .foregroundStyle(ArrowTheme.faint)
                     }
                 }
@@ -89,9 +81,8 @@ struct NowPlayingPane: View {
                     }
                     MediaButton(symbol: "forward.fill", size: 15) { service.next() }
                     Spacer()
-                    Text(track.isPlaying ? "PLAYING" : "PAUSED")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1.1)
+                    Text(track.isPlaying ? "Playing" : "Paused")
+                        .font(ArrowTheme.caption)
                         .foregroundStyle(track.isPlaying ? ArrowTheme.green : ArrowTheme.faint)
                 }
             }

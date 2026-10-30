@@ -5,21 +5,11 @@ struct ClipboardPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("CLIPBOARD")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("Last \(ClipboardRules.capacity) text copies. Private items are skipped.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(ArrowTheme.muted)
-                }
-                Spacer()
+            PaneHeader("Clipboard", detail: "Last \(ClipboardRules.capacity) copies. Password managers are skipped.") {
                 if !state.clipboard.entries.isEmpty {
                     Button("Clear") { state.clipboard.clear() }
                         .buttonStyle(NookPressStyle())
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
             }
@@ -91,9 +81,8 @@ private struct ClipboardRow: View {
 
                 Spacer(minLength: 6)
                 if copied {
-                    Text("COPIED")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1)
+                    Text("Copied")
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ArrowTheme.green)
                 }
             }
