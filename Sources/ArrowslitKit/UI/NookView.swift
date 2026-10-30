@@ -39,7 +39,7 @@ struct NookView: View {
                 }
             }
         }
-        .frame(width: 560, height: 178)
+        .frame(width: 560, height: state.activeTab == .home ? 204 : 178)
         .background(ArrowTheme.ink)
         .clipShape(SlitShape(radius: 18))
         .overlay {
