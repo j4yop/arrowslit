@@ -44,6 +44,7 @@ final class PanelController {
     private func observe() {
         withObservationTracking {
             _ = state.presentation
+            _ = state.showsLyrics
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 await Task.yield()
@@ -82,6 +83,13 @@ final class PanelController {
         let frame = panel.frame
 
         if state.presentation.isAlert {
+            hoverStartedAt = nil
+            leaveStartedAt = nil
+            return
+        }
+
+        // The music nudge floats below the notch and stays until it is dismissed or clicked away.
+        if case .expanded(.nowPlaying) = state.presentation {
             hoverStartedAt = nil
             leaveStartedAt = nil
             return
@@ -155,9 +163,12 @@ final class PanelController {
     private func updateFrame(animated: Bool) {
         guard let screen = ScreenReader.builtIn() else { return }
         let geometry = ScreenReader.geometry(for: screen)
-        let size = NotchPanelMetrics.size(for: state.presentation, geometry: geometry)
+        let size = NotchPanelMetrics.size(for: state.presentation, geometry: geometry, lyrics: state.showsLyrics)
         let x = (screen.frame.minX + geometry.centreX - size.width / 2).rounded()
-        let y = screen.frame.maxY - size.height
+        let topOffset = state.presentation == .expanded(.nowPlaying)
+            ? NotchPanelMetrics.playerTopOffset(for: geometry)
+            : 0
+        let y = screen.frame.maxY - size.height - topOffset
         let frame = NSRect(x: x, y: y, width: size.width, height: size.height)
         if animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             NSAnimationContext.runAnimationGroup { context in

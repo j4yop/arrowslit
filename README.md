@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.3.0/Arrowslit-0.3.0.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.0/Arrowslit-0.4.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -31,7 +31,7 @@ The name comes from the narrow opening in a fortress wall: the smallest aperture
 Here is what it shows:
 
 * Whatever music is playing, with album art and animated bars tinted from the cover
-* A full player with artwork, scrubber, lyrics and back/pause/forward controls
+* A wide Apple Music-style nudge with artwork, scrubber and back/pause/forward controls
 * Timers, counting down right next to the camera
 * A live wall clock in India Standard Time or local time
 * A five-minute heads-up when your next meeting starts, with a Join button
@@ -40,7 +40,7 @@ Here is what it shows:
 And when you click it, you get a little home base right under the notch:
 
 * **Home** with your music, next event, quick timer presets, a 25/5 focus session, and live CPU/memory stats
-* **Now Playing**, a notch-sized player with album art, scrubber, back/pause/forward and optional timed lyrics
+* **Now Playing**, a wide, short nudge with album art, scrubber, back/pause/forward and optional timed lyrics
 * **Files Tray**, a handy spot to drop files you will need again in a minute. Drag files onto the notch to put them there
 * **Clipboard**, the last 20 things you copied. Click one to copy it again. Passwords from password managers are skipped and nothing is saved to disk
 * **Notes**, a little scratchpad for phone numbers, ideas, whatever. Saves as you type
@@ -81,7 +81,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.3.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.3.0/Arrowslit-0.3.0.dmg)** and open it.
+1. Download **[Arrowslit-0.4.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.0/Arrowslit-0.4.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -98,9 +98,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.3.0 (build 10) |
-| **Direct Download** | [Arrowslit-0.3.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.3.0/Arrowslit-0.3.0.dmg) |
-| **SHA-256** | `1b2e9c57a6724b28a820a1343600a95945f6a54ab267f7d8f59c99eca8e292f7` |
+| **Version** | 0.4.0 (build 11) |
+| **Direct Download** | [Arrowslit-0.4.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.0/Arrowslit-0.4.0.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -140,13 +140,13 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.3.0
+## What is in 0.4.0
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
 * Countdown timer with presets, pause/resume, and 25/5 Focus sessions
 * Precision stopwatch with tenths-of-a-second readout
-* Notch-sized Now Playing player with album art, scrubber, back/pause/forward and album-art accent bars
+* Apple Music-style Now Playing nudge with large album art, scrubber, back/pause/forward and album-art accent bars
 * Optional timed lyrics from lrclib.net, off by default
 * Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
 * Today's to-dos from Reminders

@@ -51,6 +51,23 @@ CalendarService  ──5 min before──▶  AppState.receive(.upcomingEvent)
 Alerts wait while the workbench is open unless they are urgent; outside-click and Escape dismiss
 the current alert before closing the workbench.
 
+## Now Playing nudge
+
+The compact strip shows album art on the left and four animated bars on the right. Clicking it
+opens `NowPlayingPlayerView`, a 306 × 146 pt nudge that floats just below the camera housing.
+It uses the wide, short layout of a system now-playing nudge: 110 pt artwork, title/artist,
+centered back/pause/forward controls, and a blue scrubber with elapsed/remaining times. If timed
+lyrics are enabled and available, the nudge grows to 306 × 172 and adds one animated lyric line.
+
+`NotchPanelMetrics` owns both sizes. `PanelController` uses the same value for the window frame
+and offsets only the music nudge below the housing, so the card cannot drift away from the notch.
+Album artwork is tinted on the media reader's background queue and the bars animate with Core
+Animation, keeping both off the main render path.
+
+Lyrics are optional and off by default. When enabled, `LyricsService` sends only the song's
+title, artist, album and length to lrclib.net, matches the timed LRC to the song length, and
+keeps the answer in memory.
+
 ## Data flow
 
 1. Services publish state with `@Observable`.
@@ -64,11 +81,11 @@ the current alert before closing the workbench.
 
 ## Design principles
 
-- **Local first**: no account, analytics, telemetry or network.
+- **Local first**: no account, analytics or telemetry. Lyrics lookup is optional and off by default.
 - **Quiet**: idle CPU near zero; stats only sample while visible.
 - **Small surface**: one vertical rail; no infinite widget grid.
-- **Original expression**: no copied layouts, strings, icons or animation values from other
-  notch apps. Feature ideas are researched; implementation is ours.
+- **Original expression**: no third-party source, assets, strings or icons are copied. Visual
+  behavior is researched and independently implemented in Arrowslit.
 - **Failure tolerant**: the media helper can disappear; the rest of the app keeps working.
 - **Testable core**: timers, formatting and maths are value types with injected clocks.
 
