@@ -98,7 +98,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 | :--- | :--- |
 | **Version** | 0.2.0 (build 9) |
 | **Direct Download** | [Arrowslit-0.2.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg) |
-| **SHA-256** | `PENDING_RELEASE_SHA` |
+| **SHA-256** | `0e0a7ddfc74424a6fb19d8852f50d21527f73ad2ac4cb98aa2c1250257c9edba` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
