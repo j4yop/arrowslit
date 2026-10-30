@@ -37,6 +37,9 @@ final class DebugHooks {
         case "home-demo":
             showDemoTrack()
             state.expand(.home)
+        case "fakeupdate":
+            state.updater.showDemo(version: "0.4.5")
+            state.onOpenSettings?()
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "calendaralert":
