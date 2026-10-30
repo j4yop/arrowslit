@@ -39,6 +39,20 @@ struct SettingsView: View {
                     }
 
                     SettingsSection(
+                        title: "Music",
+                        note: "Now Playing stays local. Timed lyrics are optional."
+                    ) {
+                        SettingsToggle(
+                            title: "Show timed lyrics",
+                            detail: "Looks up the current song on lrclib.net. Sends only the title, artist, album and length.",
+                            isOn: Binding(
+                                get: { state.settings.lyricsEnabled },
+                                set: { state.settings.lyricsEnabled = $0 }
+                            )
+                        )
+                    }
+
+                    SettingsSection(
                         title: "Interface",
                         note: "How the notch behaves while you work."
                     ) {
@@ -148,7 +162,7 @@ struct SettingsView: View {
                             Text("Version \(version)")
                                 .font(ArrowTheme.detail)
                                 .foregroundStyle(ArrowTheme.muted)
-                            Text("Local-only. No account, no analytics, no network.")
+                            Text("Local-first. No account, no analytics. Lyrics lookup is optional.")
                                 .font(ArrowTheme.detail)
                                 .foregroundStyle(ArrowTheme.muted)
                             Text("GPL-3.0 · © 2026 Jay Gopal and contributors")

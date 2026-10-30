@@ -15,6 +15,9 @@ struct ArrowslitRootView: View {
             case .alert(let alert):
                 NotchAlertView(state: state, alert: alert)
                     .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
+            case .expanded(.nowPlaying):
+                NowPlayingPlayerView(state: state)
+                    .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
             case .expanded:
                 NookView(state: state)
                     .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
@@ -52,31 +55,51 @@ private struct CompactBar: View {
         return true
     }
 
+    private var musicTrack: NowPlayingTrack? {
+        guard state.nowPlaying.isVisible, let track = state.nowPlaying.track, track.hasContent else { return nil }
+        return track
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 7) {
-                SlitMark(height: 14)
-                if state.nowPlaying.isVisible {
-                    MusicBars(isPlaying: state.nowPlaying.track?.isPlaying ?? false, height: 13)
+            if let track = musicTrack {
+                compactArtwork
+                    .padding(.leading, 10)
+                    .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                MusicBars(
+                    isPlaying: track.isPlaying,
+                    color: state.nowPlaying.accent.color,
+                    height: 15,
+                    width: 20
+                )
+                .padding(.trailing, 10)
+                .frame(width: ear, alignment: .trailing)
+            } else {
+                HStack(spacing: 7) {
+                    SlitMark(height: 14)
                 }
+                .padding(.leading, 12)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                HStack(spacing: 5) {
+                    compactValue
+
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone.opacity(0.6))
+                        .frame(width: 10)
+                        .accessibilityHidden(true)
+                }
+                .padding(.trailing, 8)
+                .frame(width: ear, alignment: .trailing)
             }
-            .padding(.leading, 12)
-            .frame(width: ear, alignment: .leading)
-
-            Color.clear
-                .frame(width: notchWidth)
-
-            HStack(spacing: 5) {
-                compactValue
-
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.bone.opacity(0.6))
-                    .frame(width: 10)
-                    .accessibilityHidden(true)
-            }
-            .padding(.trailing, 8)
-            .frame(width: ear, alignment: .trailing)
         }
         .frame(width: width, height: 32)
         .background(ArrowTheme.ink)
@@ -87,7 +110,7 @@ private struct CompactBar: View {
                 .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isDropTargeted)
         }
         .contentShape(SlitShape(radius: 12))
-        .onTapGesture { state.expand(.home) }
+        .onTapGesture { state.expand(musicTrack == nil ? .home : .nowPlaying) }
         .onDrop(of: [.fileURL, .url], isTargeted: $isDropTargeted) { providers in
             Task { @MainActor in
                 let urls = await FileDrop.urls(from: providers)
@@ -100,6 +123,22 @@ private struct CompactBar: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(.isButton)
+    }
+
+    @ViewBuilder
+    private var compactArtwork: some View {
+        Group {
+            if let artwork = state.nowPlaying.artwork {
+                Image(nsImage: artwork)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                SlitMark(height: 14)
+            }
+        }
+        .frame(width: 26, height: 26)
+        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
     }
 
     @ViewBuilder
@@ -128,7 +167,10 @@ private struct CompactBar: View {
     }
 
     private var accessibilityLabel: String {
-        state.compactLabel == "Ready"
+        if let track = musicTrack {
+            return "Arrowslit. Now playing \(track.title) by \(track.artist)"
+        }
+        return state.compactLabel == "Ready"
             ? "Arrowslit. \(state.compactValue)"
             : "Arrowslit. \(state.compactLabel) \(state.compactValue)"
     }
