@@ -6,7 +6,7 @@ struct StopwatchPane: View {
     var body: some View {
         VStack(spacing: 14) {
             Text(ClockFormat.clock(state.stopwatch.elapsed, tenths: true))
-                .font(.system(size: 48, weight: .light, design: .monospaced))
+                .font(.system(size: 48, weight: .light))
                 .foregroundStyle(ArrowTheme.bone)
                 .monospacedDigit()
 
@@ -19,7 +19,10 @@ struct StopwatchPane: View {
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 14)
                 .frame(height: 30)
-                .background(Capsule().fill(ArrowTheme.amber))
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
 
                 Button("Reset") {
                     state.stopwatch.reset()
@@ -29,7 +32,10 @@ struct StopwatchPane: View {
                 .foregroundStyle(ArrowTheme.bone)
                 .padding(.horizontal, 14)
                 .frame(height: 30)
-                .background(Capsule().fill(Color.white.opacity(0.08)))
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color.white.opacity(0.08))
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -58,7 +64,10 @@ struct KeepAwakePane: View {
             .foregroundStyle(ArrowTheme.ink)
             .padding(.horizontal, 14)
             .frame(height: 28)
-            .background(Capsule().fill(ArrowTheme.amber))
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(ArrowTheme.amber)
+            )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

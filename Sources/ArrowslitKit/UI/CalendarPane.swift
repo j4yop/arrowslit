@@ -6,34 +6,17 @@ struct CalendarPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("CALENDAR")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("Just the next thing, so it stays out of the way.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(ArrowTheme.muted)
-                }
-                Spacer()
-                if calendar.access == .granted {
-                    Text("CONNECTED")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1)
-                        .foregroundStyle(ArrowTheme.green)
-                }
-            }
+            PaneHeader("Calendar")
 
             switch calendar.access {
             case .notAsked:
                 prompt(
-                    "Arrowslit can show your next event here. It never uploads your calendar.",
+                    "Show your next event here. Calendar data stays on this Mac.",
                     button: "Connect Calendar"
                 ) { calendar.requestAccess() }
             case .denied, .limited:
                 prompt(
-                    "Calendar access is off. Turn it on in Privacy & Security to see the next event.",
+                    "Calendar access is off. Turn it on in Privacy & Security.",
                     button: "Open Privacy Settings"
                 ) { calendar.openPrivacySettings() }
             case .granted:
@@ -60,7 +43,8 @@ struct CalendarPane: View {
                         .foregroundStyle(ArrowTheme.bone)
                         .lineLimit(1)
                     Text(timeLabel(event))
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.system(size: 11, weight: .medium))
+                        .monospacedDigit()
                         .foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted)
                     Text(event.start.formatted(date: .complete, time: .omitted))
                         .font(.system(size: 10))
@@ -92,7 +76,7 @@ struct CalendarPane: View {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.system(size: 24, weight: .regular))
                 .foregroundStyle(ArrowTheme.faint)
-            Text("Nothing on the calendar this week.")
+            Text("No events this week.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(ArrowTheme.muted)
         }
@@ -115,7 +99,10 @@ struct CalendarPane: View {
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 15)
                 .frame(height: 32)
-                .background(Capsule().fill(ArrowTheme.amber))
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

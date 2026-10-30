@@ -127,11 +127,14 @@ private struct NookHeader: View {
                         .foregroundStyle(ArrowTheme.muted)
                     Button("Done") { state.isEditingShortcuts = false }
                         .buttonStyle(NookPressStyle())
-                        .font(.system(size: 9.5, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.ink)
                         .padding(.horizontal, 10)
                         .frame(height: 22)
-                        .background(Capsule().fill(Color(red: 0.04, green: 0.52, blue: 1)))
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(ArrowTheme.amber)
+                        )
                 } else {
                     if state.activeTab == .launcher {
                         NookIconButton(symbol: "pencil", title: "Edit shortcuts") {
@@ -233,24 +236,6 @@ private struct NookIconButton: View {
     }
 }
 
-private struct NookFooter: View {
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle().fill(ArrowTheme.green).frame(width: 4, height: 4)
-            Text("LOCAL / PRIVATE")
-                .font(.system(size: 7, weight: .bold))
-                .tracking(1.1)
-                .foregroundStyle(ArrowTheme.faint)
-            Spacer()
-            Text("GPL-3.0")
-                .font(.system(size: 7, weight: .medium, design: .monospaced))
-                .foregroundStyle(ArrowTheme.faint)
-        }
-        .padding(.horizontal, 14)
-        .frame(height: 16)
-    }
-}
-
 // MARK: - Compact panes
 
 private struct CompactTimer: View {
@@ -264,13 +249,12 @@ private struct CompactTimer: View {
     var body: some View {
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(timer.justFinished ? "COMPLETE" : (timer.isPaused ? "PAUSED" : (timer.isActive ? "RUNNING" : "READY")))
-                    .font(.system(size: 7.5, weight: .bold))
-                    .tracking(1.2)
-                    .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.faint)
+                Text(timer.justFinished ? "Complete" : (timer.isPaused ? "Paused" : (timer.isActive ? "Running" : "Ready")))
+                    .font(ArrowTheme.label)
+                    .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.muted)
                 Text(ClockFormat.clock(seconds, roundingUp: true))
-                    .font(.system(size: 42, weight: .light, design: .monospaced))
-                    .tracking(-0.5)
+                    .font(.system(size: 42, weight: .light))
+                    .monospacedDigit()
                     .foregroundStyle(timer.justFinished ? ArrowTheme.amber : ArrowTheme.bone)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -284,10 +268,14 @@ private struct CompactTimer: View {
                             state.startTimer(minutes: minutes)
                         }
                         .buttonStyle(NookPressStyle())
-                        .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 10, weight: .medium))
+                        .monospacedDigit()
                         .foregroundStyle(timer.lastMinutes == minutes && !timer.isActive ? ArrowTheme.ink : ArrowTheme.bone.opacity(0.8))
                         .frame(width: 42, height: 24)
-                        .background(Capsule().fill(timer.lastMinutes == minutes && !timer.isActive ? ArrowTheme.amber : Color.white.opacity(0.06)))
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(timer.lastMinutes == minutes && !timer.isActive ? ArrowTheme.amber : Color.white.opacity(0.06))
+                        )
                     }
                 }
                 HStack(spacing: 6) {
@@ -341,8 +329,11 @@ private struct SmallAction: View {
             .foregroundStyle(filled ? ArrowTheme.ink : ArrowTheme.bone.opacity(0.85))
             .padding(.horizontal, 11)
             .frame(height: 26)
-            .background(Capsule().fill(filled ? ArrowTheme.amber : Color.white.opacity(0.07)))
-            .contentShape(Capsule())
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(filled ? ArrowTheme.amber : Color.white.opacity(0.07))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }
         .buttonStyle(NookPressStyle())
     }
@@ -389,7 +380,8 @@ private struct CompactNowPlaying: View {
                                 Spacer()
                                 Text(track.duration.map { "-" + ClockFormat.clock(max(0, $0 - (track.elapsed(at: context.date) ?? 0)), roundingUp: true) } ?? "--:--")
                             }
-                            .font(.system(size: 8, weight: .medium, design: .monospaced))
+                            .font(.system(size: 8, weight: .medium))
+                            .monospacedDigit()
                             .foregroundStyle(ArrowTheme.faint)
                         }
                     }
@@ -449,7 +441,7 @@ private struct CompactCalendar: View {
                         RoundedRectangle(cornerRadius: 1.5).fill(ArrowTheme.amber).frame(width: 3, height: 50)
                         VStack(alignment: .leading, spacing: 3) {
                             Text(event.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(ArrowTheme.bone).lineLimit(1)
-                            Text(label(event)).font(.system(size: 10, weight: .medium, design: .monospaced))
+                            Text(label(event)).font(.system(size: 10, weight: .medium)).monospacedDigit()
                                 .foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted)
                             Text(event.start.formatted(date: .complete, time: .omitted)).font(.system(size: 9)).foregroundStyle(ArrowTheme.faint)
                         }
@@ -560,11 +552,14 @@ private struct AddFilesButton: View {
             if panel.runModal() == .OK { state.tray.add(panel.urls) }
         } label: {
             Label("Add files", systemImage: "plus")
-                .font(.system(size: 9.5, weight: .semibold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 10)
                 .frame(height: 26)
-                .background(Capsule().fill(ArrowTheme.amber))
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
         }
         .buttonStyle(NookPressStyle())
     }
@@ -614,7 +609,7 @@ private struct CompactMirror: View {
     var body: some View {
         switch camera.state {
         case .notAsked:
-            CompactPrompt(symbol: "person.crop.square", text: "A local camera preview before a call.", button: "Turn On Camera") { camera.request() }
+            CompactPrompt(symbol: "person.crop.square", text: "Show a local camera preview before a call.", button: "Turn On Camera") { camera.request() }
         case .denied:
             CompactPrompt(symbol: "camera.slash", text: "Camera access is off for Arrowslit.", button: "Open Privacy Settings") { camera.openPrivacySettings() }
         case .noCamera:
@@ -640,7 +635,10 @@ private struct CompactMirror: View {
                         .foregroundStyle(ArrowTheme.ink)
                         .padding(.horizontal, 10)
                         .frame(height: 26)
-                        .background(Capsule().fill(ArrowTheme.amber))
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(ArrowTheme.amber)
+                        )
                 }
                 Spacer()
             }
@@ -719,7 +717,7 @@ private struct CompactNotes: View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 10, style: .continuous).fill(ArrowTheme.panel)
             if state.notes.isEmpty {
-                Text("Jot a thought, a number, a next step…")
+                Text("Start typing.")
                     .font(.system(size: 11.5)).foregroundStyle(ArrowTheme.faint)
                     .padding(.horizontal, 10).padding(.vertical, 8).allowsHitTesting(false)
             }
@@ -732,8 +730,8 @@ private struct CompactNotes: View {
                 .focused($focused)
         }
         .overlay(alignment: .bottomTrailing) {
-            Text(state.notes.isSaved ? "SAVED" : "SAVING…")
-                .font(.system(size: 7.5, weight: .bold)).tracking(1)
+            Text(state.notes.isSaved ? "Saved" : "Saving…")
+                .font(.system(size: 9))
                 .foregroundStyle(state.notes.isSaved ? ArrowTheme.green : ArrowTheme.amber)
                 .padding(7)
         }
@@ -749,7 +747,7 @@ private struct CompactStats: View {
     var body: some View {
         HStack(spacing: 10) {
             CompactStat(label: "CPU", value: state.stats.hasReading ? StatsMath.percent(state.stats.cpu) : "—", detail: "\(ProcessInfo.processInfo.activeProcessorCount) cores", share: state.stats.hasReading ? state.stats.cpu : 0, level: StatsMath.level(state.stats.cpu))
-            CompactStat(label: "MEMORY", value: StatsMath.percent(state.stats.memoryShare), detail: "\(StatsMath.bytes(state.stats.memoryUsed)) of \(StatsMath.bytes(state.stats.memoryTotal))", share: state.stats.memoryShare, level: state.stats.pressure)
+            CompactStat(label: "Memory", value: StatsMath.percent(state.stats.memoryShare), detail: "\(StatsMath.bytes(state.stats.memoryUsed)) of \(StatsMath.bytes(state.stats.memoryTotal))", share: state.stats.memoryShare, level: state.stats.pressure)
         }
         .onAppear { state.stats.start() }
         .onDisappear { state.stats.stop() }
@@ -773,9 +771,9 @@ private struct CompactStat: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.system(size: 7.5, weight: .bold)).tracking(1).foregroundStyle(ArrowTheme.faint)
-            Text(value).font(.system(size: 24, weight: .semibold, design: .rounded)).foregroundStyle(ArrowTheme.bone).monospacedDigit()
-            Text(detail).font(.system(size: 8.5)).foregroundStyle(ArrowTheme.muted).lineLimit(1)
+            Text(label).font(ArrowTheme.label).foregroundStyle(ArrowTheme.muted)
+            Text(value).font(.system(size: 24, weight: .semibold)).foregroundStyle(ArrowTheme.bone).monospacedDigit()
+            Text(detail).font(ArrowTheme.caption).foregroundStyle(ArrowTheme.muted).lineLimit(1)
             Spacer(minLength: 0)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -836,7 +834,8 @@ private struct CompactReminders: View {
                                 Spacer()
                                 if let due = item.due {
                                     Text(due.formatted(date: .omitted, time: .shortened))
-                                        .font(.system(size: 9, design: .monospaced))
+                                        .font(.system(size: 9))
+                                        .monospacedDigit()
                                         .foregroundStyle(ArrowTheme.faint)
                                 }
                             }
@@ -862,13 +861,11 @@ private struct CompactStopwatch: View {
     var body: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(stopwatch.isRunning ? "RUNNING" : (stopwatch.elapsed > 0 ? "PAUSED" : "READY"))
-                    .font(.system(size: 7.5, weight: .bold))
-                    .tracking(1.2)
-                    .foregroundStyle(stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.faint)
+                Text(stopwatch.isRunning ? "Running" : (stopwatch.elapsed > 0 ? "Paused" : "Ready"))
+                    .font(ArrowTheme.label)
+                    .foregroundStyle(stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.muted)
                 Text(ClockFormat.clock(stopwatch.elapsed, tenths: true))
-                    .font(.system(size: 42, weight: .light, design: .monospaced))
-                    .tracking(-0.5)
+                    .font(.system(size: 42, weight: .light))
                     .foregroundStyle(ArrowTheme.bone)
                     .monospacedDigit()
             }
@@ -918,7 +915,10 @@ private struct CompactKeepAwake: View {
             .foregroundStyle(ArrowTheme.ink)
             .padding(.horizontal, 12)
             .frame(height: 27)
-            .background(Capsule().fill(ArrowTheme.amber))
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(ArrowTheme.amber)
+            )
         }
         .frame(maxHeight: .infinity)
     }
@@ -941,7 +941,10 @@ private struct CompactPrompt: View {
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 11)
                 .frame(height: 26)
-                .background(Capsule().fill(ArrowTheme.amber))
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
         }
         .frame(maxHeight: .infinity)
     }

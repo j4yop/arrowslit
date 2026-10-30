@@ -221,7 +221,7 @@ public final class AppState {
         if timer.isActive {
             return ClockFormat.clock(timer.remaining, roundingUp: true)
         }
-        if timer.justFinished { return "DONE" }
+        if timer.justFinished { return "Done" }
         if nowPlaying.isVisible, let title = nowPlaying.track?.title, !title.isEmpty {
             return String(title.prefix(28))
         }
@@ -229,9 +229,9 @@ public final class AppState {
     }
 
     public var compactLabel: String {
-        if timer.isActive { return timer.isPaused ? "PAUSED" : "FOCUS" }
-        if timer.justFinished { return "TIMER" }
-        if nowPlaying.isVisible { return "PLAYING" }
-        return "READY"
+        if timer.isActive { return timer.isPaused ? "Paused" : "Focus" }
+        if timer.justFinished { return "Timer" }
+        if nowPlaying.isVisible { return "Playing" }
+        return "Ready"
     }
 }
