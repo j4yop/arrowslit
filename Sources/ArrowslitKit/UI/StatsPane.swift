@@ -6,24 +6,7 @@ struct StatsPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("SYSTEM")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("Read locally, every two seconds.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(ArrowTheme.muted)
-                }
-                Spacer()
-                if !state.stats.hasReading {
-                    Text("CALIBRATING")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(1)
-                        .foregroundStyle(ArrowTheme.amber)
-                }
-            }
+            PaneHeader("System")
 
             HStack(spacing: 10) {
                 StatCard(
@@ -34,17 +17,13 @@ struct StatsPane: View {
                     level: StatsMath.level(state.stats.cpu)
                 )
                 StatCard(
-                    label: "MEMORY",
+                    label: "Memory",
                     value: StatsMath.percent(state.stats.memoryShare),
                     detail: "\(StatsMath.bytes(state.stats.memoryUsed)) of \(StatsMath.bytes(state.stats.memoryTotal))",
                     share: state.stats.memoryShare,
                     level: state.stats.pressure
                 )
             }
-
-            Text("Arrowslit reads CPU and memory from the kernel. Nothing leaves this Mac.")
-                .font(.system(size: 10))
-                .foregroundStyle(ArrowTheme.faint)
         }
         .onAppear { state.stats.start() }
         .onDisappear { state.stats.stop() }
@@ -61,17 +40,16 @@ private struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
-                .font(.system(size: 8.5, weight: .bold))
-                .tracking(1.2)
-                .foregroundStyle(ArrowTheme.faint)
+                .font(ArrowTheme.label)
+                .foregroundStyle(ArrowTheme.muted)
             Text(value)
-                .font(.system(size: 28, weight: .semibold, design: .rounded))
+                .font(.system(size: 28, weight: .semibold))
                 .foregroundStyle(ArrowTheme.bone)
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Text(detail)
-                .font(.system(size: 9.5))
+                .font(ArrowTheme.detail)
                 .foregroundStyle(ArrowTheme.muted)
                 .lineLimit(1)
             Spacer(minLength: 0)

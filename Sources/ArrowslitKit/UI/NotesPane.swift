@@ -6,21 +6,16 @@ struct NotesPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("SCRATCHPAD")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.4)
-                        .foregroundStyle(ArrowTheme.faint)
-                    Text("A local note, saved as you type.")
-                        .font(.system(size: 11))
+            PaneHeader("Scratchpad") {
+                HStack(spacing: 12) {
+                    Text(state.notes.isSaved ? "Saved" : "Saving…")
+                        .font(ArrowTheme.caption)
+                        .foregroundStyle(state.notes.isSaved ? ArrowTheme.green : ArrowTheme.amber)
+                    Button("Clear") { state.notes.clear() }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
-                Spacer()
-                Text(state.notes.isSaved ? "SAVED" : "SAVING…")
-                    .font(.system(size: 8, weight: .bold))
-                    .tracking(1)
-                    .foregroundStyle(state.notes.isSaved ? ArrowTheme.green : ArrowTheme.amber)
             }
 
             ZStack(alignment: .topLeading) {
@@ -28,7 +23,7 @@ struct NotesPane: View {
                     .fill(ArrowTheme.panel)
 
                 if state.notes.isEmpty {
-                    Text("Jot a thought, a number, a next step…")
+                    Text("Start typing.")
                         .font(.system(size: 13))
                         .foregroundStyle(ArrowTheme.faint)
                         .padding(.horizontal, 12)
@@ -50,17 +45,6 @@ struct NotesPane: View {
             .overlay {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(ArrowTheme.hairline, lineWidth: 0.5)
-            }
-
-            HStack {
-                Text("Escape closes the workbench")
-                    .font(.system(size: 9.5))
-                    .foregroundStyle(ArrowTheme.faint)
-                Spacer()
-                Button("Clear") { state.notes.clear() }
-                    .buttonStyle(NookPressStyle())
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.muted)
             }
         }
         .onAppear { isFocused = true }

@@ -6,16 +6,11 @@ struct RemindersPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("REMINDERS")
-                    .font(.system(size: 9, weight: .bold))
-                    .tracking(1.4)
-                    .foregroundStyle(ArrowTheme.faint)
-                Spacer()
+            PaneHeader("Reminders") {
                 if service.access == .granted {
                     Button("Refresh") { service.refresh() }
                         .buttonStyle(NookPressStyle())
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
             }
@@ -58,7 +53,10 @@ struct RemindersPane: View {
                 .foregroundStyle(.white)
                 .padding(.horizontal, 12)
                 .frame(height: 28)
-                .background(Capsule().fill(Color(red: 0.04, green: 0.52, blue: 1)))
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color(red: 0.04, green: 0.52, blue: 1))
+                )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -74,7 +72,10 @@ struct RemindersPane: View {
                 .foregroundStyle(ArrowTheme.ink)
                 .padding(.horizontal, 12)
                 .frame(height: 28)
-                .background(Capsule().fill(ArrowTheme.amber))
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -97,7 +98,8 @@ private struct ReminderRow: View {
                 Spacer()
                 if let due = item.due {
                     Text(due.formatted(date: .omitted, time: .shortened))
-                        .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                        .font(.system(size: 10))
+                        .monospacedDigit()
                         .foregroundStyle(ArrowTheme.faint)
                 }
             }

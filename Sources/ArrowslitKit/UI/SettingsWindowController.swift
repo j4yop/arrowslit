@@ -36,6 +36,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             defer: false
         )
         window.title = "Arrowslit Settings"
+        window.titleVisibility = .hidden
         window.contentViewController = NSHostingController(rootView: SettingsView(state: state))
         window.isReleasedWhenClosed = false
         window.delegate = self

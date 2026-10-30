@@ -81,11 +81,6 @@ private struct MediaCard: View {
                 .frame(maxWidth: .infinity)
             } else {
                 Spacer(minLength: 0)
-                Text("NOW PLAYING")
-                    .font(.system(size: 7, weight: .bold))
-                    .tracking(1.1)
-                    .foregroundStyle(ArrowTheme.faint)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(9)
@@ -119,7 +114,7 @@ private struct CalendarHomeRow: View {
                         HStack(spacing: 6) {
                             Text(event.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone).lineLimit(1)
                             Spacer()
-                            Text(label(event)).font(.system(size: 10, weight: .medium, design: .monospaced)).foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted).lineLimit(1)
+                            Text(label(event)).font(.system(size: 10, weight: .medium)).monospacedDigit().foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted).lineLimit(1)
                         }
                         .contentShape(Rectangle())
                     }
@@ -164,7 +159,10 @@ private struct TimerHomeRow: View {
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(ArrowTheme.ink)
                     .frame(width: 26, height: 22)
-                    .background(Capsule().fill(ArrowTheme.amber))
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(ArrowTheme.amber)
+                    )
             }
             .buttonStyle(NookPressStyle())
             .help("Start a 25 minute focus session")
@@ -185,10 +183,12 @@ private struct SystemHomeRow: View {
                 Text("System").font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone)
                 Spacer()
                 Text("CPU \(state.stats.hasReading ? StatsMath.percent(state.stats.cpu) : "—")")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .font(.system(size: 10, weight: .medium))
+                    .monospacedDigit()
                     .foregroundStyle(ArrowTheme.muted)
-                Text("MEM \(StatsMath.percent(state.stats.memoryShare))")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                Text("Memory \(StatsMath.percent(state.stats.memoryShare))")
+                    .font(.system(size: 10, weight: .medium))
+                    .monospacedDigit()
                     .foregroundStyle(ArrowTheme.muted)
             }
             .contentShape(Rectangle())
@@ -206,7 +206,10 @@ private struct HomeChipStyle: ButtonStyle {
             .foregroundStyle(ArrowTheme.bone)
             .padding(.horizontal, 8)
             .frame(height: 22)
-            .background(Capsule().fill(Color.white.opacity(configuration.isPressed ? 0.18 : 0.1)))
-            .contentShape(Capsule())
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.white.opacity(configuration.isPressed ? 0.18 : 0.1))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 }

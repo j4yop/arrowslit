@@ -7,15 +7,17 @@ public enum ArrowTheme {
     public static let amber = Color(red: 1.0, green: 0.624, blue: 0.039)
     public static let amberSoft = Color(red: 1.0, green: 0.624, blue: 0.039).opacity(0.16)
     public static let bone = Color.white
-    public static let muted = Color.white.opacity(0.52)
-    public static let faint = Color.white.opacity(0.28)
-    public static let hairline = Color.white.opacity(0.085)
+    public static let muted = Color.white.opacity(0.62)
+    public static let faint = Color.white.opacity(0.48)
+    public static let hairline = Color.white.opacity(0.09)
     public static let green = Color(red: 0.420, green: 0.780, blue: 0.580)
     public static let red = Color(red: 0.910, green: 0.400, blue: 0.360)
 
-    public static let mono = Font.system(size: 13, weight: .medium, design: .monospaced)
-    public static let label = Font.system(size: 10, weight: .semibold)
-    public static let body = Font.system(size: 13, weight: .regular)
+    public static let title = Font.system(size: 13, weight: .semibold)
+    public static let label = Font.system(size: 11, weight: .medium)
+    public static let body = Font.system(size: 12, weight: .regular)
+    public static let detail = Font.system(size: 11, weight: .regular)
+    public static let caption = Font.system(size: 10, weight: .regular)
 }
 
 /// A notch-fused rectangle: flat top, softly rounded bottom.
