@@ -24,7 +24,7 @@ that still gives a defender a full view and full control.
 | --- | --- |
 | **Latest release** | [Arrowslit 0.1.0](https://github.com/j4yop/arrowslit/releases/tag/v0.1.0) |
 | **Direct download** | [Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg) |
-| **SHA-256** | `307ecf6433fe5dfdec07515a736f84cbe17a91cd0725fc056395632cd4475244` |
+| **SHA-256** | `996cd86d1c860a471cd861cbc454ddb895c7846bca5c428bec91c7414cfc01ab` |
 | **Homebrew tap** | [j4yop/homebrew-tap](https://github.com/j4yop/homebrew-tap) |
 
 The DMG is a universal build for Apple Silicon and Intel.
@@ -132,7 +132,7 @@ only requested when you turn those features on.
 
 ## Release
 
-- Version 0.1.0 (build 6)
+- Version 0.1.0 (build 7)
 - Universal (`x86_64` + `arm64`)
 - Universal DMG: [Arrowslit-0.1.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.1.0/Arrowslit-0.1.0.dmg)
 - Homebrew cask: [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb)
