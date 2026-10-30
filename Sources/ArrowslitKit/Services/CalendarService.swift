@@ -8,6 +8,26 @@ public struct CalendarEvent: Identifiable, Equatable, Sendable {
     public let start: Date
     public let end: Date
     public let isAllDay: Bool
+    public let joinURL: URL?
+    public let joinProvider: MeetingLinks.Provider?
+
+    public init(
+        id: String,
+        title: String,
+        start: Date,
+        end: Date,
+        isAllDay: Bool = false,
+        joinURL: URL? = nil,
+        joinProvider: MeetingLinks.Provider? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.start = start
+        self.end = end
+        self.isAllDay = isAllDay
+        self.joinURL = joinURL
+        self.joinProvider = joinProvider
+    }
 
     public func isHappening(at date: Date) -> Bool {
         start <= date && date < end
@@ -25,15 +45,24 @@ public final class CalendarService {
     }
 
     public private(set) var access: Access = .notAsked
-    public private(set) var nextEvent: CalendarEvent?
+    public private(set) var events: [CalendarEvent] = []
     public private(set) var isRunning = false
+
+    /// Called five minutes before an event starts, once per event per launch.
+    @ObservationIgnored public var onReminder: ((CalendarEvent) -> Void)?
 
     @ObservationIgnored private var store = EKEventStore()
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var refreshTimer: Timer?
+    @ObservationIgnored private var reminderTask: Task<Void, Never>?
+    @ObservationIgnored private var reminded = Set<String>()
 
     public init() {
         access = Self.access(for: EKEventStore.authorizationStatus(for: .event))
+    }
+
+    public var nextEvent: CalendarEvent? {
+        CalendarRules.nextEvent(in: events, at: Date())
     }
 
     public func start() {
@@ -69,6 +98,8 @@ public final class CalendarService {
         observers.removeAll()
         refreshTimer?.invalidate()
         refreshTimer = nil
+        reminderTask?.cancel()
+        reminderTask = nil
     }
 
     public func requestAccess() {
@@ -94,27 +125,59 @@ public final class CalendarService {
         NSWorkspace.shared.open(url)
     }
 
+    public func join(_ event: CalendarEvent) {
+        guard let url = event.joinURL else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     private func reload() {
         access = Self.access(for: EKEventStore.authorizationStatus(for: .event))
         guard access == .granted else {
-            nextEvent = nil
+            events = []
+            scheduleReminder()
             return
         }
+
         let now = Date()
         let end = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now
         let predicate = store.predicateForEvents(withStart: now, end: end, calendars: nil)
-        let events = store.events(matching: predicate)
+        let fresh = store.events(matching: predicate)
             .filter { $0.status != .canceled && !Self.isDeclined($0) && $0.endDate > now }
             .sorted { $0.startDate < $1.startDate }
-        let event = events.first { !$0.isAllDay } ?? events.first
-        nextEvent = event.map {
-            CalendarEvent(
-                id: $0.calendarItemIdentifier,
-                title: $0.title?.isEmpty == false ? $0.title! : "Event",
-                start: $0.startDate,
-                end: $0.endDate,
-                isAllDay: $0.isAllDay
-            )
+            .map { event in
+                let join = MeetingLinks.joinLink(in: [
+                    event.url?.absoluteString,
+                    event.location,
+                    event.notes,
+                ])
+                return CalendarEvent(
+                    id: event.calendarItemIdentifier + "@" + String(event.startDate.timeIntervalSince1970),
+                    title: event.title?.isEmpty == false ? event.title! : "Event",
+                    start: event.startDate,
+                    end: event.endDate,
+                    isAllDay: event.isAllDay,
+                    joinURL: join?.url,
+                    joinProvider: join?.provider
+                )
+            }
+        if fresh != events { events = fresh }
+        scheduleReminder()
+    }
+
+    private func scheduleReminder() {
+        reminderTask?.cancel()
+        reminderTask = nil
+        guard isRunning,
+              let next = CalendarRules.nextReminder(in: events, after: Date(), reminded: reminded) else {
+            return
+        }
+        let delay = max(0, next.at.timeIntervalSinceNow)
+        reminderTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay), tolerance: .seconds(1))
+            guard !Task.isCancelled, let self else { return }
+            self.reminded.insert(next.event.id)
+            self.onReminder?(next.event)
+            self.scheduleReminder()
         }
     }
 

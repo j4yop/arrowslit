@@ -7,12 +7,18 @@ struct ArrowslitRootView: View {
 
     var body: some View {
         let geometry = ScreenReader.current
+        let presentation = state.presentation
+        let size = NotchPanelMetrics.size(for: presentation, geometry: geometry)
 
         ZStack(alignment: .top) {
-            if state.isExpanded {
+            switch presentation {
+            case .alert(let alert):
+                NotchAlertView(state: state, alert: alert)
+                    .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
+            case .expanded:
                 NookView(state: state)
                     .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
-            } else {
+            case .compact:
                 CompactBar(
                     state: state,
                     width: geometry.compactWidth,
@@ -21,12 +27,8 @@ struct ArrowslitRootView: View {
                 .transition(.opacity)
             }
         }
-        .frame(
-            width: state.isExpanded ? 560 : geometry.compactWidth,
-            height: state.isExpanded ? 178 : 32,
-            alignment: .top
-        )
-        .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: state.isExpanded)
+        .frame(width: size.width, height: size.height, alignment: .top)
+        .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: presentation)
         .environment(\.colorScheme, .dark)
     }
 }

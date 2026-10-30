@@ -43,8 +43,7 @@ final class PanelController {
     /// until the main thread spent all its time walking them.
     private func observe() {
         withObservationTracking {
-            _ = state.isExpanded
-            _ = state.activeTab
+            _ = state.presentation
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 await Task.yield()
@@ -81,6 +80,12 @@ final class PanelController {
         guard let screen = ScreenReader.builtIn() else { return }
         let mouse = NSEvent.mouseLocation
         let frame = panel.frame
+
+        if state.presentation.isAlert {
+            hoverStartedAt = nil
+            leaveStartedAt = nil
+            return
+        }
 
         if state.isExpanded {
             hoverStartedAt = nil
@@ -129,17 +134,18 @@ final class PanelController {
     private func installMonitors() {
         mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
             MainActor.assumeIsolated {
-                guard let self, self.state.isExpanded else { return }
+                guard let self else { return }
+                guard self.state.isExpanded || self.state.currentAlert != nil else { return }
                 if !self.panel.frame.contains(NSEvent.mouseLocation) {
                     DispatchQueue.main.async { [weak self] in
-                        self?.state.collapse()
+                        self?.state.outsideClick()
                     }
                 }
             }
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             if event.keyCode == 53 {
-                Task { @MainActor [weak self] in self?.state.collapse() }
+                Task { @MainActor [weak self] in self?.state.outsideClick() }
                 return nil
             }
             return event
@@ -149,11 +155,10 @@ final class PanelController {
     private func updateFrame(animated: Bool) {
         guard let screen = ScreenReader.builtIn() else { return }
         let geometry = ScreenReader.geometry(for: screen)
-        let width: CGFloat = state.isExpanded ? 560 : geometry.compactWidth
-        let height: CGFloat = state.isExpanded ? 178 : 32
-        let x = (screen.frame.minX + geometry.centreX - width / 2).rounded()
-        let y = screen.frame.maxY - height
-        let frame = NSRect(x: x, y: y, width: width, height: height)
+        let size = NotchPanelMetrics.size(for: state.presentation, geometry: geometry)
+        let x = (screen.frame.minX + geometry.centreX - size.width / 2).rounded()
+        let y = screen.frame.maxY - size.height
+        let frame = NSRect(x: x, y: y, width: size.width, height: size.height)
         if animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.24

@@ -83,9 +83,11 @@ public final class AppState {
 
     public private(set) var activeTab: WorkbenchTab = .home
     public private(set) var isExpanded = false
+    public private(set) var alerts = AlertQueue()
     public var isEditingShortcuts = false
 
     @ObservationIgnored public var onOpenSettings: (() -> Void)?
+    @ObservationIgnored private var alertTask: Task<Void, Never>?
 
     public init(
         settings: SettingsStore = SettingsStore(),
@@ -107,6 +109,16 @@ public final class AppState {
         self.notes = notes
         self.stats = stats
         self.reminders = reminders
+
+        calendar.onReminder = { [weak self] event in
+            guard let self, self.settings.isTabEnabled(.calendar) else { return }
+            self.receive(.upcomingEvent(
+                title: event.title,
+                startsAt: event.start,
+                joinURL: event.joinURL,
+                provider: event.joinProvider
+            ))
+        }
     }
 
     public func start() {
@@ -123,10 +135,16 @@ public final class AppState {
         clipboard.stop()
         stats.stop()
         timer.reset()
+        alertTask?.cancel()
+        alertTask = nil
+        alerts = AlertQueue()
     }
 
     public func expand(_ tab: WorkbenchTab = .timer) {
         if isExpanded, activeTab == tab { return }
+        alertTask?.cancel()
+        alertTask = nil
+        alerts.dismissCurrent()
         let wasCollapsed = !isExpanded
         isExpanded = true
         select(tab)
@@ -141,6 +159,16 @@ public final class AppState {
         isEditingShortcuts = false
         stats.stop()
         notes.save()
+        pumpAlerts()
+    }
+
+    /// A click outside the notch closes an alert first, then the workbench.
+    public func outsideClick() {
+        if alerts.current != nil {
+            dismissAlert()
+        } else {
+            collapse()
+        }
     }
 
     public func toggle() {
@@ -215,6 +243,65 @@ public final class AppState {
             break
         }
         if !enabled, activeTab == tab { select(.home) }
+    }
+
+    /// What the notch should show right now.
+    public var presentation: NotchPresentation {
+        PresentationResolver.resolve(PresentationInput(
+            isExpanded: isExpanded,
+            activeTab: activeTab,
+            activeActivities: activeActivities,
+            preferredPrimary: nil,
+            alert: alerts.current
+        ))
+    }
+
+    public var currentAlert: NotchAlert? { alerts.current }
+
+    public var activeActivities: Set<NotchActivity> {
+        var active = Set<NotchActivity>()
+        if timer.isActive { active.insert(.timer) }
+        if stopwatch.isRunning { active.insert(.stopwatch) }
+        if nowPlaying.isVisible { active.insert(.nowPlaying) }
+        if stats.isRunning, active.isEmpty { active.insert(.stats) }
+        return active
+    }
+
+    /// Adds a heads-up. Non-urgent alerts wait while the workbench is open; urgent ones may
+    /// interrupt it.
+    public func receive(_ alert: NotchAlert) {
+        alerts.enqueue(alert, now: Date())
+        if alerts.current != nil {
+            scheduleAlertExpiry()
+        }
+        pumpAlerts()
+    }
+
+    public func dismissAlert() {
+        alertTask?.cancel()
+        alertTask = nil
+        alerts.dismissCurrent()
+        pumpAlerts()
+    }
+
+    private func pumpAlerts() {
+        guard alerts.present(now: Date(), allowNonUrgent: !isExpanded) else { return }
+        scheduleAlertExpiry()
+    }
+
+    private func scheduleAlertExpiry() {
+        alertTask?.cancel()
+        alertTask = nil
+        guard let expiry = alerts.expiry else { return }
+        let delay = max(0, expiry.timeIntervalSinceNow)
+        alertTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled, let self else { return }
+            if self.alerts.expire(now: Date()) {
+                self.pumpAlerts()
+            }
+            self.scheduleAlertExpiry()
+        }
     }
 
     public var compactValue: String {
