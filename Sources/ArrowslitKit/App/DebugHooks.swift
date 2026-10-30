@@ -17,6 +17,9 @@ final class DebugHooks {
             guard let command = notification.object as? String else { return }
             MainActor.assumeIsolated { self?.run(command) }
         }
+        if let command = ProcessInfo.processInfo.environment["ARROWSLIT_DEBUG_COMMAND"] {
+            run(command)
+        }
     }
 
     private func run(_ command: String) {
@@ -27,6 +30,21 @@ final class DebugHooks {
         case "nowplaying": state.expand(.nowPlaying)
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
+        case "calendaralert":
+            state.receive(.upcomingEvent(
+                title: "Design review",
+                startsAt: Date().addingTimeInterval(5 * 60),
+                joinURL: URL(string: "https://meet.google.com/abc-defg-hij"),
+                provider: .meet
+            ))
+        case "calendaralert-nojoin":
+            state.receive(.upcomingEvent(
+                title: "Weekly planning",
+                startsAt: Date().addingTimeInterval(2 * 60),
+                joinURL: nil,
+                provider: nil
+            ))
+        case "dismissalert": state.dismissAlert()
         case "tray": state.expand(.tray)
         case "addfile": state.tray.add([URL(fileURLWithPath: "/etc/hosts")])
         case "mirror": state.expand(.mirror)

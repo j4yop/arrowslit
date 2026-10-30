@@ -436,35 +436,50 @@ private struct CompactCalendar: View {
             CompactPrompt(symbol: "calendar", text: "Calendar access is off for Arrowslit.", button: "Open Privacy Settings") { calendar.openPrivacySettings() }
         case .granted:
             if let event = calendar.nextEvent {
-                Button { calendar.open(event) } label: {
-                    HStack(spacing: 12) {
-                        RoundedRectangle(cornerRadius: 1.5).fill(ArrowTheme.amber).frame(width: 3, height: 50)
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 1.5).fill(ArrowTheme.amber).frame(width: 3, height: 50)
+
+                    Button { calendar.open(event) } label: {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(event.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(ArrowTheme.bone).lineLimit(1)
-                            Text(label(event)).font(.system(size: 10, weight: .medium)).monospacedDigit()
+                            Text(CalendarRules.timeRange(for: event, at: Date())).font(.system(size: 10, weight: .medium)).monospacedDigit()
                                 .foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted)
                             Text(event.start.formatted(date: .complete, time: .omitted)).font(.system(size: 9)).foregroundStyle(ArrowTheme.faint)
                         }
-                        Spacer()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(NookPressStyle())
+
+                    if let url = event.joinURL {
+                        Button(joinTitle(event)) {
+                            NSWorkspace.shared.open(url)
+                        }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.ink)
+                        .padding(.horizontal, 10)
+                        .frame(height: 26)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(ArrowTheme.amber)
+                        )
+                    } else {
                         Image(systemName: "arrow.up.forward").font(.system(size: 10, weight: .semibold)).foregroundStyle(ArrowTheme.faint)
                     }
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(ArrowTheme.panel))
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(NookPressStyle())
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(ArrowTheme.panel))
             } else {
                 CompactEmpty(symbol: "calendar.badge.checkmark", title: "Nothing this week", detail: "Your next event will appear here.")
             }
         }
     }
 
-    private func label(_ event: CalendarEvent) -> String {
-        if event.isAllDay { return "All day" }
-        let end = event.end.formatted(date: .omitted, time: .shortened)
-        if event.isHappening(at: Date()) { return "Now · until \(end)" }
-        return event.start.formatted(date: .omitted, time: .shortened) + " – " + end
+    private func joinTitle(_ event: CalendarEvent) -> String {
+        guard let provider = event.joinProvider else { return "Join" }
+        return "Join \(provider.displayName)"
     }
 }
 
