@@ -179,13 +179,15 @@ private struct TimerHomeRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Button { state.select(.timer) } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "timer").font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.amber).frame(width: 16)
-                    Text("Timer").font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone)
-                }
-                .contentShape(Rectangle())
+                Image(systemName: "timer")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.amber)
+                    .frame(width: 16)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(NookPressStyle())
+            .help("Timer")
+            .accessibilityLabel("Timer")
             Spacer(minLength: 6)
             ForEach([5, 10, 25], id: \.self) { minutes in
                 Button("\(minutes)m") { state.startTimer(minutes: minutes) }
