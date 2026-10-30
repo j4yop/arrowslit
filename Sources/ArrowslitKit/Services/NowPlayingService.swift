@@ -39,8 +39,14 @@ public final class NowPlayingService {
     public private(set) var artwork: NSImage?
     public private(set) var accent: ArtworkAccent = .white
     public private(set) var isAvailable = true
+    /// A paused track stays in the notch for a little while, like the iPhone.
+    public private(set) var isLingering = false
+    public var lingerDuration: TimeInterval = 30
 
     @ObservationIgnored private let reader = MediaLineReader()
+    @ObservationIgnored private var lingerTask: Task<Void, Never>?
+    /// Ignore a stale helper update for a moment after the user presses play/pause.
+    @ObservationIgnored private var expectedPlayState: (isPlaying: Bool, until: Date)?
     @ObservationIgnored private var process: Process?
     @ObservationIgnored private var input: FileHandle?
     @ObservationIgnored private var isStopping = false
@@ -52,7 +58,8 @@ public final class NowPlayingService {
     public init() {}
 
     public var isVisible: Bool {
-        track?.hasContent == true && track?.isPlaying == true
+        guard track?.hasContent == true else { return false }
+        return track?.isPlaying == true || isLingering
     }
 
     public func start() {
@@ -100,14 +107,19 @@ public final class NowPlayingService {
         track = nil
         artwork = nil
         accent = .white
+        endLinger()
+        expectedPlayState = nil
     }
 
     public func toggle() {
         guard var current = track else { return }
-        current.elapsed = current.elapsed(at: Date())
-        current.sampledAt = Date()
+        let now = Date()
+        current.elapsed = current.elapsed(at: now)
+        current.sampledAt = now
         current.isPlaying.toggle()
+        expectedPlayState = (current.isPlaying, now.addingTimeInterval(1.5))
         track = current
+        if current.isPlaying { endLinger() } else { beginLinger() }
         send("toggle")
     }
 
@@ -239,7 +251,7 @@ public final class NowPlayingService {
             self.accent = .white
             return
         }
-        let newTrack = NowPlayingTrack(
+        var newTrack = NowPlayingTrack(
             title: title,
             artist: artist,
             album: message.album ?? "",
@@ -251,6 +263,16 @@ public final class NowPlayingService {
             bundleIdentifier: message.bundleID,
             artworkKey: message.artworkKey
         )
+        if let expected = expectedPlayState {
+            if Date() >= expected.until || newTrack.isPlaying == expected.isPlaying {
+                expectedPlayState = nil
+            } else if newTrack.title == track?.title {
+                newTrack.isPlaying = expected.isPlaying
+                newTrack.elapsed = track?.elapsed
+                newTrack.sampledAt = track?.sampledAt
+                newTrack.rate = track?.rate ?? newTrack.rate
+            }
+        }
         if let encoded = message.artwork, let data = Data(base64Encoded: encoded), let image = NSImage(data: data) {
             artwork = image
             self.accent = accent ?? .white
@@ -258,7 +280,30 @@ public final class NowPlayingService {
             artwork = nil
             self.accent = .white
         }
+        let wasPlaying = track?.isPlaying ?? false
         track = newTrack
+        if newTrack.isPlaying {
+            endLinger()
+        } else if wasPlaying {
+            beginLinger()
+        }
+    }
+
+    private func beginLinger() {
+        lingerTask?.cancel()
+        isLingering = true
+        let duration = lingerDuration
+        lingerTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(duration))
+            guard !Task.isCancelled else { return }
+            self?.isLingering = false
+        }
+    }
+
+    private func endLinger() {
+        lingerTask?.cancel()
+        lingerTask = nil
+        isLingering = false
     }
 
     nonisolated private static func locateLibrary(bundle: Bundle = .main) -> URL? {

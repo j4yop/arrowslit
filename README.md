@@ -13,12 +13,12 @@
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 or newer">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0 license"></a>
   <img src="https://img.shields.io/badge/architecture-universal-orange" alt="Universal Apple Silicon + Intel">
-  <img src="https://img.shields.io/badge/network-none-2ea44f" alt="Zero network / 100% offline">
+  <img src="https://img.shields.io/badge/network-optional-f59e0b" alt="Local-first with optional lyrics lookup">
   <img src="https://img.shields.io/badge/price-free-2ea44f" alt="Free">
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.3.0/Arrowslit-0.3.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -30,7 +30,8 @@ The name comes from the narrow opening in a fortress wall: the smallest aperture
 
 Here is what it shows:
 
-* Whatever music is playing, with the track title and little animated music bars
+* Whatever music is playing, with album art and animated bars tinted from the cover
+* A full player with artwork, scrubber, lyrics and back/pause/forward controls
 * Timers, counting down right next to the camera
 * A live wall clock in India Standard Time or local time
 * A five-minute heads-up when your next meeting starts, with a Join button
@@ -39,6 +40,7 @@ Here is what it shows:
 And when you click it, you get a little home base right under the notch:
 
 * **Home** with your music, next event, quick timer presets, a 25/5 focus session, and live CPU/memory stats
+* **Now Playing**, a notch-sized player with album art, scrubber, back/pause/forward and optional timed lyrics
 * **Files Tray**, a handy spot to drop files you will need again in a minute. Drag files onto the notch to put them there
 * **Clipboard**, the last 20 things you copied. Click one to copy it again. Passwords from password managers are skipped and nothing is saved to disk
 * **Notes**, a little scratchpad for phone numbers, ideas, whatever. Saves as you type
@@ -57,7 +59,7 @@ Next to Home at the top left sit up to three shortcuts of your own. They start a
 
 Arrowslit lives on your MacBook's built-in display for now. Multi-display support is planned.
 
-It does not need an account and does not track anything. It has no network code, no analytics, and no background telemetry. Everything stays on your Mac. All of this is free and open source.
+It does not need an account and does not track anything. Lyrics are optional and off by default; if you turn them on, only the current song's title, artist, album and length are sent to lrclib.net. Everything else stays on your Mac. All of this is free and open source.
 
 ## Installing it
 
@@ -79,7 +81,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.2.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg)** and open it.
+1. Download **[Arrowslit-0.3.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.3.0/Arrowslit-0.3.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -96,9 +98,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.2.0 (build 9) |
-| **Direct Download** | [Arrowslit-0.2.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.2.0/Arrowslit-0.2.0.dmg) |
-| **SHA-256** | `0e0a7ddfc74424a6fb19d8852f50d21527f73ad2ac4cb98aa2c1250257c9edba` |
+| **Version** | 0.3.0 (build 10) |
+| **Direct Download** | [Arrowslit-0.3.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.3.0/Arrowslit-0.3.0.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -124,7 +126,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 **My music isn't showing.** Play something and give it a second. Arrowslit talks to macOS media services through an isolated helper process. If Apple media services ever stall, Arrowslit stays fast and unaffected.
 
-**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has zero network access, no telemetry, no tracking, and no user accounts. Everything stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
+**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
 
 **Why is it asking for my camera or calendar?** Only if you use those bits. It asks for the camera when you open Mirror, calendar access when you click Connect on Calendar, and reminders access when you open Reminders. If you say no, those specific tabs stay disabled while the rest of Arrowslit keeps working.
 
@@ -138,13 +140,14 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.2.0
+## What is in 0.3.0
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
 * Countdown timer with presets, pause/resume, and 25/5 Focus sessions
 * Precision stopwatch with tenths-of-a-second readout
-* Now Playing with track artwork and animated music bars
+* Notch-sized Now Playing player with album art, scrubber, back/pause/forward and album-art accent bars
+* Optional timed lyrics from lrclib.net, off by default
 * Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
 * Today's to-dos from Reminders
 * File tray with drag-and-drop shelf and 1-click AirDrop
