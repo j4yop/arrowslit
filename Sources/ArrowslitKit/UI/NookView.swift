@@ -15,7 +15,7 @@ struct NookView: View {
                 switch state.activeTab {
                 case .home: HomePane(state: state)
                 case .nowPlaying: CompactNowPlaying(state: state)
-                case .timer: CompactTimer(state: state)
+                case .timer, .stopwatch: ClockPane(state: state)
                 case .calendar: CompactCalendar(state: state)
                 case .tray: CompactTray(state: state)
                 case .mirror: CompactMirror(state: state)
@@ -23,7 +23,6 @@ struct NookView: View {
                 case .notes: CompactNotes(state: state)
                 case .stats: CompactStats(state: state)
                 case .reminders: CompactReminders(state: state)
-                case .stopwatch: CompactStopwatch(state: state)
                 case .keepAwake: CompactKeepAwake(state: state)
                 case .launcher: LauncherPane(state: state)
                 }

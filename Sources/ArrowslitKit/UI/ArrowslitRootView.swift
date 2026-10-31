@@ -18,6 +18,9 @@ struct ArrowslitRootView: View {
             case .expanded(.nowPlaying):
                 NowPlayingPlayerView(state: state)
                     .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
+            case .clockRunning(let mode):
+                ClockRunningPane(state: state, mode: mode)
+                    .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
             case .expanded:
                 NookView(state: state)
                     .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
@@ -51,6 +54,7 @@ private struct CompactBar: View {
 
     private var isLiveClock: Bool {
         if state.timer.isActive || state.timer.justFinished { return false }
+        if state.stopwatch.isActive { return false }
         if state.nowPlaying.isVisible,
            let title = state.nowPlaying.track?.title,
            !title.isEmpty { return false }
@@ -67,6 +71,38 @@ private struct CompactBar: View {
             if let hud {
                 hudContent(hud)
                     .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+            } else if state.timer.isActive {
+                Image(systemName: "timer")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(state.timer.isPaused ? ArrowTheme.muted : ArrowTheme.amber)
+                    .padding(.leading, 12)
+                    .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text(ClockFormat.clock(state.timer.remaining, roundingUp: true))
+                    .font(.system(size: 13, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.bone)
+                    .padding(.trailing, 10)
+                    .frame(width: ear, alignment: .trailing)
+            } else if state.stopwatch.isActive {
+                Image(systemName: "stopwatch")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(state.stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.muted)
+                    .padding(.leading, 12)
+                    .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text(ClockFormat.clock(state.stopwatch.elapsed, tenths: true))
+                    .font(.system(size: 13, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.bone)
+                    .padding(.trailing, 10)
+                    .frame(width: ear, alignment: .trailing)
             } else if let track = musicTrack {
                 compactArtwork
                     .padding(.leading, 10)
@@ -249,6 +285,9 @@ private struct CompactBar: View {
             default:
                 break
             }
+        }
+        if state.timer.isActive {
+            return "Arrowslit. \(state.compactLabel) \(state.compactValue)"
         }
         if let track = musicTrack {
             return "Arrowslit. Now playing \(track.title) by \(track.artist)"
