@@ -78,6 +78,28 @@ private struct CompactBar: View {
                 )
                 .padding(.trailing, 10)
                 .frame(width: ear, alignment: .trailing)
+            } else if state.compactCharging {
+                HStack(spacing: 5) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(ArrowTheme.green)
+                    Text("\(state.system.batteryLevel)%")
+                        .font(.system(size: 13, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(ArrowTheme.bone)
+                        .lineLimit(1)
+                }
+                .padding(.leading, 12)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text("Charging")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.green)
+                    .padding(.trailing, 10)
+                    .frame(width: ear, alignment: .trailing)
             } else {
                 HStack(spacing: 7) {
                     SlitMark(height: 14)
@@ -169,6 +191,9 @@ private struct CompactBar: View {
     private var accessibilityLabel: String {
         if let track = musicTrack {
             return "Arrowslit. Now playing \(track.title) by \(track.artist)"
+        }
+        if state.compactCharging {
+            return "Arrowslit. Charging \(state.system.batteryLevel) percent"
         }
         return state.compactLabel == "Ready"
             ? "Arrowslit. \(state.compactValue)"

@@ -8,7 +8,13 @@ public final class SettingsStore {
     public var openSettingsOnLaunch: Bool { didSet { defaults.set(openSettingsOnLaunch, forKey: Key.openSettingsOnLaunch) } }
     public var openOnHover: Bool { didSet { defaults.set(openOnHover, forKey: Key.openOnHover) } }
     public var collapseOnLeave: Bool { didSet { defaults.set(collapseOnLeave, forKey: Key.collapseOnLeave) } }
+    public var liquidAnimations: Bool { didSet { defaults.set(liquidAnimations, forKey: Key.liquidAnimations) } }
     public var hapticFeedback: Bool { didSet { defaults.set(hapticFeedback, forKey: Key.haptic) } }
+    public var showOnLockScreen: Bool { didSet { defaults.set(showOnLockScreen, forKey: Key.showOnLockScreen) } }
+    public var alertCharging: Bool { didSet { defaults.set(alertCharging, forKey: Key.alertCharging) } }
+    public var alertLowBattery: Bool { didSet { defaults.set(alertLowBattery, forKey: Key.alertLowBattery) } }
+    public var alertHeadphones: Bool { didSet { defaults.set(alertHeadphones, forKey: Key.alertHeadphones) } }
+    public var alertVolumeBrightness: Bool { didSet { defaults.set(alertVolumeBrightness, forKey: Key.alertVolumeBrightness) } }
     public var clipboardEnabled: Bool { didSet { defaults.set(clipboardEnabled, forKey: Key.clipboard) } }
     public var statsEnabled: Bool { didSet { defaults.set(statsEnabled, forKey: Key.stats) } }
     public var notesEnabled: Bool { didSet { defaults.set(notesEnabled, forKey: Key.notes) } }
@@ -26,7 +32,13 @@ public final class SettingsStore {
         openSettingsOnLaunch = defaults.object(forKey: Key.openSettingsOnLaunch) as? Bool ?? true
         openOnHover = defaults.object(forKey: Key.openOnHover) as? Bool ?? true
         collapseOnLeave = defaults.object(forKey: Key.collapseOnLeave) as? Bool ?? true
+        liquidAnimations = defaults.object(forKey: Key.liquidAnimations) as? Bool ?? true
         hapticFeedback = defaults.object(forKey: Key.haptic) as? Bool ?? true
+        showOnLockScreen = defaults.object(forKey: Key.showOnLockScreen) as? Bool ?? false
+        alertCharging = defaults.object(forKey: Key.alertCharging) as? Bool ?? true
+        alertLowBattery = defaults.object(forKey: Key.alertLowBattery) as? Bool ?? true
+        alertHeadphones = defaults.object(forKey: Key.alertHeadphones) as? Bool ?? true
+        alertVolumeBrightness = defaults.object(forKey: Key.alertVolumeBrightness) as? Bool ?? true
         clipboardEnabled = defaults.object(forKey: Key.clipboard) as? Bool ?? true
         statsEnabled = defaults.object(forKey: Key.stats) as? Bool ?? true
         notesEnabled = defaults.object(forKey: Key.notes) as? Bool ?? true
@@ -81,7 +93,13 @@ public final class SettingsStore {
         static let openSettingsOnLaunch = "arrowslit.openSettingsOnLaunch"
         static let openOnHover = "arrowslit.openOnHover"
         static let collapseOnLeave = "arrowslit.collapseOnLeave"
+        static let liquidAnimations = "arrowslit.liquidAnimations"
         static let haptic = "arrowslit.hapticFeedback"
+        static let showOnLockScreen = "arrowslit.showOnLockScreen"
+        static let alertCharging = "arrowslit.alertCharging"
+        static let alertLowBattery = "arrowslit.alertLowBattery"
+        static let alertHeadphones = "arrowslit.alertHeadphones"
+        static let alertVolumeBrightness = "arrowslit.alertVolumeBrightness"
         static let clipboard = "arrowslit.clipboardEnabled"
         static let stats = "arrowslit.statsEnabled"
         static let notes = "arrowslit.notesEnabled"

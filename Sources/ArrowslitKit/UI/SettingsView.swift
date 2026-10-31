@@ -53,6 +53,78 @@ struct SettingsView: View {
                     }
 
                     SettingsSection(
+                        title: "Feel",
+                        note: "Motion and touch feedback."
+                    ) {
+                        SettingsToggle(
+                            title: "Liquid animations",
+                            isOn: Binding(
+                                get: { state.settings.liquidAnimations },
+                                set: { state.setLiquidAnimations($0) }
+                            )
+                        )
+                        SettingsRowDivider()
+                        SettingsToggle(
+                            title: "Haptic feedback",
+                            isOn: Binding(
+                                get: { state.settings.hapticFeedback },
+                                set: { state.settings.hapticFeedback = $0 }
+                            )
+                        )
+                    }
+
+                    LockScreenSection(state: state)
+
+                    SettingsSection(
+                        title: "Alerts",
+                        note: "A quick heads-up in the notch."
+                    ) {
+                        AlertToggleRow(
+                            symbol: "bolt.fill",
+                            tint: Color(red: 0.27, green: 0.78, blue: 0.40),
+                            title: "Charging",
+                            detail: nil,
+                            isOn: Binding(
+                                get: { state.settings.alertCharging },
+                                set: { state.settings.alertCharging = $0 }
+                            )
+                        )
+                        SettingsRowDivider()
+                        AlertToggleRow(
+                            symbol: "battery.25",
+                            tint: ArrowTheme.red,
+                            title: "Low Battery",
+                            detail: "At 20% and 10%",
+                            isOn: Binding(
+                                get: { state.settings.alertLowBattery },
+                                set: { state.settings.alertLowBattery = $0 }
+                            )
+                        )
+                        SettingsRowDivider()
+                        AlertToggleRow(
+                            symbol: "headphones",
+                            tint: Color.white.opacity(0.22),
+                            title: "Headphones",
+                            detail: "When AirPods or other Bluetooth headphones connect",
+                            isOn: Binding(
+                                get: { state.settings.alertHeadphones },
+                                set: { state.settings.alertHeadphones = $0 }
+                            )
+                        )
+                        SettingsRowDivider()
+                        AlertToggleRow(
+                            symbol: "speaker.wave.2.fill",
+                            tint: Color(red: 0.04, green: 0.52, blue: 1),
+                            title: "Volume & Brightness",
+                            detail: "Shows the level in the notch when you change it",
+                            isOn: Binding(
+                                get: { state.settings.alertVolumeBrightness },
+                                set: { state.settings.alertVolumeBrightness = $0 }
+                            )
+                        )
+                    }
+
+                    SettingsSection(
                         title: "Interface",
                         note: "How the notch behaves while you work."
                     ) {
@@ -80,15 +152,6 @@ struct SettingsView: View {
                             isOn: Binding(
                                 get: { state.settings.collapseOnLeave },
                                 set: { state.settings.collapseOnLeave = $0 }
-                            )
-                        )
-                        SettingsRowDivider()
-                        SettingsToggle(
-                            title: "Haptic feedback",
-                            detail: "A small tap when the notch opens.",
-                            isOn: Binding(
-                                get: { state.settings.hapticFeedback },
-                                set: { state.settings.hapticFeedback = $0 }
                             )
                         )
                         SettingsRowDivider()
@@ -449,7 +512,7 @@ private struct AccessStatusRow: View {
 
 private struct SettingsToggle: View {
     let title: String
-    let detail: String
+    var detail: String? = nil
     @Binding var isOn: Bool
 
     var body: some View {
@@ -459,10 +522,12 @@ private struct SettingsToggle: View {
                     .font(ArrowTheme.body)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
-                Text(detail)
-                    .font(ArrowTheme.detail)
-                    .foregroundStyle(ArrowTheme.muted)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let detail {
+                    Text(detail)
+                        .font(ArrowTheme.detail)
+                        .foregroundStyle(ArrowTheme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer(minLength: 12)
             Toggle("", isOn: $isOn)
@@ -472,6 +537,90 @@ private struct SettingsToggle: View {
                 .tint(ArrowTheme.amber)
         }
         .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+    }
+}
+
+private struct LockScreenSection: View {
+    @Bindable var state: AppState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 12) {
+                Text("Show on Lock Screen")
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Spacer(minLength: 12)
+                Toggle("", isOn: Binding(
+                    get: { state.settings.showOnLockScreen },
+                    set: { state.settings.showOnLockScreen = $0 }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .tint(ArrowTheme.amber)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.white.opacity(0.045))
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            }
+
+            Text("While your Mac is locked, the notch shows a running timer, what's playing, or charging, just as it looks when you're logged in. Anyone at your Mac can see it, so it's off until you turn it on.")
+                .font(ArrowTheme.detail)
+                .foregroundStyle(ArrowTheme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 2)
+        }
+    }
+}
+
+private struct AlertToggleRow: View {
+    let symbol: String
+    let tint: Color
+    let title: String
+    let detail: String?
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(tint)
+                Image(systemName: symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 30, height: 30)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                if let detail {
+                    Text(detail)
+                        .font(ArrowTheme.detail)
+                        .foregroundStyle(ArrowTheme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .tint(ArrowTheme.amber)
+        }
+        .padding(.horizontal, 12)
         .padding(.vertical, 9)
     }
 }

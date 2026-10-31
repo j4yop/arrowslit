@@ -3,7 +3,10 @@ import SwiftUI
 /// Motion tokens for the nook. Apple's defaults: critically damped springs
 /// unless a gesture carried momentum. The notch opens on a pointer hover, so
 /// its open/close springs must not bounce.
+@MainActor
 enum NookMotion {
+    static var liquidAnimations = true
+
     static let press = Animation.easeOut(duration: 0.12)
     static let hover = Animation.easeOut(duration: 0.14)
     static let quick = Animation.easeOut(duration: 0.18)
@@ -12,8 +15,10 @@ enum NookMotion {
     static let content = Animation.spring(response: 0.3, dampingFraction: 1.0)
     static let drop = Animation.spring(response: 0.28, dampingFraction: 1.0)
 
-    static func reducing(_ animation: Animation, reduceMotion: Bool) -> Animation {
-        reduceMotion ? .easeOut(duration: 0.15) : animation
+    /// `nil` means no implicit animation at all when the user turns Liquid animations off.
+    static func reducing(_ animation: Animation, reduceMotion: Bool) -> Animation? {
+        guard liquidAnimations else { return nil }
+        return reduceMotion ? .easeOut(duration: 0.15) : animation
     }
 }
 

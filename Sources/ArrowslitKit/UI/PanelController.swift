@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 import Observation
 import QuartzCore
 import SwiftUI
@@ -15,6 +16,14 @@ final class PanelController {
     private var hoverStartedAt: Date?
     private var leaveStartedAt: Date?
 
+    private var standardLevel: NSWindow.Level {
+        NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 3)
+    }
+
+    private var lockScreenLevel: NSWindow.Level {
+        NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()) + 1)
+    }
+
     init(state: AppState) {
         self.state = state
         hostingView = NSHostingView(rootView: ArrowslitRootView(state: state))
@@ -22,6 +31,7 @@ final class PanelController {
         panel.contentView = hostingView
         panel.setAccessibilityLabel("Arrowslit")
         panel.orderFrontRegardless()
+        applyLockScreenState()
         updateFrame(animated: false)
         observe()
         observeScreens()
@@ -44,10 +54,13 @@ final class PanelController {
     private func observe() {
         withObservationTracking {
             _ = state.presentation
+            _ = state.session.isLocked
+            _ = state.settings.showOnLockScreen
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 await Task.yield()
                 guard let self else { return }
+                self.applyLockScreenState()
                 self.updateFrame(animated: true)
                 self.observe()
             }
@@ -67,6 +80,27 @@ final class PanelController {
         }
     }
 
+    private func applyLockScreenState() {
+        let locked = state.session.isLocked
+        let show = state.settings.showOnLockScreen
+
+        if locked {
+            if state.isExpanded { state.collapse() }
+            panel.ignoresMouseEvents = true
+            if show {
+                panel.level = lockScreenLevel
+                panel.orderFrontRegardless()
+            } else {
+                panel.orderOut(nil)
+                panel.level = standardLevel
+            }
+        } else {
+            panel.ignoresMouseEvents = false
+            panel.level = standardLevel
+            panel.orderFrontRegardless()
+        }
+    }
+
     private func startHoverPolling() {
         let timer = Timer(timeInterval: 0.12, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.pollPointer() }
@@ -77,6 +111,11 @@ final class PanelController {
     }
 
     private func pollPointer() {
+        guard !state.session.isLocked else {
+            hoverStartedAt = nil
+            leaveStartedAt = nil
+            return
+        }
         guard let screen = ScreenReader.builtIn() else { return }
         let mouse = NSEvent.mouseLocation
         let frame = panel.frame
@@ -135,6 +174,7 @@ final class PanelController {
         mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
+                guard !self.state.session.isLocked else { return }
                 guard self.state.isExpanded || self.state.currentAlert != nil else { return }
                 if !self.panel.frame.contains(NSEvent.mouseLocation) {
                     DispatchQueue.main.async { [weak self] in
@@ -159,7 +199,9 @@ final class PanelController {
         let x = (screen.frame.minX + geometry.centreX - size.width / 2).rounded()
         let y = screen.frame.maxY - size.height
         let frame = NSRect(x: x, y: y, width: size.width, height: size.height)
-        if animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+        if animated,
+           state.settings.liquidAnimations,
+           !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.24
                 context.timingFunction = CAMediaTimingFunction(controlPoints: 0.23, 1, 0.32, 1)

@@ -73,6 +73,19 @@ it asks music.163.com for a timed fallback and requires the title, artist and le
 The answer stays in memory. A failed lookup is retried on a widening schedule (5s, 15s, 60s,
 then every 5 minutes) while the same song keeps playing.
 
+## System signals
+
+`SystemMonitorService` polls the internal battery through IOKit, the default audio device and
+volume through CoreAudio, and display brightness through the DisplayServices symbol. It emits
+the existing `NotchAlert` cases for charging, low battery, Bluetooth headphones and the
+volume/brightness HUD. The first reading is a baseline, so launching the app does not replay an
+old alert. Pure `PowerAlertRules` keep the 20% and 10% warnings from firing twice.
+
+`SessionLockService` listens for the screen lock/unlock and screen-saver notifications. When the
+user enables Show on Lock Screen, `PanelController` raises the panel above the shielding window
+and keeps it in the compact presentation; otherwise the panel is ordered out while locked. The
+panel ignores mouse events while locked.
+
 ## Updates
 
 `UpdateService` asks GitHub's latest-release API at most once a day (and on demand) for a newer

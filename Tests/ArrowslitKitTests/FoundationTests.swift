@@ -101,6 +101,81 @@ struct AlertQueueTests {
     }
 }
 
+@Suite("Power alerts")
+struct PowerAlertRulesTests {
+    private let battery80 = PowerSnapshot(level: 80, isCharging: false, isOnAC: false)
+
+    @Test func firstReadingIsOnlyABaseline() {
+        var rules = PowerAlertRules()
+        let alerts = rules.observe(battery80, chargingAlerts: true, lowBatteryAlerts: true)
+        #expect(alerts.isEmpty)
+    }
+
+    @Test func pluggingInAnnouncesChargingOnce() {
+        var rules = PowerAlertRules()
+        _ = rules.observe(battery80, chargingAlerts: true, lowBatteryAlerts: true)
+
+        let pluggedIn = PowerSnapshot(level: 80, isCharging: true, isOnAC: true)
+        #expect(rules.observe(pluggedIn, chargingAlerts: true, lowBatteryAlerts: true) == [
+            .charging(level: 80, isCharging: true)
+        ])
+        #expect(rules.observe(pluggedIn, chargingAlerts: true, lowBatteryAlerts: true).isEmpty)
+    }
+
+    @Test func startingToChargeWhilePluggedInAnnouncesOnce() {
+        var rules = PowerAlertRules()
+        _ = rules.observe(
+            PowerSnapshot(level: 80, isCharging: false, isOnAC: true),
+            chargingAlerts: true,
+            lowBatteryAlerts: true
+        )
+
+        let charging = PowerSnapshot(level: 80, isCharging: true, isOnAC: true)
+        #expect(rules.observe(charging, chargingAlerts: true, lowBatteryAlerts: true) == [
+            .charging(level: 80, isCharging: true)
+        ])
+        #expect(rules.observe(charging, chargingAlerts: true, lowBatteryAlerts: true).isEmpty)
+    }
+
+    @Test func lowBatteryFiresAtTwentyAndTenOnlyOnce() {
+        var rules = PowerAlertRules()
+        _ = rules.observe(PowerSnapshot(level: 21, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true)
+
+        #expect(rules.observe(PowerSnapshot(level: 19, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true) == [
+            .lowBattery(level: 19)
+        ])
+        #expect(rules.observe(PowerSnapshot(level: 18, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true).isEmpty)
+        #expect(rules.observe(PowerSnapshot(level: 9, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true) == [
+            .lowBattery(level: 9)
+        ])
+        #expect(rules.observe(PowerSnapshot(level: 8, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true).isEmpty)
+    }
+
+    @Test func chargingRearmsBothWarnings() {
+        var rules = PowerAlertRules()
+        _ = rules.observe(PowerSnapshot(level: 21, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true)
+        #expect(rules.observe(PowerSnapshot(level: 19, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true) == [
+            .lowBattery(level: 19)
+        ])
+        _ = rules.observe(PowerSnapshot(level: 80, isCharging: true, isOnAC: true), chargingAlerts: true, lowBatteryAlerts: true)
+        _ = rules.observe(PowerSnapshot(level: 21, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true)
+
+        #expect(rules.observe(PowerSnapshot(level: 19, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true) == [
+            .lowBattery(level: 19)
+        ])
+    }
+
+    @Test func disabledWarningsStayQuiet() {
+        var rules = PowerAlertRules()
+        _ = rules.observe(battery80, chargingAlerts: false, lowBatteryAlerts: false)
+        #expect(rules.observe(
+            PowerSnapshot(level: 80, isCharging: true, isOnAC: true),
+            chargingAlerts: false,
+            lowBatteryAlerts: false
+        ).isEmpty)
+    }
+}
+
 @Suite("Presentation resolver")
 struct PresentationResolverTests {
     @Test func compactUsesActivityPriority() {
@@ -111,6 +186,16 @@ struct PresentationResolverTests {
         ))
 
         #expect(presentation == .compact(primary: .call, secondary: .timer))
+    }
+
+    @Test func chargingSitsBehindMediaAndAheadOfStats() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: false,
+            activeTab: .home,
+            activeActivities: [.stats, .charging, .nowPlaying]
+        ))
+
+        #expect(presentation == .compact(primary: .nowPlaying, secondary: .charging))
     }
 
     @Test func expandedWorkspaceWinsOverANonUrgentAlert() {
@@ -358,6 +443,43 @@ struct LyricsLookupTests {
         #expect(LyricsRetryPolicy.delay(afterFailure: 2) == 60)
         #expect(LyricsRetryPolicy.delay(afterFailure: 3) == 300)
         #expect(LyricsRetryPolicy.delay(afterFailure: 20) == 300)
+    }
+}
+
+@MainActor
+@Suite("Settings defaults")
+struct SettingsStoreTests {
+    private func makeDefaults() -> (UserDefaults, String) {
+        let name = "ArrowslitTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        return (defaults, name)
+    }
+
+    @Test func newInstallsStartWithAlertsOnAndLockScreenOff() {
+        let (defaults, name) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: name) }
+        let settings = SettingsStore(defaults: defaults)
+
+        #expect(settings.liquidAnimations)
+        #expect(settings.hapticFeedback)
+        #expect(!settings.showOnLockScreen)
+        #expect(settings.alertCharging)
+        #expect(settings.alertLowBattery)
+        #expect(settings.alertHeadphones)
+        #expect(settings.alertVolumeBrightness)
+    }
+
+    @Test func alertAndLockScreenChoicesPersist() {
+        let (defaults, name) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: name) }
+        let settings = SettingsStore(defaults: defaults)
+        settings.showOnLockScreen = true
+        settings.alertVolumeBrightness = false
+
+        let reloaded = SettingsStore(defaults: defaults)
+        #expect(reloaded.showOnLockScreen)
+        #expect(!reloaded.alertVolumeBrightness)
     }
 }
 

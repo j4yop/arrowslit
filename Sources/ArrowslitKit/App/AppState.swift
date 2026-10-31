@@ -78,6 +78,8 @@ public final class AppState {
     public let notes: NotesStore
     public let stats: StatsService
     public let reminders: RemindersService
+    public let system: SystemMonitorService
+    public let session = SessionLockService()
     public let lyrics = LyricsService()
     public let updater = UpdateService()
     public let stopwatch = StopwatchService()
@@ -111,6 +113,8 @@ public final class AppState {
         self.notes = notes
         self.stats = stats
         self.reminders = reminders
+        self.system = SystemMonitorService(settings: settings)
+        NookMotion.liquidAnimations = settings.liquidAnimations
 
         calendar.onReminder = { [weak self] event in
             guard let self, self.settings.isTabEnabled(.calendar) else { return }
@@ -124,6 +128,14 @@ public final class AppState {
     }
 
     public func start() {
+        session.start()
+        system.onAlert = { [weak self] alert in
+            guard let self else { return }
+            if self.session.isLocked, !self.settings.showOnLockScreen { return }
+            if alert.isInstant, self.isExpanded { return }
+            self.receive(alert)
+        }
+        system.start()
         nowPlaying.start()
         calendar.start()
         if settings.clipboardEnabled { clipboard.start() }
@@ -139,6 +151,9 @@ public final class AppState {
         stats.stop()
         timer.reset()
         updater.stop()
+        system.onAlert = nil
+        system.stop()
+        session.stop()
         alertTask?.cancel()
         alertTask = nil
         alerts = AlertQueue()
@@ -246,6 +261,11 @@ public final class AppState {
         if enabled { updater.startAutomaticChecks() } else { updater.stop() }
     }
 
+    public func setLiquidAnimations(_ enabled: Bool) {
+        settings.liquidAnimations = enabled
+        NookMotion.liquidAnimations = enabled
+    }
+
     public func toggleShortcut(_ tab: WorkbenchTab) {
         settings.toggleShortcut(tab)
     }
@@ -289,13 +309,26 @@ public final class AppState {
         if timer.isActive { active.insert(.timer) }
         if stopwatch.isRunning { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
+        if session.isLocked, settings.showOnLockScreen, system.isOnAC { active.insert(.charging) }
         if stats.isRunning, active.isEmpty { active.insert(.stats) }
         return active
+    }
+
+    /// The lock screen has no media or timer to show, so lead with charging instead of the clock.
+    public var compactCharging: Bool {
+        session.isLocked
+            && settings.showOnLockScreen
+            && system.isOnAC
+            && !timer.isActive
+            && !timer.justFinished
+            && !nowPlaying.isVisible
     }
 
     /// Adds a heads-up. Non-urgent alerts wait while the workbench is open; urgent ones may
     /// interrupt it.
     public func receive(_ alert: NotchAlert) {
+        if session.isLocked, !settings.showOnLockScreen { return }
+        if alert.isInstant, isExpanded { return }
         alerts.enqueue(alert, now: Date())
         if alerts.current != nil {
             scheduleAlertExpiry()
@@ -311,6 +344,7 @@ public final class AppState {
     }
 
     private func pumpAlerts() {
+        guard !(session.isLocked && !settings.showOnLockScreen) else { return }
         guard alerts.present(now: Date(), allowNonUrgent: !isExpanded) else { return }
         scheduleAlertExpiry()
     }
@@ -338,6 +372,7 @@ public final class AppState {
         if nowPlaying.isVisible, let title = nowPlaying.track?.title, !title.isEmpty {
             return String(title.prefix(28))
         }
+        if compactCharging { return "\(system.batteryLevel)%" }
         return ClockFormat.wallClockIST()
     }
 
@@ -345,6 +380,7 @@ public final class AppState {
         if timer.isActive { return timer.isPaused ? "Paused" : "Focus" }
         if timer.justFinished { return "Timer" }
         if nowPlaying.isVisible { return "Playing" }
+        if compactCharging { return "Charging" }
         return "Ready"
     }
 }
