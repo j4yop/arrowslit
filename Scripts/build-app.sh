@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIG="${CONFIG:-release}"
-VERSION="${VERSION:-0.4.6}"
+VERSION="${VERSION:-0.4.7}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
 BUNDLE_ID="${BUNDLE_ID:-com.j4yop.arrowslit}"
 APP="${APP_OUTPUT:-$ROOT/build/Arrowslit.app}"
