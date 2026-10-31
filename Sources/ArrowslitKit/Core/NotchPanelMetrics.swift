@@ -10,7 +10,7 @@ public enum NotchPanelMetrics {
 
     public static func size(for presentation: NotchPresentation, geometry: ScreenGeometry) -> CGSize {
         switch presentation {
-        case .compact:
+        case .compact, .hud:
             CGSize(width: geometry.compactWidth, height: compactHeight)
         case .expanded(.nowPlaying):
             playerSize

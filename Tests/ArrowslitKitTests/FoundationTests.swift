@@ -228,6 +228,37 @@ struct PresentationResolverTests {
         #expect(presentation == .alert(event()))
     }
 
+    @Test func systemAlertsUseTheCompactHUD() {
+        let alert = NotchAlert.level(kind: .volume, value: 0.4, muted: false)
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: false,
+            activeTab: .home,
+            alert: alert
+        ))
+
+        #expect(presentation == .hud(alert))
+        #expect(presentation.hudAlert == alert)
+    }
+
+    @Test func systemHUDWaitsWhileTheWorkbenchIsOpen() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: true,
+            activeTab: .calendar,
+            alert: .lowBattery(level: 20)
+        ))
+
+        #expect(presentation == .expanded(.calendar))
+    }
+
+    @Test func calendarAlertsKeepTheLargerPanel() {
+        #expect(!event().usesCompactHUD)
+        #expect(!NotchAlert.timerFinished.usesCompactHUD)
+        #expect(NotchAlert.charging(level: 80, isCharging: true).usesCompactHUD)
+        #expect(NotchAlert.lowBattery(level: 20).usesCompactHUD)
+        #expect(NotchAlert.headphones(name: "AirPods Pro").usesCompactHUD)
+        #expect(NotchAlert.level(kind: .volume, value: 0.5, muted: false).usesCompactHUD)
+    }
+
     @Test func compactCanBeEmpty() {
         let presentation = PresentationResolver.resolve(PresentationInput(isExpanded: false, activeTab: .home))
 
@@ -341,6 +372,14 @@ struct NotchPanelMetricsTests {
     @Test func alertUsesItsOwnShortPanel() {
         let size = NotchPanelMetrics.size(for: .alert(event()), geometry: geometry)
         #expect(size == CGSize(width: 560, height: 86))
+    }
+
+    @Test func systemHUDUsesTheCompactStrip() {
+        let size = NotchPanelMetrics.size(
+            for: .hud(.level(kind: .brightness, value: 0.5, muted: false)),
+            geometry: geometry
+        )
+        #expect(size == CGSize(width: geometry.compactWidth, height: 32))
     }
 
     @Test func nowPlayingUsesTheTallPlayerPanel() {
