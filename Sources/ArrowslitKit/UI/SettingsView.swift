@@ -44,7 +44,7 @@ struct SettingsView: View {
                     ) {
                         SettingsToggle(
                             title: "Show timed lyrics",
-                            detail: "Looks up the current song on lrclib.net. Sends only the title, artist, album and length.",
+                            detail: "Looks up the current song on lrclib.net, with a timed fallback. Sends only the title, artist, album and length.",
                             isOn: Binding(
                                 get: { state.settings.lyricsEnabled },
                                 set: { state.settings.lyricsEnabled = $0 }

@@ -68,8 +68,10 @@ artwork is tinted on the media reader's background queue and the bars animate wi
 Animation, keeping both off the main render path.
 
 Lyrics are optional and off by default. When enabled, `LyricsService` sends only the song's
-title, artist, album and length to lrclib.net, matches the timed LRC to the song length, and
-keeps the answer in memory.
+title, artist, album and length to lrclib.net. If lrclib is unavailable or has no timed result,
+it asks music.163.com for a timed fallback and requires the title, artist and length to match.
+The answer stays in memory. A failed lookup is retried on a widening schedule (5s, 15s, 60s,
+then every 5 minutes) while the same song keeps playing.
 
 ## Updates
 
