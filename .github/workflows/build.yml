@@ -34,8 +34,8 @@ jobs:
       - name: Build app
         env:
           CONFIG: release
-          VERSION: "0.4.7"
-          BUILD_NUMBER: "18"
+          VERSION: "0.4.8"
+          BUILD_NUMBER: "19"
           UNIVERSAL: "1"
         run: ./Scripts/build-app.sh
 
@@ -56,7 +56,7 @@ jobs:
       - name: Build debug app
         env:
           CONFIG: debug
-          VERSION: "0.4.7"
+          VERSION: "0.4.8"
           BUILD_NUMBER: "1"
           APP_OUTPUT: ${{ github.workspace }}/build/debug/Arrowslit.app
         run: |

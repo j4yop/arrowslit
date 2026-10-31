@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.7/Arrowslit-0.4.7.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.8/Arrowslit-0.4.8.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -81,7 +81,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.4.7.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.7/Arrowslit-0.4.7.dmg)** and open it.
+1. Download **[Arrowslit-0.4.8.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.8/Arrowslit-0.4.8.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -98,9 +98,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.4.7 (build 18) |
-| **Direct Download** | [Arrowslit-0.4.7.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.7/Arrowslit-0.4.7.dmg) |
-| **SHA-256** | `39e08fb92c8484f59f49040898eb9c12e373ccd21a1e4975270a5a22a7ffb1a7` |
+| **Version** | 0.4.8 (build 19) |
+| **Direct Download** | [Arrowslit-0.4.8.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.8/Arrowslit-0.4.8.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -118,6 +118,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 | Close it | Click anywhere else, move your mouse down, or press Escape |
 | Open from the menu bar | Click the slit icon in your menu bar |
 | Open Settings | Click the gear icon at the top right, or choose Settings from the menu bar |
+| Use the notch on the lock screen | Turn on Settings › Show on Lock Screen |
 
 ## Things people ask
 
@@ -143,7 +144,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.4.7
+## What is in 0.4.8
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
@@ -154,6 +155,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Update checks use the GitHub releases redirect first, so they do not depend on the anonymous API quota
 * Full 390×218 Now Playing player with lyrics, plus the 306×146 Apple Music-style nudge on Home
 * The Home nudge has an expand button (and clickable artwork/title) that opens the full player
+* Liquid animations and haptic feedback toggles in Settings
+* Optional lock-screen notch for a running timer, media or charging
+* Charging, low-battery, headphone and volume/brightness alerts, each with its own toggle
 * Optional timed lyrics, off by default: lrclib.net first, then a timed fallback when lrclib is down
 * Lyrics retry automatically while a song keeps playing, and the player says when lyrics are unavailable
 * Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex

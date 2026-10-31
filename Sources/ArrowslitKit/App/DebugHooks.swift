@@ -40,6 +40,25 @@ final class DebugHooks {
         case "fakeupdate":
             state.updater.showDemo(version: "0.4.5")
             state.onOpenSettings?()
+        case "lockscreen":
+            state.settings.showOnLockScreen = true
+            state.nowPlaying.hideForDemo()
+            state.system.showDemoPower()
+            state.session.simulateLocked(true)
+        case "unlockscreen":
+            state.session.endSimulation()
+            state.system.endDemoPower()
+            state.nowPlaying.endDemo()
+        case "alert-charging":
+            state.receive(.charging(level: 80, isCharging: true))
+        case "alert-battery":
+            state.receive(.lowBattery(level: 20))
+        case "alert-headphones":
+            state.receive(.headphones(name: "AirPods Pro"))
+        case "alert-volume":
+            state.receive(.level(kind: .volume, value: 0.62, muted: false))
+        case "alert-brightness":
+            state.receive(.level(kind: .brightness, value: 0.45, muted: false))
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "calendaralert":
