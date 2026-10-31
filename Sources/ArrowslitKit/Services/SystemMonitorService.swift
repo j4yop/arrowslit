@@ -227,19 +227,26 @@ public final class SystemMonitorService {
     }
 
     private nonisolated static func volume(of device: AudioDeviceID) -> (Float, Bool)? {
+        // Bluetooth devices often expose volume on channel 1/2 instead of the main element.
+        // Reset the data size for every attempt: a failed AudioObjectGetPropertyData can
+        // leave it at zero, which would make the channel fallback fail too.
         var volume: Float32 = 0
-        var size = UInt32(MemoryLayout<Float32>.size)
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyVolumeScalar,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var status = AudioObjectGetPropertyData(device, &address, 0, nil, &size, &volume)
-        if status != noErr {
-            address.mElement = 1
-            status = AudioObjectGetPropertyData(device, &address, 0, nil, &size, &volume)
+        var found = false
+        for element: UInt32 in [kAudioObjectPropertyElementMain, 1, 2] {
+            var size = UInt32(MemoryLayout<Float32>.size)
+            var address = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyVolumeScalar,
+                mScope: kAudioDevicePropertyScopeOutput,
+                mElement: element
+            )
+            var candidate: Float32 = 0
+            if AudioObjectGetPropertyData(device, &address, 0, nil, &size, &candidate) == noErr {
+                volume = candidate
+                found = true
+                break
+            }
         }
-        guard status == noErr else { return nil }
+        guard found else { return nil }
 
         var mute: UInt32 = 0
         var muteSize = UInt32(MemoryLayout<UInt32>.size)
@@ -301,6 +308,13 @@ public final class SystemMonitorService {
     public func endDemoPower() {
         isDemo = false
         pollPower()
+    }
+
+    public func debugAudio() -> String {
+        guard let output = Self.outputDevice() else { return "no output device" }
+        let value = Self.volume(of: output.id)
+            .map { "\($0.0) muted=\($0.1)" } ?? "nil"
+        return "\(output.name) transport=\(output.transport) volume=\(value) enabled=\(settings.alertVolumeBrightness) last=\(String(describing: lastVolume))/\(String(describing: lastMuted))"
     }
     #endif
 }
