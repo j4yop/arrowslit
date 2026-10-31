@@ -68,6 +68,20 @@ public final class NowPlayingService {
     }
 
     #if DEBUG
+    /// Debug builds only: clear any real media so lock-screen charging can be checked.
+    public func hideForDemo() {
+        isDemo = true
+        track = nil
+        artwork = nil
+        accent = .white
+        endLinger()
+    }
+
+    public func endDemo() {
+        isDemo = false
+        send("refresh")
+    }
+
     /// Debug builds only: show a known track and artwork for visual QA.
     public func showDemo(
         title: String,

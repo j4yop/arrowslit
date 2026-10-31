@@ -6,6 +6,7 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
     case timer
     case stopwatch
     case nowPlaying
+    case charging
     case stats
 
     /// Lower comes first when several activities are live.
@@ -15,7 +16,8 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
         case .timer: 1
         case .stopwatch: 2
         case .nowPlaying: 3
-        case .stats: 4
+        case .charging: 4
+        case .stats: 5
         }
     }
 }
