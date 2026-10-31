@@ -18,6 +18,8 @@ public enum NotchPanelMetrics {
             homeSize
         case .expanded:
             expandedSize
+        case .clockRunning:
+            CGSize(width: 360, height: 124)
         case .alert:
             alertSize
         }
