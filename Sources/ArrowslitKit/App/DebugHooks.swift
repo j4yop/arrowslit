@@ -59,6 +59,9 @@ final class DebugHooks {
             state.receive(.level(kind: .volume, value: 0.62, muted: false))
         case "alert-brightness":
             state.receive(.level(kind: .brightness, value: 0.45, muted: false))
+        case "audio-debug":
+            let line = "ARROWSLIT_AUDIO \(state.system.debugAudio())\n"
+            FileHandle.standardError.write(Data(line.utf8))
         case "timer": state.expand(.timer)
         case "calendar": state.expand(.calendar)
         case "calendaralert":
