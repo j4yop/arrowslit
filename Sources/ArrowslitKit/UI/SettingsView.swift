@@ -219,11 +219,11 @@ struct SettingsView: View {
 
                     SettingsSection(
                         title: "Updates",
-                        note: "Checks github.com once a day. No account or tracking."
+                        note: "Checks github.com on launch and once a day. No account or tracking."
                     ) {
                         SettingsToggle(
                             title: "Check for updates automatically",
-                            detail: "Once a day, ask GitHub for the latest release.",
+                            detail: "On launch and once a day, ask GitHub for the latest release.",
                             isOn: Binding(
                                 get: { state.settings.checksForUpdates },
                                 set: { state.setChecksForUpdates($0) }

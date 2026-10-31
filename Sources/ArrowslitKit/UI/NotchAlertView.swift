@@ -64,6 +64,27 @@ struct NotchAlertView: View {
                 }
             }
 
+            if case .update = alert {
+                Button("Download & Open") {
+                    state.dismissAlert()
+                    if let release = state.updater.availableRelease {
+                        state.updater.downloadAndOpen(release)
+                    } else {
+                        state.onOpenSettings?()
+                    }
+                }
+                .buttonStyle(NookPressStyle())
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(ArrowTheme.ink)
+                .padding(.horizontal, 12)
+                .frame(height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
+                .help("Download and open the update")
+            }
+
             Button {
                 state.dismissAlert()
             } label: {

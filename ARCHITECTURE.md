@@ -94,10 +94,11 @@ panel ignores mouse events while locked.
 
 ## Updates
 
-`UpdateService` asks GitHub's latest-release API at most once a day (and on demand) for a newer
-semantic version. A release is accepted only when its page and assets are on approved GitHub
-hosts. The Settings › Updates row shows the version, a **Download & Open** button, download
-progress and errors.
+`UpdateService` asks GitHub's latest-release feed on launch and at most once a day after that (and
+on demand) for a newer semantic version. A new version is announced once in the notch with an
+Update available alert and a Download & Open action; the Settings row remains the manual path.
+A release is accepted only when its page and assets are on approved GitHub hosts. The Settings ›
+Updates row shows the version, a **Download & Open** button, download progress and errors.
 
 The button downloads the DMG to Downloads, verifies the published SHA-256 when available, then
 opens the image. Installing remains deliberate: the user drags Arrowslit into Applications. The
