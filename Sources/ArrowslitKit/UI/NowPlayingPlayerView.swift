@@ -130,8 +130,13 @@ struct NowPlayingPlayerView: View {
                 lyrics?.index(at: elapsed + 0.3)
             }
             let text = index.flatMap { lyrics?.lines[$0].text } ?? ""
+            let placeholder = switch state.lyrics.status {
+            case .unavailable: "Lyrics unavailable"
+            case .searching: "Finding lyrics…"
+            default: "♪"
+            }
             ZStack {
-                Text(text.isEmpty ? "♪" : text)
+                Text(text.isEmpty ? placeholder : text)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(text.isEmpty ? ArrowTheme.muted : ArrowTheme.bone)
                     .lineLimit(1)
