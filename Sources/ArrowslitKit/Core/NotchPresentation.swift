@@ -72,7 +72,7 @@ public enum NotchAlert: Equatable, Sendable {
         case .lowBattery: 4
         case .headphones: 3
         case .download: 5
-        case .update: 6
+        case .update: 10
         case .welcome: 4
         case .level: 1.6
         }
