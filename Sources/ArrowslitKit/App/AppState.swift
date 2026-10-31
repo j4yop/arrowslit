@@ -86,6 +86,7 @@ public final class AppState {
     public let keepAwake = KeepAwakeService()
 
     public private(set) var activeTab: WorkbenchTab = .home
+    public var clockMode: ClockMode = .timer
     public private(set) var isExpanded = false
     public private(set) var alerts = AlertQueue()
     public var isEditingShortcuts = false
@@ -202,6 +203,8 @@ public final class AppState {
     /// What opening the notch should show when the user hasn't picked a tab.
     /// Media takes precedence; everything else falls back to Home.
     public var defaultTab: WorkbenchTab {
+        if timer.isActive { return .timer }
+        if stopwatch.isActive { return .stopwatch }
         if settings.isTabEnabled(.nowPlaying), nowPlaying.isVisible {
             return .nowPlaying
         }
@@ -210,6 +213,11 @@ public final class AppState {
 
     public func expandDefault() {
         expand(defaultTab)
+    }
+
+    public func setClockMode(_ mode: ClockMode) {
+        clockMode = mode
+        select(mode == .stopwatch ? .stopwatch : .timer)
     }
 
     public func select(_ tab: WorkbenchTab) {
@@ -223,17 +231,20 @@ public final class AppState {
     }
 
     public func startTimer(minutes: Int) {
+        clockMode = .timer
         timer.start(minutes: minutes)
         collapse()
     }
 
     public func startFocus() {
-        timer.startFocus()
+        clockMode = .focus
+        timer.startFocus(minutes: timer.focusMinutes)
         collapse()
     }
 
     public func startBreak() {
-        timer.startBreak()
+        clockMode = .focus
+        timer.startBreak(minutes: timer.breakMinutes)
         collapse()
     }
 
@@ -312,7 +323,7 @@ public final class AppState {
     public var activeActivities: Set<NotchActivity> {
         var active = Set<NotchActivity>()
         if timer.isActive { active.insert(.timer) }
-        if stopwatch.isRunning { active.insert(.stopwatch) }
+        if stopwatch.isActive { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
         if session.isLocked, settings.showOnLockScreen, system.isOnAC { active.insert(.charging) }
         if stats.isRunning, active.isEmpty { active.insert(.stats) }
@@ -326,6 +337,7 @@ public final class AppState {
             && system.isOnAC
             && !timer.isActive
             && !timer.justFinished
+            && !stopwatch.isActive
             && !nowPlaying.isVisible
     }
 
@@ -376,6 +388,7 @@ public final class AppState {
             return ClockFormat.clock(timer.remaining, roundingUp: true)
         }
         if timer.justFinished { return "Done" }
+        if stopwatch.isActive { return ClockFormat.clock(stopwatch.elapsed, tenths: true) }
         if nowPlaying.isVisible, let title = nowPlaying.track?.title, !title.isEmpty {
             return String(title.prefix(28))
         }
@@ -384,8 +397,9 @@ public final class AppState {
     }
 
     public var compactLabel: String {
-        if timer.isActive { return timer.isPaused ? "Paused" : "Focus" }
+        if timer.isActive { return timer.isPaused ? "Paused" : (timer.lastWasFocus ? "Focus" : "Timer") }
         if timer.justFinished { return "Timer" }
+        if stopwatch.isActive { return stopwatch.isRunning ? "Stopwatch" : "Stopwatch paused" }
         if nowPlaying.isVisible { return "Playing" }
         if compactCharging { return "Charging" }
         return "Ready"

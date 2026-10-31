@@ -10,6 +10,13 @@ public final class TimerService {
     public private(set) var justFinished = false
     public private(set) var lastWasFocus = false
 
+    /// The value under the Timer ruler. It survives a reset so the panel opens where it left off.
+    public var panelMinutes = 25
+    /// The value under the Pomodoro ruler.
+    public var focusMinutes = 25
+    /// The break shown under the Pomodoro time.
+    public var breakMinutes = 5
+
     @ObservationIgnored private var ticker: Timer?
     @ObservationIgnored private var activity: NSObjectProtocol?
     @ObservationIgnored private var finishTask: Task<Void, Never>?
@@ -22,18 +29,27 @@ public final class TimerService {
     public var progress: Double { countdown?.progress(at: Date()) ?? 0 }
 
     public func startFocus(minutes: Int = 25) {
-        start(minutes: minutes)
+        let value = min(max(minutes, 5), 60)
+        focusMinutes = value
+        start(minutes: value, updatePanel: false)
         lastWasFocus = true
     }
 
     public func startBreak(minutes: Int = 5) {
-        start(minutes: minutes)
+        let value = min(max(minutes, 1), 60)
+        breakMinutes = value
+        start(minutes: value, updatePanel: false)
         lastWasFocus = false
     }
 
     public func start(minutes: Int) {
+        start(minutes: minutes, updatePanel: true)
+    }
+
+    private func start(minutes: Int, updatePanel: Bool) {
         stopTicker()
         lastMinutes = min(max(minutes, 1), 24 * 60)
+        if updatePanel { panelMinutes = lastMinutes }
         countdown = Countdown(minutes: lastMinutes, now: Date())
         justFinished = false
         beginActivity()

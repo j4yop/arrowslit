@@ -73,6 +73,19 @@ it asks music.163.com for a timed fallback and requires the title, artist and le
 The answer stays in memory. A failed lookup is retried on a widening schedule (5s, 15s, 60s,
 then every 5 minutes) while the same song keeps playing.
 
+## Clock panel
+
+`ClockPane` is one shared Timer / Pomodoro / Stopwatch surface. `SlidingRuler` draws a
+minute tape at 14 pt per minute with 3.5 x 34 pt ticks, labels every fifth minute, faded
+viewport edges and a fixed triangle pointer. Dragging follows the pointer as a fractional
+minute and settles on a whole minute with a spring; a click jumps to the tapped tick.
+`RulerMath` owns the clamp, drag, click and visible-range maths. `ClockPane` fires one
+alignment haptic per minute when Haptics are enabled.
+
+While a timer or stopwatch runs, `NotchPresentation.clockRunning` replaces the 560 x 178 setup
+panel with the 360 x 124 running nudge: back, pause/resume, close, and the label/time. The
+compact strip also shows the running timer or stopwatch and opens that nudge on click.
+
 ## System signals
 
 `SystemMonitorService` polls the internal battery through IOKit, the default audio device and

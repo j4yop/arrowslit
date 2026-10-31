@@ -14,6 +14,9 @@ public final class StopwatchService {
 
     public init() {}
 
+    /// Running, or paused with time on it.
+    public var isActive: Bool { isRunning || elapsed > 0 }
+
     public func toggle() {
         if isRunning { pause() } else { start() }
     }
