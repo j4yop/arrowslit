@@ -88,25 +88,44 @@ public enum NotchAlert: Equatable, Sendable {
         if case .level = self { return true }
         return false
     }
+
+    /// These alerts fit in the compact strip. Calendar and timer alerts keep the larger panel.
+    public var usesCompactHUD: Bool {
+        switch self {
+        case .charging, .lowBattery, .headphones, .level:
+            return true
+        case .upcomingEvent, .timerFinished, .download, .update, .welcome:
+            return false
+        }
+    }
 }
 
 /// What the notch is showing right now.
 public enum NotchPresentation: Equatable, Sendable {
     /// The closed strip: optional live activity plus the clock.
     case compact(primary: NotchActivity?, secondary: NotchActivity?)
+    /// A transient system HUD drawn inside the compact strip.
+    case hud(NotchAlert)
     /// The open workbench on one tab.
     case expanded(WorkbenchTab)
     /// A short heads-up above the notch.
     case alert(NotchAlert)
 
     public var isAlert: Bool {
-        if case .alert = self { return true }
-        return false
+        switch self {
+        case .alert, .hud: return true
+        default: return false
+        }
     }
 
     public var isExpanded: Bool {
         if case .expanded = self { return true }
         return false
+    }
+
+    public var hudAlert: NotchAlert? {
+        if case .hud(let alert) = self { return alert }
+        return nil
     }
 }
 
@@ -142,6 +161,9 @@ public enum PresentationResolver {
 
     public static func resolve(_ input: PresentationInput) -> NotchPresentation {
         if let alert = input.alert, !input.isExpanded || alert.isUrgent {
+            if alert.usesCompactHUD, !input.isExpanded {
+                return .hud(alert)
+            }
             return .alert(alert)
         }
         if input.isExpanded {

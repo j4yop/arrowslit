@@ -81,6 +81,12 @@ the existing `NotchAlert` cases for charging, low battery, Bluetooth headphones 
 volume/brightness HUD. The first reading is a baseline, so launching the app does not replay an
 old alert. Pure `PowerAlertRules` keep the 20% and 10% warnings from firing twice.
 
+System alerts use a compact `NotchPresentation.hud` instead of the larger alert panel. The
+compact strip keeps its 32 pt frame and swaps its content for an icon on the left and a live
+level bar or short status on the right. Volume/brightness fills animate; charging and low-battery
+icons pulse unless Liquid animations or Reduce Motion is off. Calendar and timer alerts keep the
+560 x 86 panel.
+
 `SessionLockService` listens for the screen lock/unlock and screen-saver notifications. When the
 user enables Show on Lock Screen, `PanelController` raises the panel above the shielding window
 and keeps it in the compact presentation; otherwise the panel is ordered out while locked. The
