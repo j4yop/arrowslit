@@ -139,6 +139,10 @@ public final class AppState {
         nowPlaying.start()
         calendar.start()
         if settings.clipboardEnabled { clipboard.start() }
+        updater.onAvailable = { [weak self] release in
+            guard let self else { return false }
+            return self.receive(.update(version: release.version.description))
+        }
         if settings.checksForUpdates { updater.startAutomaticChecks() }
     }
 
@@ -150,6 +154,7 @@ public final class AppState {
         clipboard.stop()
         stats.stop()
         timer.reset()
+        updater.onAvailable = nil
         updater.stop()
         system.onAlert = nil
         system.stop()
@@ -326,14 +331,16 @@ public final class AppState {
 
     /// Adds a heads-up. Non-urgent alerts wait while the workbench is open; urgent ones may
     /// interrupt it.
-    public func receive(_ alert: NotchAlert) {
-        if session.isLocked, !settings.showOnLockScreen { return }
-        if alert.isInstant, isExpanded { return }
+    @discardableResult
+    public func receive(_ alert: NotchAlert) -> Bool {
+        if session.isLocked, !settings.showOnLockScreen { return false }
+        if alert.isInstant, isExpanded { return false }
         alerts.enqueue(alert, now: Date())
         if alerts.current != nil {
             scheduleAlertExpiry()
         }
         pumpAlerts()
+        return true
     }
 
     public func dismissAlert() {
