@@ -40,6 +40,9 @@ final class DebugHooks {
         case "fakeupdate":
             state.updater.showDemo(version: "0.4.5")
             state.onOpenSettings?()
+        case "update-alert":
+            state.updater.showDemo(version: "0.5.2")
+            state.receive(.update(version: "0.5.2"))
         case "lockscreen":
             state.settings.showOnLockScreen = true
             state.nowPlaying.hideForDemo()

@@ -250,9 +250,14 @@ struct PresentationResolverTests {
         #expect(presentation == .expanded(.calendar))
     }
 
+    @Test func updatePromptStaysLongEnoughToAct() {
+        #expect(NotchAlert.update(version: "0.5.2").displayDuration == 10)
+    }
+
     @Test func calendarAlertsKeepTheLargerPanel() {
         #expect(!event().usesCompactHUD)
         #expect(!NotchAlert.timerFinished.usesCompactHUD)
+        #expect(!NotchAlert.update(version: "0.5.1").usesCompactHUD)
         #expect(NotchAlert.charging(level: 80, isCharging: true).usesCompactHUD)
         #expect(NotchAlert.lowBattery(level: 20).usesCompactHUD)
         #expect(NotchAlert.headphones(name: "AirPods Pro").usesCompactHUD)
@@ -529,6 +534,36 @@ struct ArtworkAccentTests {
     }
 }
 
+
+@MainActor
+@Suite("Update prompts")
+struct UpdatePromptTests {
+    private func release(_ version: String) -> ReleaseInfo {
+        ReleaseInfo(
+            version: SemanticVersion(version)!,
+            page: URL(string: "https://github.com/j4yop/arrowslit/releases/tag/v\(version)")!,
+            diskImage: URL(string: "https://github.com/j4yop/arrowslit/releases/download/v\(version)/Arrowslit-\(version).dmg")!,
+            checksum: URL(string: "https://github.com/j4yop/arrowslit/releases/download/v\(version)/Arrowslit-\(version).dmg.sha256")!
+        )
+    }
+
+    @Test func announcesEachVersionOnlyOnce() {
+        let name = "ArrowslitTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        defer { defaults.removePersistentDomain(forName: name) }
+
+        let service = UpdateService(defaults: defaults)
+        var announced: [String] = []
+        service.onAvailable = { announced.append($0.version.description); return true }
+
+        service.notifyIfNeeded(release("0.5.1"))
+        service.notifyIfNeeded(release("0.5.1"))
+        service.notifyIfNeeded(release("0.6.0"))
+
+        #expect(announced == ["0.5.1", "0.6.0"])
+    }
+}
 
 @Suite("Semantic versions")
 struct SemanticVersionTests {

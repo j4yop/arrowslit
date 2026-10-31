@@ -20,6 +20,7 @@ public final class UpdateService {
 
     public private(set) var state: State = .idle
     public private(set) var availableRelease: ReleaseInfo?
+    @ObservationIgnored public var onAvailable: ((ReleaseInfo) -> Bool)?
 
     public var currentVersion: SemanticVersion? {
         (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String).flatMap(SemanticVersion.init)
@@ -42,7 +43,8 @@ public final class UpdateService {
 
     public func startAutomaticChecks() {
         guard timer == nil else { return }
-        checkIfDue()
+        // A launch check makes a new release visible without waiting for the daily window.
+        check(userInitiated: false)
         let timer = Timer(timeInterval: 3 * 3600, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.checkIfDue() }
         }
@@ -81,6 +83,9 @@ public final class UpdateService {
                 if let current = currentVersion, release.version > current {
                     availableRelease = release
                     state = .available(release)
+                    if !userInitiated {
+                        notifyIfNeeded(release)
+                    }
                 } else {
                     availableRelease = nil
                     state = .upToDate
@@ -91,6 +96,15 @@ public final class UpdateService {
                     : .idle
             }
         }
+    }
+
+    /// Automatic checks announce a version once. Manual checks only update the Settings row.
+    func notifyIfNeeded(_ release: ReleaseInfo) {
+        guard let onAvailable else { return }
+        let version = release.version.description
+        guard defaults.string(forKey: Key.lastNotifiedVersion) != version else { return }
+        guard onAvailable(release) else { return }
+        defaults.set(version, forKey: Key.lastNotifiedVersion)
     }
 
     /// Downloads the DMG, verifies the published checksum when available, then opens the image.
@@ -196,5 +210,6 @@ public final class UpdateService {
 
     private enum Key {
         static let lastCheck = "arrowslit.updates.lastCheck"
+        static let lastNotifiedVersion = "arrowslit.updates.lastNotifiedVersion"
     }
 }

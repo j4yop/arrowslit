@@ -4,7 +4,7 @@ The goal is a quiet, fast, local-only notch utility — not a clone of any exist
 feature set is inspired by the best free notch projects, but the interaction model, visual
 language and code are our own.
 
-## What exists today (0.5.0)
+## What exists today (0.5.1)
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status
@@ -23,6 +23,7 @@ language and code are our own.
 - Optional lock-screen notch with timer, media and charging
 - Power, headphone and volume/brightness alerts in a compact icon-and-level HUD
 - Smooth volume/brightness fill animation and pulsing charging/low-battery icons
+- Launch update check and a once-per-version Update available notch prompt with Download & Open
 - Bluetooth headphone volume fallback for devices that expose volume on channel 1/2
 - Optional timed lyrics, off by default
 - File tray (drop targets, file picker, Quick Look icons)
