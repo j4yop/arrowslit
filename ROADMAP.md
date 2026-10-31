@@ -4,7 +4,7 @@ The goal is a quiet, fast, local-only notch utility — not a clone of any exist
 feature set is inspired by the best free notch projects, but the interaction model, visual
 language and code are our own.
 
-## What exists today (0.4.5)
+## What exists today (0.4.6)
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status

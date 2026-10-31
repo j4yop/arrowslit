@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.5/Arrowslit-0.4.5.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.6/Arrowslit-0.4.6.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -59,7 +59,7 @@ Next to Home at the top left sit up to three shortcuts of your own. They start a
 
 Arrowslit lives on your MacBook's built-in display for now. Multi-display support is planned.
 
-It does not need an account and does not track anything. Arrowslit asks GitHub once a day whether a new version is out; you can turn that off in Settings. Lyrics are optional and off by default; if you turn them on, only the current song's title, artist, album and length are sent to lrclib.net. Everything else stays on your Mac. All of this is free and open source.
+It does not need an account and does not track anything. Arrowslit asks GitHub once a day whether a new version is out; you can turn that off in Settings. Lyrics are optional and off by default; if you turn them on, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Everything else stays on your Mac. All of this is free and open source.
 
 ## Installing it
 
@@ -81,7 +81,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.4.5.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.5/Arrowslit-0.4.5.dmg)** and open it.
+1. Download **[Arrowslit-0.4.6.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.6/Arrowslit-0.4.6.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -98,9 +98,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.4.5 (build 16) |
-| **Direct Download** | [Arrowslit-0.4.5.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.5/Arrowslit-0.4.5.dmg) |
-| **SHA-256** | `7fa0f5d9689c6549ddb54b5bc44ef8fb806bd2e47ec9d47707ed8edd22a30666` |
+| **Version** | 0.4.6 (build 17) |
+| **Direct Download** | [Arrowslit-0.4.6.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.6/Arrowslit-0.4.6.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -128,7 +128,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 **How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub once a day and shows **Download & Open** in Settings › Updates; after the DMG opens, drag Arrowslit into Applications. Manual users can always download the latest DMG. You can turn the check off in Settings.
 
-**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
+**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
 
 **Why is it asking for my camera or calendar?** Only if you use those bits. It asks for the camera when you open Mirror, calendar access when you click Connect on Calendar, and reminders access when you open Reminders. If you say no, those specific tabs stay disabled while the rest of Arrowslit keeps working.
 
@@ -142,7 +142,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.4.5
+## What is in 0.4.6
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
@@ -152,7 +152,8 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * A daily update check with a one-click Download & Open button in Settings
 * Update checks use the GitHub releases redirect first, so they do not depend on the anonymous API quota
 * Full 390×218 Now Playing player with lyrics, plus the 306×146 Apple Music-style nudge on Home
-* Optional timed lyrics from lrclib.net, off by default
+* Optional timed lyrics, off by default: lrclib.net first, then a timed fallback when lrclib is down
+* Lyrics retry automatically while a song keeps playing, and the player says when lyrics are unavailable
 * Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
 * Today's to-dos from Reminders
 * File tray with drag-and-drop shelf and 1-click AirDrop
