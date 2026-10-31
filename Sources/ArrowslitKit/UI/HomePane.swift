@@ -63,6 +63,9 @@ private struct MediaCard: View {
             }
             .frame(width: 110, height: 110)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .contentShape(Rectangle())
+            .onTapGesture { state.expand(.nowPlaying) }
+            .help("Open Now Playing")
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .top, spacing: 8) {
@@ -77,13 +80,22 @@ private struct MediaCard: View {
                             .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onTapGesture { state.expand(.nowPlaying) }
+                    .help("Open Now Playing")
 
-                    MusicBars(
-                        isPlaying: track.isPlaying,
-                        color: service.accent.color,
-                        height: 16,
-                        width: 18
-                    )
+                    HStack(spacing: 6) {
+                        MusicBars(
+                            isPlaying: track.isPlaying,
+                            color: service.accent.color,
+                            height: 16,
+                            width: 18
+                        )
+
+                        MediaCardExpandButton {
+                            state.expand(.nowPlaying)
+                        }
+                    }
                 }
 
                 Spacer(minLength: 4)
@@ -123,6 +135,35 @@ private struct MediaCard: View {
                 .foregroundStyle(ArrowTheme.muted)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// The small, always-visible affordance that opens the full Now Playing player.
+private struct MediaCardExpandButton: View {
+    let action: () -> Void
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(isHovering ? ArrowTheme.bone : ArrowTheme.muted)
+                .frame(width: 24, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(isHovering ? Color.white.opacity(0.10) : .clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(NookPressStyle(pressedScale: 0.94))
+        .onHover { hovering in
+            withAnimation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion)) {
+                isHovering = hovering
+            }
+        }
+        .help("Open Now Playing")
+        .accessibilityLabel("Open Now Playing")
     }
 }
 
