@@ -311,6 +311,54 @@ struct LyricsLookupTests {
         let record = LyricsLookup.Record(duration: 260, instrumental: false, syncedLyrics: "[00:01.00]Words")
         #expect(LyricsLookup.lyrics(from: record, for: key) == nil)
     }
+
+    @Test func parsesNetEaseSearchAndPicksTheExactTrack() throws {
+        let json = """
+        {"result":{"songs":[
+          {"id":1424460203,"name":"After Hours","dt":361026,"ar":[{"name":"The Weeknd"}],"al":{"name":"After Hours"}},
+          {"id":2027161334,"name":"After Hours (Live)","dt":267912,"ar":[{"name":"The Weeknd"}],"al":{"name":"Live"}}
+        ]}}
+        """
+        let search = try JSONDecoder().decode(LyricsLookup.NetEase.self, from: Data(json.utf8))
+        let key = LyricsKey(title: "After Hours", artist: "The Weeknd", album: "After Hours", duration: 361)!
+        #expect(LyricsLookup.match(in: search, for: key)?.id == 1424460203)
+    }
+
+    @Test func rejectsANetEaseTrackOfTheWrongLength() throws {
+        let json = """
+        {"result":{"songs":[
+          {"id":1424460203,"name":"After Hours","dt":361026,"ar":[{"name":"The Weeknd"}],"al":{"name":"After Hours"}}
+        ]}}
+        """
+        let search = try JSONDecoder().decode(LyricsLookup.NetEase.self, from: Data(json.utf8))
+        let key = LyricsKey(title: "After Hours", artist: "The Weeknd", album: "After Hours", duration: 300)!
+        #expect(LyricsLookup.match(in: search, for: key) == nil)
+    }
+
+    @Test func netEaseLyricsDropProductionCredits() throws {
+        let json = """
+        {"lrc":{"lyric":"[00:00.000] 作词 : Someone\\n[00:01.000] 作曲 : Someone\\n[00:10.181]Thought I almost died\\n[00:18.124]Fightin' for my life"}}
+        """
+        let lyric = try JSONDecoder().decode(LyricsLookup.NetEaseLyric.self, from: Data(json.utf8))
+        let key = LyricsKey(title: "After Hours", artist: "The Weeknd", album: "", duration: 361)!
+        let lyrics = LyricsLookup.lyrics(from: lyric, for: key)
+        #expect(lyrics?.lines.count == 2)
+        #expect(lyrics?.lines.first?.text == "Thought I almost died")
+        #expect(lyrics?.lines.first?.time == 10.181)
+    }
+
+    @Test func normalizesLiveAndRemasteredTitles() {
+        #expect(LyricsLookup.normalizedTitle("After Hours (Live)") == "after hours")
+        #expect(LyricsLookup.normalizedTitle("After Hours - Remastered 2011") == "after hours")
+    }
+
+    @Test func retriesOnAWideningSchedule() {
+        #expect(LyricsRetryPolicy.delay(afterFailure: 0) == 5)
+        #expect(LyricsRetryPolicy.delay(afterFailure: 1) == 15)
+        #expect(LyricsRetryPolicy.delay(afterFailure: 2) == 60)
+        #expect(LyricsRetryPolicy.delay(afterFailure: 3) == 300)
+        #expect(LyricsRetryPolicy.delay(afterFailure: 20) == 300)
+    }
 }
 
 @Suite("Artwork accent")
