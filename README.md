@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.4.9/Arrowslit-0.4.9.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.5.0/Arrowslit-0.5.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -81,7 +81,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.4.9.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.9/Arrowslit-0.4.9.dmg)** and open it.
+1. Download **[Arrowslit-0.5.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.5.0/Arrowslit-0.5.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -98,9 +98,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.4.9 (build 20) |
-| **Direct Download** | [Arrowslit-0.4.9.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.4.9/Arrowslit-0.4.9.dmg) |
-| **SHA-256** | `7763eec6360295194bcc77088fd8dc473cd65e66c6d37c53ed7b5a1d1f974877` |
+| **Version** | 0.5.0 (build 21) |
+| **Direct Download** | [Arrowslit-0.5.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.5.0/Arrowslit-0.5.0.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -144,7 +144,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.4.9
+## What is in 0.5.0
 
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
@@ -158,7 +158,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Liquid animations and haptic feedback toggles in Settings
 * Optional lock-screen notch for a running timer, media or charging
 * Charging, low-battery, headphone and volume/brightness alerts, each with its own toggle
+* System alerts appear inside the compact notch as a live icon-and-level HUD, matching the DynamicLedge motion
 * Volume alerts also work on Bluetooth headphones that expose volume on channel 1/2 instead of the main element
+* Charging and low-battery icons pulse gently; volume and brightness levels animate smoothly
 * Optional timed lyrics, off by default: lrclib.net first, then a timed fallback when lrclib is down
 * Lyrics retry automatically while a song keeps playing, and the player says when lyrics are unavailable
 * Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
