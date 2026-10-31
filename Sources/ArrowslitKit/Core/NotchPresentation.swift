@@ -108,6 +108,8 @@ public enum NotchPresentation: Equatable, Sendable {
     case hud(NotchAlert)
     /// The open workbench on one tab.
     case expanded(WorkbenchTab)
+    /// A running timer or stopwatch, shown as the narrow pause/close nudge.
+    case clockRunning(ClockMode)
     /// A short heads-up above the notch.
     case alert(NotchAlert)
 
@@ -119,8 +121,10 @@ public enum NotchPresentation: Equatable, Sendable {
     }
 
     public var isExpanded: Bool {
-        if case .expanded = self { return true }
-        return false
+        switch self {
+        case .expanded, .clockRunning: return true
+        default: return false
+        }
     }
 
     public var hudAlert: NotchAlert? {
@@ -167,7 +171,14 @@ public enum PresentationResolver {
             return .alert(alert)
         }
         if input.isExpanded {
-            return .expanded(input.activeTab)
+            switch input.activeTab {
+            case .timer where input.activeActivities.contains(.timer):
+                return .clockRunning(.timer)
+            case .stopwatch where input.activeActivities.contains(.stopwatch):
+                return .clockRunning(.stopwatch)
+            default:
+                return .expanded(input.activeTab)
+            }
         }
 
         let ordered = ordered(input.activeActivities, preferred: input.preferredPrimary)

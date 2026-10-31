@@ -198,6 +198,24 @@ struct PresentationResolverTests {
         #expect(presentation == .compact(primary: .nowPlaying, secondary: .charging))
     }
 
+    @Test func runningTimerUsesTheClockNudge() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: true,
+            activeTab: .timer,
+            activeActivities: [.timer]
+        ))
+        #expect(presentation == .clockRunning(.timer))
+    }
+
+    @Test func runningStopwatchUsesTheClockNudge() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: true,
+            activeTab: .stopwatch,
+            activeActivities: [.stopwatch]
+        ))
+        #expect(presentation == .clockRunning(.stopwatch))
+    }
+
     @Test func expandedWorkspaceWinsOverANonUrgentAlert() {
         let presentation = PresentationResolver.resolve(PresentationInput(
             isExpanded: true,
@@ -385,6 +403,11 @@ struct NotchPanelMetricsTests {
             geometry: geometry
         )
         #expect(size == CGSize(width: geometry.compactWidth, height: 32))
+    }
+
+    @Test func runningClockUsesTheNarrowNudge() {
+        let size = NotchPanelMetrics.size(for: .clockRunning(.stopwatch), geometry: geometry)
+        #expect(size == CGSize(width: 360, height: 124))
     }
 
     @Test func nowPlayingUsesTheTallPlayerPanel() {

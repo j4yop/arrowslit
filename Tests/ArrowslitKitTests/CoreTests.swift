@@ -113,3 +113,77 @@ struct FileDropTests {
         #expect(FileDrop.url(from: data) == nil)
     }
 }
+
+@Suite("Clock ruler")
+struct ClockRulerTests {
+    @Test func draggingLeftPullsLaterMinutesUnderThePointer() {
+        #expect(RulerMath.minute(from: 17, translation: -28, spacing: 14, range: RulerMath.timerRange) == 19)
+        #expect(RulerMath.minute(from: 17, translation: 28, spacing: 14, range: RulerMath.timerRange) == 15)
+    }
+
+    @Test func clampsAtBothEnds() {
+        #expect(RulerMath.minute(from: 1, translation: 200, spacing: 14, range: RulerMath.timerRange) == 1)
+        #expect(RulerMath.minute(from: 60, translation: -200, spacing: 14, range: RulerMath.timerRange) == 60)
+        #expect(RulerMath.clamp(0, to: RulerMath.timerRange) == 1)
+        #expect(RulerMath.clamp(61, to: RulerMath.timerRange) == 60)
+    }
+
+    @Test func tappingATickJumpsToIt() {
+        #expect(RulerMath.tappedMinute(at: 200, center: 200, current: 17, spacing: 14, range: RulerMath.timerRange) == 17)
+        #expect(RulerMath.tappedMinute(at: 228, center: 200, current: 17, spacing: 14, range: RulerMath.timerRange) == 19)
+    }
+
+    @Test func visibleRangeAlwaysIncludesTheSelectedMinute() {
+        let visible = RulerMath.visibleRange(
+            value: 17,
+            width: 400,
+            spacing: 14,
+            range: RulerMath.timerRange
+        )
+        #expect(visible?.contains(17) == true)
+        #expect(visible?.lowerBound == 1)
+    }
+}
+
+@MainActor
+@Suite("Clock services")
+struct ClockServiceTests {
+    @Test func timerPanelAndFocusDurationsStayIndependent() {
+        let timer = TimerService()
+        defer { timer.reset() }
+
+        timer.panelMinutes = 17
+        timer.start(minutes: 17)
+        #expect(timer.panelMinutes == 17)
+        #expect(timer.countdown?.total == 1020)
+        timer.reset()
+
+        timer.startFocus(minutes: 40)
+        #expect(timer.focusMinutes == 40)
+        #expect(timer.panelMinutes == 17)
+        #expect(timer.countdown?.total == 2400)
+        timer.reset()
+
+        timer.startBreak(minutes: 7)
+        #expect(timer.breakMinutes == 7)
+        #expect(timer.panelMinutes == 17)
+        #expect(timer.countdown?.total == 420)
+    }
+
+    @Test func stopwatchBecomesActiveWhenStarted() {
+        let stopwatch = StopwatchService()
+        defer { stopwatch.reset() }
+
+        #expect(!stopwatch.isActive)
+        stopwatch.start()
+        #expect(stopwatch.isActive)
+        stopwatch.reset()
+        #expect(!stopwatch.isActive)
+    }
+
+    @Test func clockModesHaveTheExpectedTitles() {
+        #expect(ClockMode.timer.title == "Timer")
+        #expect(ClockMode.focus.title == "Pomodoro")
+        #expect(ClockMode.stopwatch.title == "Stopwatch")
+    }
+}
