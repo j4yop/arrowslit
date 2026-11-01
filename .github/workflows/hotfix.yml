@@ -29,8 +29,8 @@ jobs:
       - name: Build universal app
         env:
           CONFIG: release
-          VERSION: "0.8.1"
-          BUILD_NUMBER: "27"
+          VERSION: "0.8.2"
+          BUILD_NUMBER: "28"
           UNIVERSAL: "1"
         run: ./Scripts/build-app.sh
 

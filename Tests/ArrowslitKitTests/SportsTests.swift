@@ -139,6 +139,56 @@ struct BigBallsDataDecodingTests {
         #expect(matches[1].competition.id == "cricket/test")
         #expect(matches[1].home.shortName == "IND")
     }
+
+    @Test func survivesLiveRowsWithoutIDsOrStrictTypes() throws {
+        let json = """
+        {
+          "data": [
+            {
+              "sport": "football",
+              "league": "La Liga",
+              "kickoff_utc": "2026-11-01T20:00:00",
+              "status": "live",
+              "home": { "name": "Real Madrid" },
+              "away": { "name": "Barcelona" },
+              "score": { "home": "2", "away": 1 }
+            }
+          ],
+          "meta": { "note": "match_id is omitted on live rows" }
+        }
+        """
+        let matches = try BigBallsDataProvider.decodeMatches(from: Data(json.utf8))
+        #expect(matches.count == 1)
+        #expect(matches[0].id.hasPrefix("bbs-"))
+        #expect(matches[0].homeScore == 2)
+        #expect(matches[0].awayScore == 1)
+        #expect(matches[0].competition.id == "football/laliga")
+    }
+
+    @Test func acceptsAMatchesObjectInsteadOfABareArray() throws {
+        let json = """
+        {
+          "data": {
+            "matches": [
+              {
+                "id": "c9",
+                "sport": "cricket",
+                "league": "ODI Cricket",
+                "kickoff_utc": "2026-11-01T04:00:00Z",
+                "status": "live",
+                "home": { "id": "h", "name": "India" },
+                "away": { "id": "a", "name": "Australia" },
+                "score": { "home": 210, "away": 0 }
+              }
+            ]
+          }
+        }
+        """
+        let matches = try BigBallsDataProvider.decodeMatches(from: Data(json.utf8))
+        #expect(matches.count == 1)
+        #expect(matches[0].id == "c9")
+        #expect(matches[0].competition.id == "cricket/odi")
+    }
 }
 
 @Suite("Sports formatting")
