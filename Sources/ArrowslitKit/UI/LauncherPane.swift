@@ -7,7 +7,7 @@ struct LauncherPane: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var items: [WorkbenchTab] {
-        [.nowPlaying, .timer, .stopwatch, .calendar, .keepAwake,
+        [.nowPlaying, .timer, .stopwatch, .calendar, .keepAwake, .stats,
          .clipboard, .tray, .notes, .mirror, .reminders]
             .filter { state.settings.isTabEnabled($0) }
     }
@@ -25,7 +25,7 @@ struct LauncherPane: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5),
+                columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6),
                 spacing: 8
             ) {
                 ForEach(items) { tab in
