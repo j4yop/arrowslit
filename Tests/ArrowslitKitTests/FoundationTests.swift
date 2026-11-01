@@ -535,6 +535,7 @@ struct SettingsStoreTests {
         #expect(settings.alertLowBattery)
         #expect(settings.alertHeadphones)
         #expect(settings.alertVolumeBrightness)
+        #expect(settings.timerSound)
     }
 
     @Test func alertAndLockScreenChoicesPersist() {
@@ -543,10 +544,12 @@ struct SettingsStoreTests {
         let settings = SettingsStore(defaults: defaults)
         settings.showOnLockScreen = true
         settings.alertVolumeBrightness = false
+        settings.timerSound = false
 
         let reloaded = SettingsStore(defaults: defaults)
         #expect(reloaded.showOnLockScreen)
         #expect(!reloaded.alertVolumeBrightness)
+        #expect(!reloaded.timerSound)
     }
 }
 

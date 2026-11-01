@@ -36,7 +36,29 @@ public enum StatsMath {
     }
 
     public static func bytes(_ value: UInt64) -> String {
-        ByteCountFormatter.string(fromByteCount: Int64(min(value, UInt64(Int64.max))), countStyle: .memory)
+        bytes(Int64(min(value, UInt64(Int64.max))))
+    }
+
+    public static func bytes(_ value: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: max(0, value), countStyle: .memory)
+    }
+
+    public static func rate(from old: UInt64, to new: UInt64, seconds: TimeInterval) -> Double {
+        guard seconds > 0, new >= old else { return 0 }
+        return Double(new - old) / seconds
+    }
+
+    public static func rate(_ bytesPerSecond: Double) -> String {
+        let value = max(0, bytesPerSecond)
+        if value < 1_000 { return "0 KB/s" }
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .decimal
+        formatter.allowedUnits = value < 1_000_000 ? .useKB : (value < 1_000_000_000 ? .useMB : .useGB)
+        return formatter.string(fromByteCount: Int64(value)) + "/s"
+    }
+
+    public static func countsTraffic(interface name: String) -> Bool {
+        name.hasPrefix("en")
     }
 
     public static func level(_ share: Double) -> UsageLevel {

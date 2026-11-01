@@ -9,11 +9,17 @@ public final class StatsService {
     public private(set) var memoryUsed: UInt64 = 0
     public private(set) var memoryTotal: UInt64 = ProcessInfo.processInfo.physicalMemory
     public private(set) var pressure: UsageLevel = .normal
+    public private(set) var diskFree: Int64 = 0
+    public private(set) var diskTotal: Int64 = 0
+    public private(set) var networkIn: Double = 0
+    public private(set) var networkOut: Double = 0
     public private(set) var hasReading = false
     public private(set) var isRunning = false
 
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var lastCPU: CPUSample?
+    @ObservationIgnored private var lastNetwork: (received: UInt64, sent: UInt64, at: Date)?
+    @ObservationIgnored private var lastDiskCheck = Date.distantPast
     private static let pageSize = UInt64(getpagesize())
 
     public init() {}
@@ -22,9 +28,15 @@ public final class StatsService {
         memoryTotal > 0 ? min(1, Double(memoryUsed) / Double(memoryTotal)) : 0
     }
 
+    public var diskShare: Double {
+        diskTotal > 0 ? min(1, max(0, Double(diskTotal - diskFree) / Double(diskTotal))) : 0
+    }
+
     public func start() {
         guard timer == nil else { return }
         isRunning = true
+        lastNetwork = nil
+        lastDiskCheck = .distantPast
         sample()
         let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.sample() }
@@ -39,6 +51,8 @@ public final class StatsService {
         timer = nil
         isRunning = false
         lastCPU = nil
+        lastNetwork = nil
+        lastDiskCheck = .distantPast
         hasReading = false
     }
 
@@ -54,6 +68,48 @@ public final class StatsService {
             memoryUsed = used
         }
         pressure = StatsMath.pressure(Self.readPressure())
+
+        let now = Date()
+        if let network = Self.readNetwork() {
+            if let last = lastNetwork {
+                let seconds = now.timeIntervalSince(last.at)
+                networkIn = StatsMath.rate(from: last.received, to: network.received, seconds: seconds)
+                networkOut = StatsMath.rate(from: last.sent, to: network.sent, seconds: seconds)
+            }
+            lastNetwork = (network.received, network.sent, now)
+        }
+        if now.timeIntervalSince(lastDiskCheck) > 60, let disk = Self.readDisk() {
+            diskFree = disk.free
+            diskTotal = disk.total
+            lastDiskCheck = now
+        }
+    }
+
+    private static func readNetwork() -> (received: UInt64, sent: UInt64)? {
+        var list: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&list) == 0, let first = list else { return nil }
+        defer { freeifaddrs(list) }
+        var received: UInt64 = 0
+        var sent: UInt64 = 0
+        for pointer in sequence(first: first, next: { $0.pointee.ifa_next }) {
+            let entry = pointer.pointee
+            let flags = Int32(entry.ifa_flags)
+            guard StatsMath.countsTraffic(interface: String(cString: entry.ifa_name)),
+                  entry.ifa_addr?.pointee.sa_family == UInt8(AF_LINK),
+                  flags & IFF_UP != 0, flags & IFF_LOOPBACK == 0,
+                  let data = entry.ifa_data?.assumingMemoryBound(to: if_data.self) else { continue }
+            received += UInt64(data.pointee.ifi_ibytes)
+            sent += UInt64(data.pointee.ifi_obytes)
+        }
+        return (received, sent)
+    }
+
+    private static func readDisk() -> (free: Int64, total: Int64)? {
+        let keys: Set<URLResourceKey> = [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]
+        guard let values = try? URL(fileURLWithPath: "/").resourceValues(forKeys: keys),
+              let free = values.volumeAvailableCapacityForImportantUsage,
+              let total = values.volumeTotalCapacity else { return nil }
+        return (free, Int64(total))
     }
 
     private static func readCPU() -> CPUSample? {

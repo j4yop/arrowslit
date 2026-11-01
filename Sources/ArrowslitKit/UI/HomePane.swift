@@ -1,144 +1,184 @@
+import AppKit
 import SwiftUI
 
-/// Corbel-style Home: a media card on the left and 30 pt rows on the right.
+/// Home: the compact media card, the next calendar event, and quick timer actions, separated
+/// by a hairline like the DynamicLedge Home row.
 struct HomePane: View {
     @Bindable var state: AppState
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            MediaCard(state: state)
-                .frame(width: 306)
+        HStack(alignment: .top, spacing: 10) {
+            HomeMediaCard(state: state)
+                .frame(width: 196)
 
-            VStack(alignment: .leading, spacing: 8) {
-                CalendarHomeRow(state: state)
-                    .frame(height: 30)
-                TimerHomeRow(state: state)
-                    .frame(height: 30)
-                SystemHomeRow(state: state)
-                    .frame(height: 30)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            HomeCalendarColumn(state: state)
+                .frame(width: 156)
+
+            Rectangle()
+                .fill(ArrowTheme.hairline)
+                .frame(width: 1)
+                .padding(.vertical, 2)
+
+            HomeTimerColumn(state: state)
+                .frame(width: 148)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-private struct MediaCard: View {
+// MARK: Media
+
+private struct HomeMediaCard: View {
     @Bindable var state: AppState
     private var service: NowPlayingService { state.nowPlaying }
+    @State private var isHovering = false
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 6) {
             if let track = service.track, track.hasContent {
                 playing(track)
             } else {
                 empty
             }
         }
-        .padding(15)
-        .frame(width: 306, height: 146, alignment: .top)
+        .padding(9)
+        .frame(width: 196, height: 132, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(ArrowTheme.panel)
+                .fill(Color.white.opacity(0.07))
         )
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+        .overlay(alignment: .topTrailing) {
+            if service.track?.hasContent == true {
+                MediaCardExpandButton {
+                    state.expand(.nowPlaying)
+                }
+                .padding(4)
+                .opacity(isHovering ? 1 : 0)
+            }
         }
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
+        }
+        .onAppear { updateLyrics() }
+        .onChange(of: service.track) { _, _ in updateLyrics() }
+        .onChange(of: state.settings.lyricsEnabled) { _, _ in updateLyrics() }
     }
 
     private func playing(_ track: NowPlayingTrack) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            Group {
-                if let artwork = service.artwork {
-                    Image(nsImage: artwork)
-                        .resizable()
-                        .interpolation(.high)
-                        .aspectRatio(contentMode: .fill)
-                } else {
-                    ZStack {
-                        ArrowTheme.ink
-                        SlitMark(height: 28, color: ArrowTheme.amber.opacity(0.8))
-                    }
-                }
-            }
-            .frame(width: 110, height: 110)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .contentShape(Rectangle())
-            .onTapGesture { state.expand(.nowPlaying) }
-            .help("Open Now Playing")
-
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .top, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(track.title)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(ArrowTheme.bone)
-                            .lineLimit(1)
-                        Text(track.artist.isEmpty ? "Unknown artist" : track.artist)
-                            .font(.system(size: 12))
-                            .foregroundStyle(ArrowTheme.muted)
-                            .lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 9) {
+                artwork
+                    .frame(width: 52, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .contentShape(Rectangle())
                     .onTapGesture { state.expand(.nowPlaying) }
                     .help("Open Now Playing")
 
-                    HStack(spacing: 6) {
-                        MusicBars(
-                            isPlaying: track.isPlaying,
-                            color: service.accent.color,
-                            height: 16,
-                            width: 18
-                        )
-
-                        MediaCardExpandButton {
-                            state.expand(.nowPlaying)
-                        }
-                    }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(track.title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .lineLimit(1)
+                    Text(track.artist.isEmpty ? "Unknown artist" : track.artist)
+                        .font(.system(size: 12))
+                        .foregroundStyle(ArrowTheme.muted)
+                        .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onTapGesture { state.expand(.nowPlaying) }
+                .help("Open Now Playing")
+            }
 
-                Spacer(minLength: 4)
+            TimelineView(.animation(minimumInterval: 0.2, paused: !track.isPlaying)) { context in
+                Text(lyric(at: context.date, track: track) ?? (track.album.isEmpty ? " " : track.album))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-                HStack(spacing: 14) {
-                    PlayerGlyphButton(symbol: "backward.fill", size: 19, label: "Previous Track") {
-                        service.previous()
-                    }
-                    PlayerGlyphButton(
-                        symbol: track.isPlaying ? "pause.fill" : "play.fill",
-                        size: 27,
-                        label: track.isPlaying ? "Pause" : "Play"
-                    ) {
-                        service.toggle()
-                    }
-                    PlayerGlyphButton(symbol: "forward.fill", size: 19, label: "Next Track") {
-                        service.next()
-                    }
+            progress(track)
+
+            HStack(spacing: 14) {
+                PlayerGlyphButton(symbol: "backward.fill", size: 18, label: "Previous Track") {
+                    service.previous()
                 }
-                .frame(maxWidth: .infinity)
+                PlayerGlyphButton(
+                    symbol: track.isPlaying ? "pause.fill" : "play.fill",
+                    size: 25,
+                    label: track.isPlaying ? "Pause" : "Play"
+                ) {
+                    service.toggle()
+                }
+                PlayerGlyphButton(symbol: "forward.fill", size: 18, label: "Next Track") {
+                    service.next()
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
 
-                PlayerProgressRow(state: state)
-                    .padding(.top, 5)
+    private var artwork: some View {
+        Group {
+            if let artwork = service.artwork {
+                Image(nsImage: artwork)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                ZStack {
+                    ArrowTheme.ink
+                    SlitMark(height: 22, color: ArrowTheme.amber.opacity(0.8))
+                }
             }
         }
-        .frame(height: 116, alignment: .top)
+    }
+
+    private func progress(_ track: NowPlayingTrack) -> some View {
+        TimelineView(.animation(minimumInterval: 0.5, paused: !track.isPlaying)) { context in
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.2))
+                    Capsule()
+                        .fill(Color.white.opacity(0.85))
+                        .frame(width: max(0, geometry.size.width * CGFloat(track.progress(at: context.date) ?? 0)))
+                }
+            }
+        }
+        .frame(height: 3)
+        .accessibilityHidden(true)
+    }
+
+    private func lyric(at date: Date, track: NowPlayingTrack) -> String? {
+        guard state.settings.lyricsEnabled,
+              let lyrics = state.lyrics.current,
+              let elapsed = track.elapsed(at: date),
+              let index = lyrics.index(at: elapsed + 0.3) else { return nil }
+        let text = lyrics.lines[index].text
+        return text.isEmpty ? nil : text
+    }
+
+    private func updateLyrics() {
+        state.lyrics.update(for: service.track, enabled: state.settings.lyricsEnabled)
     }
 
     private var empty: some View {
-        VStack(spacing: 8) {
-            SlitMark(height: 26, color: ArrowTheme.faint)
+        VStack(spacing: 6) {
+            SlitMark(height: 24, color: ArrowTheme.faint)
             Text("Nothing playing")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(ArrowTheme.bone)
             Text("Play something to begin")
-                .font(.system(size: 11))
+                .font(.system(size: 10.5))
                 .foregroundStyle(ArrowTheme.muted)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-/// The small, always-visible affordance that opens the full Now Playing player.
+/// The small expand affordance appears when the pointer is over the media card.
 private struct MediaCardExpandButton: View {
     let action: () -> Void
     @State private var isHovering = false
@@ -147,12 +187,12 @@ private struct MediaCardExpandButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: 9.5, weight: .semibold))
                 .foregroundStyle(isHovering ? ArrowTheme.bone : ArrowTheme.muted)
-                .frame(width: 24, height: 24)
+                .frame(width: 20, height: 20)
                 .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isHovering ? Color.white.opacity(0.10) : .clear)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(isHovering ? Color.white.opacity(0.12) : Color.black.opacity(0.35))
                 )
                 .contentShape(Rectangle())
         }
@@ -167,129 +207,164 @@ private struct MediaCardExpandButton: View {
     }
 }
 
-private struct CalendarHomeRow: View {
+// MARK: Calendar
+
+private struct HomeCalendarColumn: View {
     @Bindable var state: AppState
     private var calendar: CalendarService { state.calendar }
 
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "calendar")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color(red: 1, green: 0.27, blue: 0.23))
-                .frame(width: 16)
+        VStack(alignment: .leading, spacing: 10) {
+            Button { state.select(.calendar) } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color(red: 1, green: 0.27, blue: 0.23))
+                    Text("Calendar")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone)
+                    Image(systemName: "chevron.forward")
+                        .font(.system(size: 8.5, weight: .bold))
+                        .foregroundStyle(ArrowTheme.faint)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(NookPressStyle())
+            .help("Open Calendar")
+
             switch calendar.access {
             case .notAsked:
-                Text("Calendar").font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone)
-                Spacer()
-                Button("Connect") { calendar.requestAccess() }.buttonStyle(HomeChipStyle())
+                Button("Connect") { calendar.requestAccess() }
+                    .buttonStyle(HomeQuickActionStyle(tint: Color(red: 1, green: 0.27, blue: 0.23)))
             case .denied, .limited:
-                Text("Calendar").font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone)
-                Spacer()
-                Button("Allow Access") { calendar.openPrivacySettings() }.buttonStyle(HomeChipStyle())
+                Button("Allow Access") { calendar.openPrivacySettings() }
+                    .buttonStyle(HomeQuickActionStyle(tint: Color(red: 1, green: 0.27, blue: 0.23)))
             case .granted:
                 if let event = calendar.nextEvent {
                     Button { state.select(.calendar) } label: {
-                        HStack(spacing: 6) {
-                            Text(event.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone).lineLimit(1)
-                            Spacer()
-                            Text(label(event)).font(.system(size: 10, weight: .medium)).monospacedDigit().foregroundStyle(event.isHappening(at: Date()) ? ArrowTheme.green : ArrowTheme.muted).lineLimit(1)
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: eventSymbol(event))
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(ArrowTheme.bone)
+                                .frame(width: 18)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(event.title)
+                                    .font(.system(size: 14.5, weight: .semibold))
+                                    .foregroundStyle(ArrowTheme.bone)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                Text(event.start.formatted(date: .omitted, time: .shortened))
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(ArrowTheme.muted)
+                                    .lineLimit(1)
+                            }
+                            Spacer(minLength: 0)
                         }
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(NookPressStyle())
+                    .help("Open Calendar")
                 } else {
-                    Text("No more events this week").font(.system(size: 11)).foregroundStyle(ArrowTheme.muted)
-                    Spacer()
+                    Text("No more events this week")
+                        .font(.system(size: 12))
+                        .foregroundStyle(ArrowTheme.muted)
                 }
             }
+
+            Spacer(minLength: 0)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
-    private func label(_ event: CalendarEvent) -> String {
-        if event.isHappening(at: Date()) { return "now" }
-        let minutes = Int((event.start.timeIntervalSinceNow / 60).rounded(.up))
-        if minutes < 60 { return "in \(max(minutes, 1)) min" }
-        if minutes < 120 { return "in 1 hr" }
-        return event.start.formatted(date: .omitted, time: .shortened)
+    private func eventSymbol(_ event: CalendarEvent) -> String {
+        let title = event.title.lowercased()
+        let sports = ["fc", "real", "sevilla", "madrid", "atlético", "atletico", "racing", "elche", "valencia", "deportivo"]
+        return sports.contains(where: title.contains) ? "soccerball" : "calendar"
     }
 }
 
-private struct TimerHomeRow: View {
+// MARK: Timer
+
+private struct HomeTimerColumn: View {
     @Bindable var state: AppState
+    private var timer: TimerService { state.timer }
 
     var body: some View {
-        HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 10) {
             Button { state.select(.timer) } label: {
-                Image(systemName: "timer")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.amber)
-                    .frame(width: 16)
-                    .contentShape(Rectangle())
+                HStack(spacing: 6) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber)
+                    Text("Timer")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone)
+                    Image(systemName: "chevron.forward")
+                        .font(.system(size: 8.5, weight: .bold))
+                        .foregroundStyle(ArrowTheme.faint)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
             }
             .buttonStyle(NookPressStyle())
-            .help("Timer")
-            .accessibilityLabel("Timer")
-            Spacer(minLength: 6)
-            ForEach([5, 10, 25], id: \.self) { minutes in
-                Button("\(minutes)m") { state.startTimer(minutes: minutes) }
-                    .buttonStyle(HomeChipStyle())
+            .help("Open Timer")
+
+            HStack(spacing: 6) {
+                ForEach([5, 10, 15], id: \.self) { minutes in
+                    Button("\(minutes)m") { state.startTimer(minutes: minutes) }
+                        .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.amber, width: 40))
+                        .accessibilityLabel("Start \(minutes) minute timer")
+                }
             }
+
             Button { state.startFocus() } label: {
-                Image(systemName: "hand.raised.fill")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.ink)
-                    .frame(width: 26, height: 22)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(ArrowTheme.amber)
-                    )
+                Label("Focus \(timer.focusMinutes)m", systemImage: "hand.raised.fill")
+                    .labelStyle(.titleAndIcon)
             }
-            .buttonStyle(NookPressStyle())
-            .help("Start a 25 minute focus session")
+            .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.amber))
+            .accessibilityLabel("Start a \(timer.focusMinutes) minute focus session")
+
+            Spacer(minLength: 0)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
 
-private struct SystemHomeRow: View {
-    @Bindable var state: AppState
+/// Soft grey capsule, tinted label, hover lift and a spring press — the Home quick actions.
+private struct HomeQuickActionStyle: ButtonStyle {
+    var tint: Color
+    var width: CGFloat?
+
+    func makeBody(configuration: Configuration) -> some View {
+        HomeQuickActionBody(configuration: configuration, tint: tint, width: width)
+    }
+}
+
+private struct HomeQuickActionBody: View {
+    let configuration: ButtonStyleConfiguration
+    let tint: Color
+    let width: CGFloat?
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Button { state.select(.stats) } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "gauge.with.dots.needle.33percent")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.green)
-                    .frame(width: 16)
-                Text("System").font(.system(size: 11, weight: .semibold)).foregroundStyle(ArrowTheme.bone)
-                Spacer()
-                Text("CPU \(state.stats.hasReading ? StatsMath.percent(state.stats.cpu) : "—")")
-                    .font(.system(size: 10, weight: .medium))
-                    .monospacedDigit()
-                    .foregroundStyle(ArrowTheme.muted)
-                Text("Memory \(StatsMath.percent(state.stats.memoryShare))")
-                    .font(.system(size: 10, weight: .medium))
-                    .monospacedDigit()
-                    .foregroundStyle(ArrowTheme.muted)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(NookPressStyle())
-        .onAppear { state.stats.start() }
-        .onDisappear { state.stats.stop() }
-    }
-}
-
-private struct HomeChipStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(ArrowTheme.bone)
-            .padding(.horizontal, 8)
-            .frame(height: 22)
+            .font(.system(size: 13, weight: .semibold))
+            .monospacedDigit()
+            .lineLimit(1)
+            .foregroundStyle(tint)
+            .padding(.horizontal, 9)
+            .frame(minWidth: width, minHeight: 28, maxHeight: 28)
             .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.white.opacity(configuration.isPressed ? 0.18 : 0.1))
+                Capsule()
+                    .fill(Color.white.opacity(configuration.isPressed ? 0.20 : (isHovering ? 0.14 : 0.09)))
             )
-            .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .contentShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .animation(NookMotion.reducing(.spring(duration: 0.2, bounce: 0.3), reduceMotion: reduceMotion), value: configuration.isPressed)
+            .animation(NookMotion.reducing(.easeOut(duration: 0.12), reduceMotion: reduceMotion), value: isHovering)
+            .onHover { isHovering = $0 }
+            .fixedSize(horizontal: width == nil, vertical: true)
     }
 }
