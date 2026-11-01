@@ -191,6 +191,76 @@ struct BigBallsDataDecodingTests {
     }
 }
 
+@Suite("BigBallsData transport")
+struct BigBallsDataTransportTests {
+    @Test func liveMatchesUnwrapsTheEnvelopeOnlyOnce() async throws {
+        BBSURLProtocol.handler = { request in
+            #expect(request.url?.path == "/v1/matches")
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer bbs_live_test")
+            let json = """
+            {
+              "data": [
+                {
+                  "id": "f1",
+                  "sport": "football",
+                  "league": "Premier League",
+                  "kickoff_utc": "2026-11-01T15:00:00.000Z",
+                  "status": "live",
+                  "home": { "id": "h", "name": "Arsenal", "short_name": "ARS" },
+                  "away": { "id": "a", "name": "Chelsea", "short_name": "CHE" },
+                  "score": { "home": 2, "away": 1 }
+                }
+              ]
+            }
+            """
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["X-RateLimit-Remaining": "42", "X-RateLimit-Limit": "250"]
+            )!
+            return (response, Data(json.utf8))
+        }
+        defer { BBSURLProtocol.handler = nil }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [BBSURLProtocol.self]
+        let provider = BigBallsDataProvider(
+            apiKey: "bbs_live_test",
+            session: URLSession(configuration: configuration)
+        )
+        let payload = try await provider.liveMatches(allowCricketFallback: false)
+        #expect(payload.matches.count == 1)
+        #expect(payload.matches[0].competition.id == "football/epl")
+        #expect(payload.matches[0].homeScore == 2)
+        #expect(payload.quota.remaining == 42)
+    }
+}
+
+private final class BBSURLProtocol: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        guard let handler = Self.handler else {
+            client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
+            return
+        }
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
+}
+
 @Suite("Sports formatting")
 struct SportsFormattingTests {
     @Test func formatsOversAndQuota() {

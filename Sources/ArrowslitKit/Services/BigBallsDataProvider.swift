@@ -136,10 +136,10 @@ public struct BigBallsDataProvider: Sendable {
     }
 
     public func events(for matchID: String) async throws -> (events: [SportsFootballEvent], quota: SportsQuota) {
-        let response: (BBSEnvelope<[BBSFootballEvent]>, SportsQuota) = try await get(
+        let response: ([BBSFootballEvent], SportsQuota) = try await get(
             path: "/v1/matches/\(matchID)/events"
         )
-        guard let rows = response.0.data else { throw SportsProviderError.invalidResponse }
+        let rows = response.0
         let events = rows.enumerated().compactMap { index, row -> SportsFootballEvent? in
             let sequence = row.sequenceNumber ?? (index + 1)
             let kind: SportsFootballEvent.Kind
@@ -170,11 +170,10 @@ public struct BigBallsDataProvider: Sendable {
     }
 
     public func cricketState(for matchID: String) async throws -> (state: SportsCricketState?, quota: SportsQuota) {
-        let response: (BBSEnvelope<BBSCricketStateEnvelope>, SportsQuota) = try await get(
+        let response: (BBSCricketStateEnvelope, SportsQuota) = try await get(
             path: "/v1/cricket/matches/\(matchID)/state"
         )
-        guard let envelope = response.0.data else { throw SportsProviderError.invalidResponse }
-        guard let state = envelope.state else { return (nil, response.1) }
+        guard let state = response.0.state else { return (nil, response.1) }
         return (
             SportsCricketState(
                 innings: state.inningsNumber,
@@ -193,8 +192,8 @@ public struct BigBallsDataProvider: Sendable {
     }
 
     public func validate() async throws -> (account: SportsAccount, quota: SportsQuota) {
-        let response: (BBSEnvelope<BBSUser>, SportsQuota) = try await get(path: "/v1/user/me")
-        guard let user = response.0.data else { throw SportsProviderError.invalidResponse }
+        let response: (BBSUser, SportsQuota) = try await get(path: "/v1/user/me")
+        let user = response.0
         return (
             SportsAccount(
                 plan: user.plan ?? "free",
@@ -208,9 +207,8 @@ public struct BigBallsDataProvider: Sendable {
     // MARK: - Requests
 
     private func getMatches(path: String, query: [URLQueryItem]) async throws -> SportsProviderPayload {
-        let response: (BBSEnvelope<BBSMatchList>, SportsQuota) = try await get(path: path, query: query)
-        guard let rows = response.0.data?.matches else { throw SportsProviderError.invalidResponse }
-        return SportsProviderPayload(matches: Self.map(rows, now: Date()), quota: response.1)
+        let response: (BBSMatchList, SportsQuota) = try await get(path: path, query: query)
+        return SportsProviderPayload(matches: Self.map(response.0.matches, now: Date()), quota: response.1)
     }
 
     /// Decodes a `/v1/matches` or `/v1/cricket/matches` envelope. Exposed for
