@@ -123,8 +123,34 @@ public enum SportsCatalog {
         all.first { $0.id == id }
     }
 
-    public static func competition(for leagueName: String, sport: Sport) -> SportsCompetition? {
+    public static func competition(
+        for leagueName: String,
+        sport: Sport,
+        teamNames: [String] = []
+    ) -> SportsCompetition? {
         let value = normalized(leagueName)
+        if sport == .cricket {
+            let teams = normalized(teamNames.joined(separator: " "))
+            if containsAny(teams, [
+                "mumbai indians", "chennai super kings", "royal challengers",
+                "kolkata knight riders", "sunrisers hyderabad", "rajasthan royals",
+                "delhi capitals", "punjab kings", "gujarat titans", "lucknow super giants",
+            ]) {
+                return competition(id: "cricket/ipl")
+            }
+            if containsAny(teams, [
+                "sydney sixers", "perth scorchers", "melbourne stars", "melbourne renegades",
+                "brisbane heat", "adelaide strikers", "hobart hurricanes", "sydney thunder",
+            ]) {
+                return competition(id: "cricket/bbl")
+            }
+            if containsAny(teams, [
+                "karachi kings", "lahore qalandars", "peshawar zalmi",
+                "quetta gladiators", "islamabad united", "multan sultans",
+            ]) {
+                return competition(id: "cricket/psl")
+            }
+        }
         switch sport {
         case .football:
             if value.contains("premier league") || value == "epl" {
@@ -180,6 +206,10 @@ public enum SportsCatalog {
             priority: 90,
             isFeatured: false
         )
+    }
+
+    private static func containsAny(_ value: String, _ needles: [String]) -> Bool {
+        needles.contains { value.contains($0) }
     }
 
     private static func normalized(_ value: String) -> String {

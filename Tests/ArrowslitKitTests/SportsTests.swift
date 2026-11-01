@@ -37,6 +37,15 @@ struct SportsCatalogTests {
         #expect(SportsCatalog.competition(for: "Test Cricket", sport: .cricket)?.id == "cricket/test")
     }
 
+    @Test func recognizesIplTeamsWhenTheLeagueLabelIsGeneric() {
+        let competition = SportsCatalog.competition(
+            for: "T20I Cricket",
+            sport: .cricket,
+            teamNames: ["Mumbai Indians", "Chennai Super Kings"]
+        )
+        #expect(competition?.id == "cricket/ipl")
+    }
+
     @Test func fallbackKeepsUnknownCompetitionsVisible() {
         let competition = SportsCatalog.fallback(for: "A New Cup", sport: .football)
         #expect(competition.id == "football/a-new-cup")
@@ -190,7 +199,7 @@ struct SportsDemoTests {
 @MainActor
 @Suite("Sports settings")
 struct SportsSettingsTests {
-    @Test func sportsStartsOffAndPreferencesPersist() {
+    @Test func sportsStartsInPreviewAndPreferencesPersist() {
         let name = "ArrowslitTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
         defaults.removePersistentDomain(forName: name)

@@ -307,7 +307,12 @@ public final class SportsService {
 
     private var pollInterval: TimeInterval {
         let preferred = TimeInterval(max(15, settings.sportsRefreshSeconds))
-        if quota.isExhausted { return 3600 }
+        if quota.isExhausted {
+            if let resetAt = quota.resetAt {
+                return max(60, resetAt.timeIntervalSinceNow + 5)
+            }
+            return 3600
+        }
         if quota.isLow { return max(180, preferred) }
         return preferred
     }
