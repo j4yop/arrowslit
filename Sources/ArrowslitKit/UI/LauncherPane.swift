@@ -8,7 +8,7 @@ struct LauncherPane: View {
 
     private var items: [WorkbenchTab] {
         [.nowPlaying, .timer, .stopwatch, .calendar, .keepAwake, .stats,
-         .clipboard, .tray, .notes, .mirror, .reminders]
+         .sports, .clipboard, .tray, .notes, .mirror, .reminders]
             .filter { state.settings.isTabEnabled($0) }
     }
 
@@ -100,6 +100,7 @@ struct LauncherPane: View {
         case .mirror: Color(red: 0.75, green: 0.55, blue: 1)
         case .clipboard, .tray: Color(red: 0.35, green: 0.68, blue: 1)
         case .stats: ArrowTheme.green
+        case .sports: Color(red: 0.28, green: 0.78, blue: 0.52)
         case .reminders: Color(red: 0.30, green: 0.60, blue: 1)
         case .notes: Color(red: 1, green: 0.84, blue: 0.35)
         case .stopwatch: Color(red: 1, green: 0.62, blue: 0.23)

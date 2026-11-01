@@ -12,6 +12,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case clipboard
     case notes
     case stats
+    case sports
     case reminders
     case stopwatch
     case keepAwake
@@ -30,6 +31,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "Stats"
+        case .sports: "Sports"
         case .reminders: "Reminders"
         case .stopwatch: "Stopwatch"
         case .keepAwake: "Keep Awake"
@@ -48,6 +50,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
+        case .sports: "sportscourt"
         case .reminders: "checklist"
         case .stopwatch: "stopwatch"
         case .keepAwake: "cup.and.saucer.fill"
@@ -77,6 +80,7 @@ public final class AppState {
     public let clipboard: ClipboardService
     public let notes: NotesStore
     public let stats: StatsService
+    public let sports: SportsService
     public let reminders: RemindersService
     public let system: SystemMonitorService
     public let session = SessionLockService()
@@ -103,6 +107,7 @@ public final class AppState {
         clipboard: ClipboardService = ClipboardService(),
         notes: NotesStore = NotesStore(),
         stats: StatsService = StatsService(),
+        sports: SportsService? = nil,
         reminders: RemindersService = RemindersService()
     ) {
         self.settings = settings
@@ -113,6 +118,7 @@ public final class AppState {
         self.clipboard = clipboard
         self.notes = notes
         self.stats = stats
+        self.sports = sports ?? SportsService(settings: settings)
         self.reminders = reminders
         self.system = SystemMonitorService(settings: settings)
         self.timer.playsSound = settings.timerSound
@@ -155,6 +161,7 @@ public final class AppState {
         calendar.stop()
         clipboard.stop()
         stats.stop()
+        sports.stop()
         timer.reset()
         updater.onAvailable = nil
         updater.stop()
@@ -184,6 +191,7 @@ public final class AppState {
         isExpanded = false
         isEditingShortcuts = false
         stats.stop()
+        sports.closePane()
         notes.save()
         pumpAlerts()
     }
@@ -228,6 +236,11 @@ public final class AppState {
             stats.start()
         } else {
             stats.stop()
+        }
+        if tab == .sports, isExpanded {
+            sports.openPane()
+        } else {
+            sports.closePane()
         }
     }
 
@@ -303,6 +316,9 @@ public final class AppState {
         case .stats:
             settings.statsEnabled = enabled
             if !enabled { stats.stop() }
+        case .sports:
+            if !enabled { sports.stop() }
+            if enabled, activeTab == .sports, isExpanded { sports.openPane() }
         default:
             break
         }
@@ -333,6 +349,7 @@ public final class AppState {
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
         if session.isLocked, settings.showOnLockScreen, system.isOnAC { active.insert(.charging) }
         if stats.isRunning, active.isEmpty { active.insert(.stats) }
+        if sports.notchMatch != nil { active.insert(.sports) }
         return active
     }
 
