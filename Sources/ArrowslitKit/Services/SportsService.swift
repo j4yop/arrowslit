@@ -16,6 +16,7 @@ public final class SportsService {
     public private(set) var errorMessage: String?
     public private(set) var quota = SportsQuota()
     public private(set) var account: SportsAccount?
+    public private(set) var coverageNote: String?
 
     @ObservationIgnored private let settings: SettingsStore
     @ObservationIgnored private let session: URLSession
@@ -135,6 +136,7 @@ public final class SportsService {
         apiKey = nil
         account = nil
         quota = SportsQuota()
+        coverageNote = nil
         settings.sportsPreview = true
         matches = []
         details = [:]
@@ -232,22 +234,20 @@ public final class SportsService {
     }
 
     private func loadUpcoming(provider: BigBallsDataProvider, followed: Set<String>) async -> [SportsMatch] {
-        var result: [SportsMatch] = []
         let competitions = followed
             .compactMap(SportsCatalog.competition(id:))
             .sorted { $0.priority < $1.priority }
-        for competition in competitions {
-            do {
-                let payload = try await provider.upcoming(for: competition)
-                quota = payload.quota
-                result += payload.matches.filter { $0.competition.id == competition.id }
-            } catch let error as SportsProviderError {
-                if case .rateLimited = error {
-                    handle(error)
-                    break
+        var result: [SportsMatch] = []
+        await withTaskGroup(of: SportsProviderPayload?.self) { group in
+            for competition in competitions {
+                group.addTask {
+                    try? await provider.upcoming(for: competition)
                 }
-            } catch {
-                continue
+            }
+            for await payload in group {
+                guard let payload else { continue }
+                quota = payload.quota
+                result += payload.matches.filter { followed.contains($0.competition.id) }
             }
         }
         return result
@@ -262,6 +262,9 @@ public final class SportsService {
         switch error {
         case .rateLimited(_, let quota):
             self.quota = quota
+            errorMessage = error.errorDescription
+        case .sportNotIncluded(let message):
+            coverageNote = message
             errorMessage = error.errorDescription
         default:
             errorMessage = error.errorDescription
@@ -344,6 +347,9 @@ public final class SportsService {
                     details[match.id] = .cricket(result.state)
                 }
             } catch let error as SportsProviderError {
+                if case .sportNotIncluded(let message) = error {
+                    coverageNote = message
+                }
                 detailErrors[match.id] = error.errorDescription
             } catch {
                 detailErrors[match.id] = error.localizedDescription

@@ -28,6 +28,7 @@ public enum SportsProviderError: LocalizedError {
     case missingKey
     case unauthorized
     case forbidden
+    case sportNotIncluded(String)
     case rateLimited(retryAfter: TimeInterval?, quota: SportsQuota)
     case http(Int, String?)
     case invalidResponse
@@ -43,6 +44,8 @@ public enum SportsProviderError: LocalizedError {
             "BigBallsData did not accept that key. Replace it in Settings."
         case .forbidden:
             "This BigBallsData plan does not include that endpoint."
+        case .sportNotIncluded(let message):
+            "\(message) Add Cricket in BigBallsData, or use a plan that includes both football and cricket."
         case .rateLimited(_, let quota):
             if let reset = quota.resetAt {
                 "BigBallsData's free daily limit is used up. It resets \(reset.formatted(date: .abbreviated, time: .shortened))."
@@ -344,11 +347,18 @@ public struct BigBallsDataProvider: Sendable {
         })
 
         guard (200..<300).contains(http.statusCode) else {
-            let message = (try? JSONDecoder().decode(BBSErrorEnvelope.self, from: data))?.error?.message
+            let body = try? JSONDecoder().decode(BBSErrorEnvelope.self, from: data)
+            let code = body?.error?.code
+            let message = body?.error?.message
             switch http.statusCode {
             case 401:
                 throw SportsProviderError.unauthorized
             case 403:
+                if code == "sport_not_included" {
+                    throw SportsProviderError.sportNotIncluded(
+                        message ?? "Your BigBallsData plan does not include this sport."
+                    )
+                }
                 throw SportsProviderError.forbidden
             case 429:
                 throw SportsProviderError.rateLimited(retryAfter: quota.retryAfter, quota: quota)
