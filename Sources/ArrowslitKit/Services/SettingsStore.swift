@@ -55,7 +55,10 @@ public final class SettingsStore {
         sportsPreview = defaults.object(forKey: Key.sportsPreview) as? Bool ?? true
         sportsRefreshSeconds = defaults.object(forKey: Key.sportsRefreshSeconds) as? Int ?? 60
         sportsShowInNotch = defaults.object(forKey: Key.sportsShowInNotch) as? Bool ?? true
-        sportsCompetitionIDs = defaults.stringArray(forKey: Key.sportsCompetitions) ?? SportsCatalog.featuredIDs
+        let validCompetitions = Set(SportsCatalog.all.map(\.id))
+        let savedCompetitions = (defaults.stringArray(forKey: Key.sportsCompetitions) ?? [])
+            .filter { validCompetitions.contains($0) }
+        sportsCompetitionIDs = savedCompetitions.isEmpty ? SportsCatalog.featuredIDs : savedCompetitions
         sportsFollowedTeams = defaults.stringArray(forKey: Key.sportsFollowedTeams) ?? []
         sportsPinnedMatchID = defaults.string(forKey: Key.sportsPinnedMatch)
         let defaultTabs = WorkbenchTab.allCases.filter { $0 != .sports }.map(\.rawValue)

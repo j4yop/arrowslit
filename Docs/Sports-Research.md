@@ -1,24 +1,25 @@
 # Arrowslit Sports — provider research and implementation plan
 
-**Status:** research/design only. No app code changed.
+**Status:** shipped football-only in Arrowslit 0.9.0.
 **Date:** 1 November 2026.
-**Goal:** live football and cricket scores in Arrowslit, with La Liga, Premier League, Champions League, IPL, T20Is, ODIs and Tests, configurable in Settings and fitting the notch/compact strip UI.
+**Goal:** live football scores in Arrowslit, with the Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1, configurable in Settings and fitting the notch/compact strip UI.
 
 ---
 
 ## 0. Implemented choice (1 November 2026)
 
-Arrowslit now ships the **BigBallsData Free** adapter selected here:
+Arrowslit ships a **football-only BigBallsData Free** adapter:
 
-- Sports starts in **Preview** with sample La Liga, UCL, IPL, T20I and Test matches, so the nook works without a key.
+- Sports starts in **Preview** with sample Premier League, La Liga and Champions League matches, so the nook works without a key.
 - A free `bbs_live_…` key is entered in **Settings › Sports** and stored in the macOS Keychain.
-- One all-sports live request refreshes both football and cricket; fixtures are cached for 30 minutes.
-- The nook shows a **Following + Featured** shelf, inline match detail, team follow stars, a pin button and a 32px compact score.
+- One football live request refreshes the followed competitions; fixtures are cached for 30 minutes.
+- The nook shows a **Following + Featured** shelf, inline football key events, team follow stars, a pin button and a 32px compact score.
 - The free tier is 250 requests/day. Polling is 30/60/120 seconds, slows down when the quota is low, and stops at zero.
+- Cricket was removed from the shipped app: the available free key covers Soccer only. The cricket research below is kept as historical context, not as a shipped feature.
 
 ## 1. Bottom line
 
-There is no free, official, production-grade feed that covers all of the requested competitions reliably.
+The shipped app is football-only. The provider research below originally covered football and cricket; the cricket path was removed from the product.
 
 The realistic choices are:
 

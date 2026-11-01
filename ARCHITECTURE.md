@@ -89,23 +89,25 @@ Accessibility prompt.
 
 ## Sports
 
-Sports is a 560×178 shelf: a Football/Cricket switch, followed competition chips, and a
-sideways row of 166×92 match cards. Tapping a card swaps the shelf for an inline scorecard:
-football shows recent goals and cards, cricket shows the live innings, overs, run rate and
-target. The detail view also has follow stars for either team and a pin button.
+Sports is football-only: a 560×178 shelf with a quiet “Football” label, followed competition
+chips, and a sideways row of 166×92 match cards. Tapping a card swaps the shelf for an inline
+key-events view with goals and cards; the detail view has follow stars for either team and a
+pin button. The layout follows the Apple Design foundations: one obvious hierarchy, controls
+close to what they change, immediate press feedback, critically damped motion, and reduced-
+motion fallbacks.
 
 `SportsService` owns the snapshot, detail cache, polling task and daily quota. `SportsCatalog`
-maps provider league names and cricket team names onto canonical competitions. `SportsRanking`
-sorts pinned matches first, then followed teams, followed competitions, live matches and
-upcoming fixtures. `BigBallsDataProvider` is the only network adapter: it sends one all-sports
-`/v1/matches?status=live` request, filters to football and cricket, and caches fixtures for 30
-minutes. A free key is stored in the macOS Keychain; without one, `SportsDemoData` supplies
-local preview matches.
+maps provider league names onto the six football competitions. `SportsRanking` sorts pinned
+matches first, then followed teams, followed competitions, live matches and upcoming fixtures.
+`BigBallsDataProvider` is the only network adapter: it sends one football
+`/v1/matches?sport=football&status=live` request and caches fixtures for 30 minutes. A free key
+is stored in the macOS Keychain; without one, `SportsDemoData` supplies local preview matches.
 
 The free tier is 250 requests/day. Refresh is 30/60/120 seconds while the Sports pane is open,
 slows to 180 seconds when fewer than 40 requests remain, and stops at zero. The compact strip
-shows the pinned or first live match in the 32px notch; score changes use numeric transitions
-and the football clock comes from the provider status text.
+shows the pinned or first live match in the 32px notch as home abbreviation + score on one
+side and away abbreviation + score on the other. It does not show a `LIVE` word or animate the
+digits; the green dot is the only live cue.
 
 ## Clock panel
 

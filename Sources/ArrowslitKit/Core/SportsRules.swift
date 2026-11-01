@@ -3,19 +3,6 @@ import Foundation
 // MARK: - Formatting
 
 public enum SportsFormat {
-    public static func overs(_ value: Double) -> String {
-        let rounded = (value * 10).rounded() / 10
-        if rounded == rounded.rounded() {
-            return String(Int(rounded))
-        }
-        return String(format: "%.1f", rounded)
-    }
-
-    public static func runRate(_ value: Double?) -> String? {
-        guard let value else { return nil }
-        return String(format: "%.2f", value)
-    }
-
     public static func kickoff(_ date: Date, now: Date = Date(), calendar: Calendar = .current) -> String {
         if calendar.isDate(date, inSameDayAs: now) {
             return date.formatted(date: .omitted, time: .shortened)
@@ -39,16 +26,18 @@ public enum SportsFormat {
     public static func status(_ match: SportsMatch, now: Date = Date()) -> String {
         switch match.state {
         case .live:
-            if !match.statusText.isEmpty, match.statusText != "live", match.statusText != "in_progress" {
+            if !match.statusText.isEmpty,
+               match.statusText.lowercased() != "live",
+               match.statusText.lowercased() != "in_progress" {
                 return match.statusText
             }
             return "LIVE"
-        case .breakTime:
-            return match.statusText.isEmpty ? "BREAK" : match.statusText.uppercased()
+        case .halfTime:
+            return "HT"
         case .scheduled:
             return kickoff(match.start, now: now)
         case .finished:
-            return match.sport == .football ? "FT" : "Final"
+            return "FT"
         case .postponed:
             return "Postponed"
         case .cancelled:
@@ -61,61 +50,23 @@ public enum SportsFormat {
     public static func shortStatus(_ match: SportsMatch, now: Date = Date()) -> String {
         switch match.state {
         case .live: "LIVE"
-        case .breakTime: "BREAK"
+        case .halfTime: "HT"
         case .scheduled: kickoff(match.start, now: now)
-        case .finished: match.sport == .football ? "FT" : "Final"
+        case .finished: "FT"
         case .postponed: "PST"
         case .cancelled: "CANC"
         case .suspended: "SUSP"
         }
     }
 
-    public static func compactStatus(_ match: SportsMatch) -> String {
-        switch match.state {
-        case .live:
-            let value = match.statusText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !value.isEmpty,
-               value.lowercased() != "live",
-               value.lowercased() != "in_progress" {
-                return value
-            }
-            return "LIVE"
-        case .breakTime:
-            return "BREAK"
-        case .scheduled:
-            return kickoff(match.start)
-        case .finished:
-            return match.sport == .football ? "FT" : "Final"
-        case .postponed, .cancelled, .suspended:
-            return shortStatus(match)
-        }
-    }
-
     public static func relativeStart(_ match: SportsMatch, now: Date = Date()) -> String {
         let minutes = Int(match.start.timeIntervalSince(now) / 60)
         if match.state.isLive { return status(match, now: now) }
-        if match.state.isFinished { return status(match, now: now) }
+        if match.state.isFinished { return "FT" }
         if minutes < 0 { return "Started" }
         if minutes < 60 { return "in \(minutes)m" }
         if minutes < 24 * 60 { return "in \(minutes / 60)h" }
         return dayLabel(match.start, now: now)
-    }
-
-    public static func cricketDetailLine(_ state: SportsCricketState?) -> String? {
-        guard let state else { return nil }
-        var parts: [String] = []
-        if let runRate = runRate(state.runRate) {
-            parts.append("RR \(runRate)")
-        }
-        if let target = state.target {
-            let needed = max(0, target - (state.runs ?? 0))
-            if let required = runRate(state.requiredRate) {
-                parts.append("Need \(needed) at \(required)")
-            } else {
-                parts.append("Need \(needed)")
-            }
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }
 
@@ -176,18 +127,14 @@ public enum SportsRanking {
 
     public static func filtered(
         _ matches: [SportsMatch],
-        sport: Sport,
         competitionID: String?
     ) -> [SportsMatch] {
-        matches.filter { match in
-            guard match.sport == sport else { return false }
-            guard let competitionID else { return true }
-            return match.competition.id == competitionID
-        }
+        guard let competitionID else { return matches }
+        return matches.filter { $0.competition.id == competitionID }
     }
 
-    public static func liveCount(_ matches: [SportsMatch], sport: Sport) -> Int {
-        matches.filter { $0.sport == sport && $0.isLive }.count
+    public static func liveCount(_ matches: [SportsMatch]) -> Int {
+        matches.filter(\.isLive).count
     }
 }
 

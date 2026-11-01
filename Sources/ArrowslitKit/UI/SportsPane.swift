@@ -1,11 +1,9 @@
 import SwiftUI
 
-/// Sports in the 560x178 nook: a sport switcher, competition chips, and a
-/// sideways shelf of live/upcoming matches. Tapping a card opens an inline
-/// scorecard without leaving the notch.
+/// Football in the 560×178 nook: a competition strip, a sideways shelf of
+/// match cards, and an inline key-events view. One sport, one hierarchy.
 struct SportsPane: View {
     @Bindable var state: AppState
-    @State private var sport: Sport = .football
     @State private var competitionID: String?
     @State private var selectedMatchID: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -13,12 +11,11 @@ struct SportsPane: View {
     private var service: SportsService { state.sports }
 
     private var competitions: [SportsCompetition] {
-        SportsCatalog.competitions(for: sport)
-            .filter { service.followedCompetitionIDs.contains($0.id) }
+        SportsCatalog.all.filter { service.followedCompetitionIDs.contains($0.id) }
     }
 
     private var visibleMatches: [SportsMatch] {
-        let filtered = SportsRanking.filtered(service.matches, sport: sport, competitionID: competitionID)
+        let filtered = SportsRanking.filtered(service.matches, competitionID: competitionID)
         let current = filtered.filter { $0.isLive || $0.state == .scheduled }
         return current.isEmpty ? filtered : current
     }
@@ -29,7 +26,7 @@ struct SportsPane: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 7) {
             header
 
             if let match = selectedMatch {
@@ -49,44 +46,23 @@ struct SportsPane: View {
                 shelf
             }
         }
-        .onAppear {
-            if !SportsCatalog.competitions(for: sport).contains(where: { service.followedCompetitionIDs.contains($0.id) }) {
-                sport = .cricket
-            }
-            service.openPane()
-        }
+        .onAppear { service.openPane() }
         .onDisappear { service.closePane() }
         .animation(NookMotion.reducing(NookMotion.quick, reduceMotion: reduceMotion), value: service.matches)
         .animation(NookMotion.reducing(NookMotion.quick, reduceMotion: reduceMotion), value: selectedMatchID)
     }
 
     private var header: some View {
-        HStack(spacing: 7) {
-            HStack(spacing: 2) {
-                ForEach(Sport.allCases) { item in
-                    Button {
-                        withAnimation(NookMotion.reducing(NookMotion.quick, reduceMotion: reduceMotion)) {
-                            sport = item
-                            competitionID = nil
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: item.symbol)
-                                .font(.system(size: 10, weight: .semibold))
-                            Text(item.title)
-                                .font(.system(size: 9.5, weight: .semibold))
-                        }
-                        .foregroundStyle(sport == item ? ArrowTheme.ink : ArrowTheme.muted)
-                        .padding(.horizontal, 7)
-                        .frame(height: 22)
-                        .background(
-                            Capsule().fill(sport == item ? ArrowTheme.amber : Color.white.opacity(0.06))
-                        )
-                    }
-                    .buttonStyle(NookPressStyle(pressedScale: 0.95))
-                    .help(item.title)
-                }
+        HStack(spacing: 8) {
+            HStack(spacing: 5) {
+                Image(systemName: "soccerball")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.amber)
+                Text("Football")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
             }
+            .frame(width: 62, alignment: .leading)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
@@ -101,7 +77,7 @@ struct SportsPane: View {
             if service.isDemo {
                 Text("PREVIEW")
                     .font(.system(size: 7.5, weight: .bold))
-                    .kerning(0.4)
+                    .kerning(0.45)
                     .foregroundStyle(ArrowTheme.amber)
                     .padding(.horizontal, 5)
                     .frame(height: 17)
@@ -112,14 +88,14 @@ struct SportsPane: View {
                     Circle()
                         .fill(ArrowTheme.green)
                         .frame(width: 4, height: 4)
-                    Text("\(service.liveCount) LIVE")
-                        .font(.system(size: 8, weight: .bold))
+                    Text("\(service.liveCount) live")
+                        .font(.system(size: 8.5, weight: .semibold))
                         .foregroundStyle(ArrowTheme.green)
                 }
                 .help("\(service.liveCount) live matches")
             } else if let remaining = service.quota.remaining {
                 Text("\(remaining) left")
-                    .font(.system(size: 8, weight: .semibold))
+                    .font(.system(size: 8.5, weight: .semibold))
                     .monospacedDigit()
                     .foregroundStyle(remaining <= 20 ? ArrowTheme.red : ArrowTheme.faint)
                     .help(service.quota.summary)
@@ -196,7 +172,7 @@ struct SportsPane: View {
 
     private var emptyState: some View {
         VStack(spacing: 4) {
-            Image(systemName: service.hasAPIKey ? "moon.stars" : "sportscourt")
+            Image(systemName: service.hasAPIKey ? "moon.stars" : "soccerball")
                 .font(.system(size: 18, weight: .light))
                 .foregroundStyle(ArrowTheme.faint)
             Text(service.hasAPIKey ? "No live matches in your competitions" : "Connect BigBallsData to go live")
@@ -346,13 +322,12 @@ private struct SportsMatchCard: View {
                 .font(.system(size: 15, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(ArrowTheme.bone)
-                .contentTransition(.numericText())
         }
     }
 
     private var accessibilityLabel: String {
-        let state = match.isLive ? "live" : SportsFormat.shortStatus(match)
-        return "\(match.home.name) \(match.homeScore ?? 0), \(match.away.name) \(match.awayScore ?? 0), \(state)"
+        let status = match.isLive ? "live" : SportsFormat.shortStatus(match)
+        return "\(match.home.name) \(match.homeScore ?? 0), \(match.away.name) \(match.awayScore ?? 0), \(status)"
     }
 }
 
@@ -362,10 +337,9 @@ private struct SportsMatchDetailView: View {
     @Bindable var state: AppState
     let match: SportsMatch
     let close: () -> Void
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var service: SportsService { state.sports }
-    private var detail: SportsMatchDetail? { service.details[match.id] }
+    private var events: [SportsFootballEvent]? { service.details[match.id] }
     private var isLoading: Bool { service.detailLoading.contains(match.id) }
     private var error: String? { service.detailErrors[match.id] }
 
@@ -457,13 +431,12 @@ private struct SportsMatchDetailView: View {
                 .font(.system(size: 17, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(ArrowTheme.bone)
-                .contentTransition(.numericText())
         }
     }
 
     @ViewBuilder
     private var detailColumn: some View {
-        if isLoading && detail == nil {
+        if isLoading && events == nil {
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
                 Text("Loading match detail…")
@@ -471,21 +444,16 @@ private struct SportsMatchDetailView: View {
                     .foregroundStyle(ArrowTheme.muted)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        } else if let error, detail == nil {
+        } else if let error, events == nil {
             Text(error)
                 .font(.system(size: 9.5))
                 .foregroundStyle(ArrowTheme.muted)
                 .lineLimit(2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        } else if let detail {
-            switch detail {
-            case .football(let events):
-                footballDetail(events)
-            case .cricket(let cricket):
-                cricketDetail(cricket)
-            }
+        } else if let events {
+            footballDetail(events)
         } else {
-            Text("No play-by-play yet.")
+            Text("No key events yet.")
                 .font(.system(size: 9.5))
                 .foregroundStyle(ArrowTheme.muted)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -526,43 +494,10 @@ private struct SportsMatchDetailView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private func cricketDetail(_ cricket: SportsCricketState?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("LIVE INNINGS")
-                .font(.system(size: 7.5, weight: .bold))
-                .kerning(0.45)
-                .foregroundStyle(ArrowTheme.faint)
-            if let cricket, let score = cricket.scoreLine {
-                Text(score)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(ArrowTheme.bone)
-                if let line = SportsFormat.cricketDetailLine(cricket) {
-                    Text(line)
-                        .font(.system(size: 9))
-                        .foregroundStyle(ArrowTheme.muted)
-                        .lineLimit(2)
-                }
-                if let batting = cricket.battingTeam {
-                    Text(batting)
-                        .font(.system(size: 8.5))
-                        .foregroundStyle(ArrowTheme.faint)
-                        .lineLimit(1)
-                }
-            } else {
-                Text("Live innings detail is not available yet.")
-                    .font(.system(size: 9.5))
-                    .foregroundStyle(ArrowTheme.muted)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-
     private func symbol(for kind: SportsFootballEvent.Kind) -> String {
         switch kind {
         case .goal: "soccerball"
-        case .yellowCard: "rectangle.portrait.fill"
-        case .redCard: "rectangle.portrait.fill"
+        case .yellowCard, .redCard: "rectangle.portrait.fill"
         case .substitution: "arrow.left.arrow.right"
         case .other: "circle.fill"
         }

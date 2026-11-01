@@ -45,7 +45,7 @@ public enum SportsProviderError: LocalizedError {
         case .forbidden:
             "This BigBallsData plan does not include that endpoint."
         case .sportNotIncluded(let message):
-            "\(message) Add Cricket in BigBallsData, or use a plan that includes both football and cricket."
+            "\(message) Use a BigBallsData key that covers football."
         case .rateLimited(_, let quota):
             if let reset = quota.resetAt {
                 "BigBallsData's free daily limit is used up. It resets \(reset.formatted(date: .abbreviated, time: .shortened))."
@@ -80,55 +80,27 @@ public struct BigBallsDataProvider: Sendable {
         self.session = session
     }
 
-    public func liveMatches(allowCricketFallback: Bool = true) async throws -> SportsProviderPayload {
-        let query = [
-            URLQueryItem(name: "status", value: "live"),
-            URLQueryItem(name: "limit", value: "200"),
-        ]
-        var payload = try await getMatches(path: "/v1/matches", query: query)
-
-        // The all-sports form is documented to include every sport. If cricket is
-        // followed and the response carried none, make one explicit cricket call.
-        // The caller only allows this once per session, so a quiet cricket day
-        // cannot double every poll.
-        if allowCricketFallback,
-           !payload.matches.contains(where: { $0.sport == .cricket }),
-           payload.quota.remaining.map({ $0 > 20 }) ?? true {
-            if let cricket = try? await getMatches(
-                path: "/v1/cricket/matches",
-                query: [
-                    URLQueryItem(name: "status", value: "live"),
-                    URLQueryItem(name: "limit", value: "200"),
-                ]
-            ) {
-                payload.matches += cricket.matches
-                payload.quota = cricket.quota
-            }
-        }
-        return payload
+    public func liveMatches() async throws -> SportsProviderPayload {
+        try await getMatches(
+            path: "/v1/matches",
+            query: [
+                URLQueryItem(name: "sport", value: "football"),
+                URLQueryItem(name: "status", value: "live"),
+                URLQueryItem(name: "limit", value: "200"),
+            ]
+        )
     }
 
     public func upcoming(for competition: SportsCompetition, limit: Int = 20) async throws -> SportsProviderPayload {
-        let query: [URLQueryItem]
-        let path: String
-        switch competition.sport {
-        case .football:
-            path = "/v1/matches"
-            query = [
+        let payload = try await getMatches(
+            path: "/v1/matches",
+            query: [
                 URLQueryItem(name: "sport", value: "football"),
                 URLQueryItem(name: "league", value: competition.key),
                 URLQueryItem(name: "status", value: "scheduled"),
                 URLQueryItem(name: "limit", value: String(limit)),
             ]
-        case .cricket:
-            path = "/v1/cricket/matches"
-            query = [
-                URLQueryItem(name: "series", value: competition.key),
-                URLQueryItem(name: "status", value: "scheduled"),
-                URLQueryItem(name: "limit", value: String(limit)),
-            ]
-        }
-        let payload = try await getMatches(path: path, query: query)
+        )
         let now = Date()
         return SportsProviderPayload(
             matches: payload.matches
@@ -172,28 +144,6 @@ public struct BigBallsDataProvider: Sendable {
         return (Array(events.suffix(12)), response.1)
     }
 
-    public func cricketState(for matchID: String) async throws -> (state: SportsCricketState?, quota: SportsQuota) {
-        let response: (BBSCricketStateEnvelope, SportsQuota) = try await get(
-            path: "/v1/cricket/matches/\(matchID)/state"
-        )
-        guard let state = response.0.state else { return (nil, response.1) }
-        return (
-            SportsCricketState(
-                innings: state.inningsNumber,
-                battingTeam: state.battingTeam?.name,
-                runs: state.runsScored,
-                wickets: state.wicketsFallen,
-                overs: state.oversBowled,
-                runRate: state.currentRunRate,
-                target: state.target,
-                requiredRate: state.requiredRunRate,
-                resultMethod: state.resultMethod,
-                recordedAt: state.recordedAt
-            ),
-            response.1
-        )
-    }
-
     public func validate() async throws -> (account: SportsAccount, quota: SportsQuota) {
         let response: (BBSUser, SportsQuota) = try await get(path: "/v1/user/me")
         let user = response.0
@@ -214,7 +164,7 @@ public struct BigBallsDataProvider: Sendable {
         return SportsProviderPayload(matches: Self.map(response.0.matches, now: Date()), quota: response.1)
     }
 
-    /// Decodes a `/v1/matches` or `/v1/cricket/matches` envelope. Exposed for
+    /// Decodes a `/v1/matches` envelope. Exposed for
     /// tests so the wire format can be exercised without a live key.
     public static func decodeMatches(from data: Data, now: Date = Date()) throws -> [SportsMatch] {
         let envelope = try decoder().decode(BBSEnvelope<BBSMatchList>.self, from: data)
@@ -224,32 +174,25 @@ public struct BigBallsDataProvider: Sendable {
 
     private static func map(_ rows: [BBSMatch], now: Date) -> [SportsMatch] {
         rows.compactMap { row -> SportsMatch? in
-            guard let sportName = row.sport,
-                  let sport = Sport(rawValue: sportName),
-                  sport == .football || sport == .cricket,
-                  let home = row.home,
+            guard (row.sport ?? "football").lowercased() == "football" else { return nil }
+            guard let home = row.home,
                   let away = row.away,
                   let homeName = home.name ?? home.shortName,
                   let awayName = away.name ?? away.shortName else {
                 return nil
             }
-            let league = row.league ?? "Sports"
+            let league = row.league ?? "Football"
             let start = row.kickoffUTC?.value
             let state = row.status.flatMap(SportsMatchState.init(providerStatus:)) ?? .live
-            let competition = SportsCatalog.competition(
-                for: league,
-                sport: sport,
-                teamNames: [homeName, awayName]
-            ) ?? SportsCatalog.fallback(for: league, sport: sport)
+            let competition = SportsCatalog.competition(for: league)
+                ?? SportsCatalog.fallback(for: league)
             return SportsMatch(
                 id: row.id ?? fallbackID(
-                    sport: sport,
                     league: league,
                     home: homeName,
                     away: awayName,
                     start: start
                 ),
-                sport: sport,
                 competition: competition,
                 home: SportsTeam(
                     id: home.id ?? fallbackTeamID(homeName),
@@ -276,14 +219,13 @@ public struct BigBallsDataProvider: Sendable {
     }
 
     private static func fallbackID(
-        sport: Sport,
         league: String,
         home: String,
         away: String,
         start: Date?
     ) -> String {
         let startKey = start.map { String(Int($0.timeIntervalSince1970)) } ?? "unknown"
-        return "bbs-\(stableHash("\(sport.rawValue)|\(league)|\(home)|\(away)|\(startKey)"))"
+        return "bbs-\(stableHash("football|\(league)|\(home)|\(away)|\(startKey)"))"
     }
 
     private static func fallbackTeamID(_ name: String) -> String {
@@ -627,47 +569,6 @@ private struct BBSFootballEvent: Decodable {
         case eventDetail = "event_detail"
         case scoringPlay = "scoring_play"
     }
-}
-
-private struct BBSCricketStateEnvelope: Decodable {
-    var matchID: String?
-    var state: BBSCricketState?
-
-    enum CodingKeys: String, CodingKey {
-        case matchID = "match_id"
-        case state
-    }
-}
-
-private struct BBSCricketState: Decodable {
-    var inningsNumber: Int?
-    var battingTeam: BBSTeamRef?
-    var oversBowled: Double?
-    var runsScored: Int?
-    var wicketsFallen: Int?
-    var currentRunRate: Double?
-    var target: Int?
-    var requiredRunRate: Double?
-    var resultMethod: String?
-    var recordedAt: Date?
-
-    enum CodingKeys: String, CodingKey {
-        case target
-        case inningsNumber = "innings_number"
-        case battingTeam = "batting_team"
-        case oversBowled = "overs_bowled"
-        case runsScored = "runs_scored"
-        case wicketsFallen = "wickets_fallen"
-        case currentRunRate = "current_run_rate"
-        case requiredRunRate = "required_run_rate"
-        case resultMethod = "result_method"
-        case recordedAt = "recorded_at"
-    }
-}
-
-private struct BBSTeamRef: Decodable {
-    var id: String?
-    var name: String?
 }
 
 private struct BBSUser: Decodable {
