@@ -219,7 +219,7 @@ struct BigBallsDataDecodingTests {
     }
 }
 
-@Suite("BigBallsData transport")
+@Suite("BigBallsData transport", .serialized)
 struct BigBallsDataTransportTests {
     @Test func liveMatchesUnwrapsTheEnvelopeOnlyOnce() async throws {
         BBSURLProtocol.handler = { request in
