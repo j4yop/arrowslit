@@ -16,6 +16,8 @@ public final class TimerService {
     public var focusMinutes = 25
     /// The break shown under the Pomodoro time.
     public var breakMinutes = 5
+    /// Whether the Glass sound plays when a countdown finishes.
+    public var playsSound = true
 
     @ObservationIgnored private var ticker: Timer?
     @ObservationIgnored private var activity: NSObjectProtocol?
@@ -115,7 +117,9 @@ public final class TimerService {
         stopTicker()
         endActivity()
         justFinished = true
-        NSSound(named: NSSound.Name("Glass"))?.play()
+        if playsSound {
+            NSSound(named: NSSound.Name("Glass"))?.play()
+        }
         finishTask?.cancel()
         finishTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(4))

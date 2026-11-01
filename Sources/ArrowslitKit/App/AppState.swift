@@ -29,7 +29,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .mirror: "Mirror"
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
-        case .stats: "System"
+        case .stats: "Stats"
         case .reminders: "Reminders"
         case .stopwatch: "Stopwatch"
         case .keepAwake: "Keep Awake"
@@ -115,6 +115,7 @@ public final class AppState {
         self.stats = stats
         self.reminders = reminders
         self.system = SystemMonitorService(settings: settings)
+        self.timer.playsSound = settings.timerSound
         NookMotion.liquidAnimations = settings.liquidAnimations
 
         calendar.onReminder = { [weak self] event in
@@ -149,7 +150,7 @@ public final class AppState {
 
     public func stop() {
         notes.save()
-        tray.clear()
+        tray.clearUnpinned()
         nowPlaying.stop()
         calendar.stop()
         clipboard.stop()
@@ -280,6 +281,11 @@ public final class AppState {
     public func setLiquidAnimations(_ enabled: Bool) {
         settings.liquidAnimations = enabled
         NookMotion.liquidAnimations = enabled
+    }
+
+    public func setTimerSound(_ enabled: Bool) {
+        settings.timerSound = enabled
+        timer.playsSound = enabled
     }
 
     public func toggleShortcut(_ tab: WorkbenchTab) {

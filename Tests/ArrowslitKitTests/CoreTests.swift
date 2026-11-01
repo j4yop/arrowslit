@@ -68,6 +68,16 @@ struct StatsMathTests {
         #expect(StatsMath.level(0.8) == .busy)
         #expect(StatsMath.level(0.95) == .high)
     }
+
+    @Test func formatsDiskAndNetworkReadings() {
+        #expect(StatsMath.rate(from: 1_000, to: 4_000, seconds: 2) == 1_500)
+        #expect(StatsMath.rate(from: 4_000, to: 1_000, seconds: 2) == 0)
+        #expect(StatsMath.rate(1_500).hasSuffix("/s"))
+        #expect(StatsMath.rate(0) == "0 KB/s")
+        #expect(StatsMath.countsTraffic(interface: "en0"))
+        #expect(!StatsMath.countsTraffic(interface: "lo0"))
+        #expect(StatsMath.bytes(Int64(1_024)).contains("KB") || StatsMath.bytes(Int64(1_024)).contains("bytes"))
+    }
 }
 
 @Suite("Screen geometry")
@@ -185,5 +195,68 @@ struct ClockServiceTests {
         #expect(ClockMode.timer.title == "Timer")
         #expect(ClockMode.focus.title == "Pomodoro")
         #expect(ClockMode.stopwatch.title == "Stopwatch")
+    }
+}
+
+@Suite("Month layout and calendar lists")
+struct MonthLayoutTests {
+    private let calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.firstWeekday = 1
+        return calendar
+    }()
+
+    @Test func laysOutTheCurrentMonth() {
+        let date = calendar.date(from: DateComponents(year: 2026, month: 10, day: 22))!
+        let month = MonthLayout(containing: date, calendar: calendar)
+        #expect(month.cells.compactMap { $0 }.count == 31)
+        #expect(month.today == 22)
+        #expect(month.weekdaySymbols.count == 7)
+    }
+
+    @Test func listsUpcomingEventsInOrder() {
+        let now = calendar.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 10))!
+        func event(_ title: String, day: Int, hour: Int) -> CalendarEvent {
+            let start = calendar.date(from: DateComponents(year: 2026, month: 10, day: day, hour: hour))!
+            return CalendarEvent(id: title, title: title, start: start, end: start.addingTimeInterval(1800))
+        }
+        let events = [event("Later", day: 23, hour: 9), event("Sooner", day: 22, hour: 12), event("Past", day: 21, hour: 9)]
+        #expect(CalendarRules.upcoming(in: events, at: now, limit: 3).map(\.title) == ["Sooner", "Later"])
+        #expect(CalendarRules.dayLabel(for: events[0], at: now) == "Tomorrow")
+    }
+
+    @Test func filtersTodayEventsThatAreOver() {
+        let now = calendar.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 10))!
+        let start = calendar.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 9))!
+        let event = CalendarEvent(id: "done", title: "Done", start: start, end: start.addingTimeInterval(1800))
+        #expect(CalendarRules.events(on: now, in: [event], at: now, calendar: calendar).isEmpty)
+    }
+}
+
+@MainActor
+@Suite("Pinned file tray")
+struct PinnedTrayTests {
+    @Test func pinnedFilesSurviveAReload() throws {
+        let name = "ArrowslitTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        defer { defaults.removePersistentDomain(forName: name) }
+
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("keep.txt")
+        try Data("keep".utf8).write(to: file)
+
+        let store = TrayStore(defaults: defaults)
+        store.add([file])
+        let id = try #require(store.items.first?.id)
+        store.togglePin(id)
+        #expect(store.items.first?.isPinned == true)
+
+        let reloaded = TrayStore(defaults: defaults)
+        #expect(reloaded.items.count == 1)
+        #expect(reloaded.items.first?.isPinned == true)
     }
 }

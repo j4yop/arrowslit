@@ -16,7 +16,7 @@ struct NookView: View {
                 case .home: HomePane(state: state)
                 case .nowPlaying: CompactNowPlaying(state: state)
                 case .timer, .stopwatch: ClockPane(state: state)
-                case .calendar: CompactCalendar(state: state)
+                case .calendar: CalendarPanelBody(state: state)
                 case .tray: CompactTray(state: state)
                 case .mirror: CompactMirror(state: state)
                 case .clipboard: CompactClipboard(state: state)
@@ -489,24 +489,31 @@ private struct CompactTray: View {
     var body: some View {
         VStack(spacing: 6) {
             if state.tray.items.isEmpty {
-                HStack(spacing: 10) {
-                    Image(systemName: isTargeted ? "tray.and.arrow.down.fill" : "tray")
-                        .font(.system(size: 18, weight: .light))
-                        .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.faint)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(isTargeted ? "Drop to keep a reference" : "Drop files here")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
-                        Text("The tray clears when Arrowslit quits.")
-                            .font(.system(size: 9)).foregroundStyle(ArrowTheme.faint)
-                    }
-                    Spacer()
-                    AddFilesButton(state: state)
+                VStack(spacing: 7) {
+                    Image(systemName: "tray.and.arrow.down.fill")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
+                    Text("Drag files onto the notch to keep them here")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.bone.opacity(0.9))
+                    Text("They stay until you quit, or pin one to keep it. Your originals aren't touched.")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(ArrowTheme.muted)
+                        .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, 12)
-                .frame(maxHeight: .infinity)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.025)))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.white.opacity(0.12), style: StrokeStyle(lineWidth: 1, dash: [4, 4])))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(isTargeted ? ArrowTheme.amber.opacity(0.04) : .clear)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(
+                            isTargeted ? ArrowTheme.amber.opacity(0.7) : Color.white.opacity(0.2),
+                            style: StrokeStyle(lineWidth: 1.2, dash: [5, 4])
+                        )
+                )
+                .animation(.easeOut(duration: 0.15), value: isTargeted)
             } else {
                 HStack(spacing: 8) {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -598,6 +605,14 @@ private struct CompactTrayItem: View {
         .padding(.vertical, 5)
         .padding(.horizontal, 5)
         .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(isHovering ? 0.07 : 0.035)))
+        .overlay(alignment: .topLeading) {
+            if item.isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(ArrowTheme.amber)
+                    .padding(3)
+            }
+        }
         .overlay(alignment: .topTrailing) {
             if isHovering {
                 Button { state.tray.remove(item.id) } label: {
@@ -612,6 +627,14 @@ private struct CompactTrayItem: View {
         }
         .onHover { isHovering = $0 }
         .onTapGesture(count: 2) { state.tray.open(item) }
+        .contextMenu {
+            Button("Open") { state.tray.open(item) }
+            Button("Show in Finder") { state.tray.reveal(item) }
+            Button("Send with AirDrop") { state.tray.airDrop([item]) }
+            Divider()
+            Button(item.isPinned ? "Unpin" : "Pin to keep") { state.tray.togglePin(item.id) }
+            Button("Remove") { state.tray.remove(item.id) }
+        }
         .help(item.name)
     }
 }
@@ -759,48 +782,7 @@ private struct CompactStats: View {
     @Bindable var state: AppState
 
     var body: some View {
-        HStack(spacing: 10) {
-            CompactStat(label: "CPU", value: state.stats.hasReading ? StatsMath.percent(state.stats.cpu) : "—", detail: "\(ProcessInfo.processInfo.activeProcessorCount) cores", share: state.stats.hasReading ? state.stats.cpu : 0, level: StatsMath.level(state.stats.cpu))
-            CompactStat(label: "Memory", value: StatsMath.percent(state.stats.memoryShare), detail: "\(StatsMath.bytes(state.stats.memoryUsed)) of \(StatsMath.bytes(state.stats.memoryTotal))", share: state.stats.memoryShare, level: state.stats.pressure)
-        }
-        .onAppear { state.stats.start() }
-        .onDisappear { state.stats.stop() }
-    }
-}
-
-private struct CompactStat: View {
-    let label: String
-    let value: String
-    let detail: String
-    let share: Double
-    let level: UsageLevel
-
-    private var color: Color {
-        switch level {
-        case .normal: ArrowTheme.green
-        case .busy: ArrowTheme.amber
-        case .high: ArrowTheme.red
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(ArrowTheme.label).foregroundStyle(ArrowTheme.muted)
-            Text(value).font(.system(size: 24, weight: .semibold)).foregroundStyle(ArrowTheme.bone).monospacedDigit()
-            Text(detail).font(ArrowTheme.caption).foregroundStyle(ArrowTheme.muted).lineLimit(1)
-            Spacer(minLength: 0)
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.08))
-                    Capsule().fill(color).frame(width: max(3, geometry.size.width * CGFloat(share)))
-                }
-            }
-            .frame(height: 3)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(ArrowTheme.panel))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5))
+        StatsGrid(state: state)
     }
 }
 

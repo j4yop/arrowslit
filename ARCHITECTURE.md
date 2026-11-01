@@ -73,6 +73,20 @@ it asks music.163.com for a timed fallback and requires the title, artist and le
 The answer stays in memory. A failed lookup is retried on a widening schedule (5s, 15s, 60s,
 then every 5 minutes) while the same song keeps playing.
 
+## Home, stats and files
+
+Home is a three-column row: the compact media card, the next calendar event and the quick timer
+actions. The media card shows the current lyric line and opens the tall player; the timer capsules
+use the same hover/press spring as the reference. The Calendar panel loads the whole month plus
+the coming week, draws a month grid with busy-day dots, and switches the right column between
+"Up Next" and the selected day's event list.
+
+Stats reads memory, CPU, disk and network every two seconds while visible, with a slow disk check.
+`StatsGrid` draws four Activity Monitor-style tiles with animated bars; network uses blue/orange
+down/up rates. Files supports the full-width dashed drop zone and pinned items stored in
+UserDefaults so they survive a quit. Settings exposes the timer-end sound and the File Tray
+Accessibility prompt.
+
 ## Clock panel
 
 `ClockPane` is one shared Timer / Pomodoro / Stopwatch surface. `SlidingRuler` draws a
