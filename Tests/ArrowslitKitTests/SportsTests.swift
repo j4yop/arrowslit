@@ -151,6 +151,14 @@ struct SportsFormattingTests {
         #expect(quota.summary == "37 of 250 requests left today")
     }
 
+    @Test func cricketDetailDoesNotRepeatTheScore() {
+        let state = SportsCricketState(
+            innings: 2, battingTeam: "India", runs: 245, wickets: 6, overs: 82.4,
+            runRate: 2.96, target: 290, requiredRate: 0.61
+        )
+        #expect(SportsFormat.cricketDetailLine(state) == "RR 2.96 · Need 45 at 0.61")
+    }
+
     @Test func compactStatusKeepsTheMatchClock() {
         let live = SportsDemoData.matches(now: sportsBase).first { $0.sport == .football && $0.isLive }!
         #expect(SportsFormat.compactStatus(live) == "67'")
