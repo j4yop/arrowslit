@@ -89,6 +89,18 @@ final class DebugHooks {
         case "notes": state.expand(.notes)
         case "stats": state.expand(.stats)
         case "sports": state.expand(.sports)
+        case "goal-alert":
+            state.settings.setTabEnabled(.sports, true)
+            state.receive(.sportsGoal(SportsGoalEvent(
+                matchID: "demo-football-1",
+                teamName: "Real Madrid",
+                teamShortName: "RMA",
+                homeShortName: "RMA",
+                awayShortName: "BAR",
+                homeScore: 2,
+                awayScore: 1,
+                minute: "67'"
+            )))
         case "sports-notch":
             state.settings.setTabEnabled(.sports, true)
             if let demo = SportsDemoData.matches().first {

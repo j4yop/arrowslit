@@ -109,6 +109,12 @@ shows the pinned or first live match in the 32px notch as home abbreviation + sc
 side and away abbreviation + score on the other. It does not show a `LIVE` word or animate the
 digits; the green dot is the only live cue.
 
+Goal alerts compare the previous and current score for the notch match. A score increase emits a
+`SportsGoalEvent`, `AppState.receive` plays the level-change haptic, and `NotchAlertView` shows a
+seven-second goal card with a spring-in ball, the scoring team, the new score and the minute. The
+service polls at 60 seconds while the pane is closed if the pinned/followed match is live; it stops
+when Arrowslit quits or the quota runs out.
+
 ## Clock panel
 
 `ClockPane` is one shared Timer / Pomodoro / Stopwatch surface. `SlidingRuler` draws a

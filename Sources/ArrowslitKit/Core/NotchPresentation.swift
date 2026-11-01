@@ -34,6 +34,7 @@ public enum NotchAlert: Equatable, Sendable {
     case download(name: String)
     case update(version: String)
     case welcome(name: String)
+    case sportsGoal(SportsGoalEvent)
     case level(kind: LevelKind, value: Double, muted: Bool)
 
     public enum LevelKind: String, Sendable, Equatable {
@@ -50,6 +51,7 @@ public enum NotchAlert: Equatable, Sendable {
         case download
         case update
         case welcome
+        case sports
         case level
     }
 
@@ -62,6 +64,7 @@ public enum NotchAlert: Equatable, Sendable {
         case .download: .download
         case .update: .update
         case .welcome: .welcome
+        case .sportsGoal: .sports
         case .level: .level
         }
     }
@@ -76,6 +79,7 @@ public enum NotchAlert: Equatable, Sendable {
         case .download: 5
         case .update: 10
         case .welcome: 4
+        case .sportsGoal: 7
         case .level: 1.6
         }
     }
@@ -96,7 +100,7 @@ public enum NotchAlert: Equatable, Sendable {
         switch self {
         case .charging, .lowBattery, .headphones, .level:
             return true
-        case .upcomingEvent, .timerFinished, .download, .update, .welcome:
+        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal:
             return false
         }
     }
