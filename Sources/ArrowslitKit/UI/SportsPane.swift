@@ -41,6 +41,8 @@ struct SportsPane: View {
                 .transition(.opacity.combined(with: .move(edge: .trailing)))
             } else if let message = service.errorMessage, service.matches.isEmpty {
                 errorState(message)
+            } else if service.isLoading && visibleMatches.isEmpty {
+                loadingState
             } else if visibleMatches.isEmpty {
                 emptyState
             } else {
@@ -180,6 +182,16 @@ struct SportsPane: View {
         }
         .frame(height: 92)
         .nookScrollEdgeFade()
+    }
+
+    private var loadingState: some View {
+        HStack(spacing: 7) {
+            ProgressView().controlSize(.small)
+            Text("Loading matches…")
+                .font(.system(size: 10.5, weight: .medium))
+                .foregroundStyle(ArrowTheme.muted)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyState: some View {
