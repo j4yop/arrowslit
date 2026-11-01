@@ -72,6 +72,12 @@ public final class SettingsStore {
         if !clipboardEnabled { enabledTabs.remove(WorkbenchTab.clipboard.rawValue) }
         if !notesEnabled { enabledTabs.remove(WorkbenchTab.notes.rawValue) }
         if !statsEnabled { enabledTabs.remove(WorkbenchTab.stats.rawValue) }
+        // Sports ships on so it is visible in the launcher, but it stays in
+        // local preview mode until a BigBallsData key is connected.
+        if !defaults.bool(forKey: Key.sportsDefaultAdded) {
+            enabledTabs.insert(WorkbenchTab.sports.rawValue)
+            defaults.set(true, forKey: Key.sportsDefaultAdded)
+        }
     }
 
     public func isTabEnabled(_ tab: WorkbenchTab) -> Bool {
@@ -121,6 +127,7 @@ public final class SettingsStore {
         static let notes = "arrowslit.notesEnabled"
         static let lyrics = "arrowslit.lyricsEnabled"
         static let checksForUpdates = "arrowslit.checksForUpdates"
+        static let sportsDefaultAdded = "arrowslit.sports.defaultAdded"
         static let sportsPreview = "arrowslit.sports.preview"
         static let sportsRefreshSeconds = "arrowslit.sports.refreshSeconds"
         static let sportsShowInNotch = "arrowslit.sports.showInNotch"

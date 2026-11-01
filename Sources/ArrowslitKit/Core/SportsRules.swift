@@ -70,6 +70,27 @@ public enum SportsFormat {
         }
     }
 
+    public static func compactStatus(_ match: SportsMatch) -> String {
+        switch match.state {
+        case .live:
+            let value = match.statusText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !value.isEmpty,
+               value.lowercased() != "live",
+               value.lowercased() != "in_progress" {
+                return value
+            }
+            return "LIVE"
+        case .breakTime:
+            return "BREAK"
+        case .scheduled:
+            return kickoff(match.start)
+        case .finished:
+            return match.sport == .football ? "FT" : "Final"
+        case .postponed, .cancelled, .suspended:
+            return shortStatus(match)
+        }
+    }
+
     public static func relativeStart(_ match: SportsMatch, now: Date = Date()) -> String {
         let minutes = Int(match.start.timeIntervalSince(now) / 60)
         if match.state.isLive { return status(match, now: now) }

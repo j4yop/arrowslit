@@ -469,8 +469,6 @@ private struct SportsSettingsSection: View {
                         }
                     )
                 )
-                .disabled(!service.hasAPIKey)
-                .opacity(service.hasAPIKey ? 1 : 0.62)
                 SettingsRowDivider()
                 SettingsToggle(
                     title: "Show live score in the notch",

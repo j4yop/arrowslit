@@ -83,6 +83,55 @@ struct SportsRankingTests {
     }
 }
 
+@Suite("BigBallsData decoding")
+struct BigBallsDataDecodingTests {
+    @Test func mapsFootballAndCricketRowsAndSkipsOtherSports() throws {
+        let json = """
+        {
+          "data": [
+            {
+              "id": "f1",
+              "sport": "football",
+              "league": "Premier League",
+              "kickoff_utc": "2026-11-01T15:00:00.000Z",
+              "status": "in_progress",
+              "home": { "id": "h1", "name": "Arsenal", "short_name": "ARS" },
+              "away": { "id": "a1", "name": "Chelsea", "short_name": "CHE" },
+              "score": { "home": 2, "away": 1 },
+              "round": "Matchday 12"
+            },
+            {
+              "id": "c1",
+              "sport": "cricket",
+              "league": "Test Cricket",
+              "kickoff_utc": "2026-11-01T04:00:00Z",
+              "status": "live",
+              "home": { "id": "h2", "name": "India", "short_name": "IND" },
+              "away": { "id": "a2", "name": "Australia", "short_name": "AUS" },
+              "score": { "home": 245, "away": 289 }
+            },
+            {
+              "id": "b1",
+              "sport": "basketball",
+              "league": "NBA",
+              "kickoff_utc": "2026-11-01T00:00:00Z",
+              "status": "live",
+              "home": { "id": "h3", "name": "Home" },
+              "away": { "id": "a3", "name": "Away" }
+            }
+          ]
+        }
+        """
+        let matches = try BigBallsDataProvider.decodeMatches(from: Data(json.utf8))
+        #expect(matches.count == 2)
+        #expect(matches[0].competition.id == "football/epl")
+        #expect(matches[0].state == .live)
+        #expect(matches[0].homeScore == 2)
+        #expect(matches[1].competition.id == "cricket/test")
+        #expect(matches[1].home.shortName == "IND")
+    }
+}
+
 @Suite("Sports formatting")
 struct SportsFormattingTests {
     @Test func formatsOversAndQuota() {
@@ -100,6 +149,11 @@ struct SportsFormattingTests {
         #expect(quota.remaining == 37)
         #expect(quota.resetAt != nil)
         #expect(quota.summary == "37 of 250 requests left today")
+    }
+
+    @Test func compactStatusKeepsTheMatchClock() {
+        let live = SportsDemoData.matches(now: sportsBase).first { $0.sport == .football && $0.isLive }!
+        #expect(SportsFormat.compactStatus(live) == "67'")
     }
 
     @Test func mapsProviderStatuses() {
@@ -135,7 +189,7 @@ struct SportsSettingsTests {
         defer { defaults.removePersistentDomain(forName: name) }
 
         let settings = SettingsStore(defaults: defaults)
-        #expect(!settings.isTabEnabled(.sports))
+        #expect(settings.isTabEnabled(.sports))
         #expect(settings.sportsPreview)
         #expect(settings.sportsRefreshSeconds == 60)
         #expect(settings.sportsCompetitionIDs.contains("football/epl"))

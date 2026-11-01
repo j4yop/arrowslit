@@ -429,6 +429,17 @@ private struct SportsMatchDetailView: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(ArrowTheme.bone)
                 .lineLimit(1)
+            Button {
+                service.toggleFollow(team)
+            } label: {
+                Image(systemName: service.isFollowing(team) ? "star.fill" : "star")
+                    .font(.system(size: 8.5, weight: .semibold))
+                    .foregroundStyle(service.isFollowing(team) ? ArrowTheme.amber : ArrowTheme.faint)
+                    .frame(width: 15, height: 15)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(NookPressStyle(pressedScale: 0.88))
+            .help(service.isFollowing(team) ? "Unfollow \(team.name)" : "Follow \(team.name)")
             Spacer(minLength: 3)
             Text(score.map(String.init) ?? "–")
                 .font(.system(size: 17, weight: .bold, design: .rounded))
