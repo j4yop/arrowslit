@@ -18,6 +18,7 @@ public final class SportsService {
     public private(set) var account: SportsAccount?
     public private(set) var coverageNote: String?
 
+    @ObservationIgnored public var onGoal: ((SportsGoalEvent) -> Void)?
     @ObservationIgnored private let settings: SettingsStore
     @ObservationIgnored private let session: URLSession
     @ObservationIgnored private var apiKey: String?
@@ -26,6 +27,7 @@ public final class SportsService {
     @ObservationIgnored private var detailTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private var isPaneVisible = false
     @ObservationIgnored private var lastFixturesLoad: Date?
+    @ObservationIgnored private var lastScores: [String: MatchScoreSnapshot] = [:]
 
     private static let keychainAccount = "bigballsdata"
 
@@ -66,6 +68,23 @@ public final class SportsService {
         return matches.first(where: { $0.isLive })
     }
 
+    /// The match the notch represents: pinned first, then a followed team,
+    /// then the first live match when the notch score is enabled.
+    public var alertMatch: SportsMatch? {
+        guard !isDemo else { return nil }
+        if let pinnedID = settings.sportsPinnedMatchID,
+           let pinned = matches.first(where: { $0.id == pinnedID && $0.isLive }) {
+            return pinned
+        }
+        let followedTeams = Set(settings.sportsFollowedTeams)
+        if let followed = matches.first(where: {
+            $0.isLive && (followedTeams.contains($0.home.id) || followedTeams.contains($0.away.id))
+        }) {
+            return followed
+        }
+        return matches.first(where: \.isLive)
+    }
+
     public var liveCount: Int {
         matches.filter(\.isLive).count
     }
@@ -95,7 +114,7 @@ public final class SportsService {
 
     public func closePane() {
         isPaneVisible = false
-        stopPolling()
+        startPolling()
     }
 
     public func stop() {
@@ -122,6 +141,7 @@ public final class SportsService {
             details = [:]
             lastUpdated = nil
             lastFixturesLoad = nil
+            lastScores = [:]
             isDemo = false
             refresh(force: true)
             startPolling()
@@ -141,6 +161,7 @@ public final class SportsService {
         details = [:]
         lastUpdated = nil
         lastFixturesLoad = nil
+        lastScores = [:]
         errorMessage = nil
         stopPolling()
         loadDemo()
@@ -165,6 +186,22 @@ public final class SportsService {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    /// Start a light poll when the app launches with a pinned match. The
+    /// service only asks for scores; it does not run when the app is quit.
+    public func startAppAlerts() {
+        guard settings.isTabEnabled(.sports),
+              settings.sportsGoalAlerts,
+              !settings.sportsPreview,
+              apiKey != nil,
+              settings.sportsPinnedMatchID != nil || !settings.sportsFollowedTeams.isEmpty else { return }
+        if matches.isEmpty { refresh() }
+        startPolling()
+    }
+
+    public func goalAlertsChanged() {
+        startPolling()
     }
 
     // MARK: - Refresh
@@ -217,6 +254,16 @@ public final class SportsService {
                 followedCompetitionIDs: followed,
                 pinnedID: settings.sportsPinnedMatchID
             )
+            let previousScores = lastScores
+            lastScores = Dictionary(uniqueKeysWithValues: matches.map { match in
+                (match.id, MatchScoreSnapshot(
+                    home: match.homeScore,
+                    away: match.awayScore
+                ))
+            })
+            if !previousScores.isEmpty {
+                detectGoal(previous: previousScores)
+            }
             lastUpdated = Date()
             isDemo = false
             errorMessage = nil
@@ -246,6 +293,23 @@ public final class SportsService {
             }
         }
         return result
+    }
+
+    private func detectGoal(previous: [String: MatchScoreSnapshot]) {
+        guard settings.sportsGoalAlerts,
+              let onGoal,
+              let watched = alertMatch,
+              watched.isLive,
+              let old = previous[watched.id],
+              let oldHome = old.home,
+              let oldAway = old.away else { return }
+
+        guard let goal = SportsGoalRules.goal(
+            match: watched,
+            previousHome: oldHome,
+            previousAway: oldAway
+        ) else { return }
+        onGoal(goal)
     }
 
     private func deduplicated(_ matches: [SportsMatch]) -> [SportsMatch] {
@@ -279,6 +343,7 @@ public final class SportsService {
         isDemo = true
         lastUpdated = Date()
         errorMessage = nil
+        lastScores = [:]
         stopPolling()
     }
 
@@ -286,7 +351,9 @@ public final class SportsService {
 
     private func startPolling() {
         stopPolling()
-        guard isPaneVisible,
+        let panelVisible = isPaneVisible
+        let alertsActive = settings.sportsGoalAlerts && alertMatch != nil
+        guard (panelVisible || alertsActive),
               settings.isTabEnabled(.sports),
               !settings.sportsPreview,
               apiKey != nil,
@@ -294,7 +361,7 @@ public final class SportsService {
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                let seconds = self.pollInterval
+                let seconds = self.isPaneVisible ? self.pollInterval : self.alertPollInterval
                 try? await Task.sleep(for: .seconds(seconds))
                 guard !Task.isCancelled else { return }
                 self.refresh()
@@ -317,6 +384,10 @@ public final class SportsService {
         }
         if quota.isLow { return max(180, preferred) }
         return preferred
+    }
+
+    private var alertPollInterval: TimeInterval {
+        max(60, TimeInterval(settings.sportsRefreshSeconds))
     }
 
     // MARK: - Detail
@@ -384,6 +455,11 @@ public final class SportsService {
         settings.sportsCompetitionIDs = Array(selected).sorted()
         lastFixturesLoad = nil
         refresh(force: true)
+    }
+
+    private struct MatchScoreSnapshot {
+        var home: Int?
+        var away: Int?
     }
 
     #if DEBUG

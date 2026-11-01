@@ -24,6 +24,7 @@ public final class SettingsStore {
     public var sportsPreview: Bool { didSet { defaults.set(sportsPreview, forKey: Key.sportsPreview) } }
     public var sportsRefreshSeconds: Int { didSet { defaults.set(sportsRefreshSeconds, forKey: Key.sportsRefreshSeconds) } }
     public var sportsShowInNotch: Bool { didSet { defaults.set(sportsShowInNotch, forKey: Key.sportsShowInNotch) } }
+    public var sportsGoalAlerts: Bool { didSet { defaults.set(sportsGoalAlerts, forKey: Key.sportsGoalAlerts) } }
     public var sportsCompetitionIDs: [String] { didSet { defaults.set(sportsCompetitionIDs, forKey: Key.sportsCompetitions) } }
     public var sportsFollowedTeams: [String] { didSet { defaults.set(sportsFollowedTeams, forKey: Key.sportsFollowedTeams) } }
     public var sportsPinnedMatchID: String? { didSet { defaults.set(sportsPinnedMatchID, forKey: Key.sportsPinnedMatch) } }
@@ -55,6 +56,7 @@ public final class SettingsStore {
         sportsPreview = defaults.object(forKey: Key.sportsPreview) as? Bool ?? true
         sportsRefreshSeconds = defaults.object(forKey: Key.sportsRefreshSeconds) as? Int ?? 60
         sportsShowInNotch = defaults.object(forKey: Key.sportsShowInNotch) as? Bool ?? true
+        sportsGoalAlerts = defaults.object(forKey: Key.sportsGoalAlerts) as? Bool ?? true
         let validCompetitions = Set(SportsCatalog.all.map(\.id))
         let savedCompetitions = (defaults.stringArray(forKey: Key.sportsCompetitions) ?? [])
             .filter { validCompetitions.contains($0) }
@@ -134,6 +136,7 @@ public final class SettingsStore {
         static let sportsPreview = "arrowslit.sports.preview"
         static let sportsRefreshSeconds = "arrowslit.sports.refreshSeconds"
         static let sportsShowInNotch = "arrowslit.sports.showInNotch"
+        static let sportsGoalAlerts = "arrowslit.sports.goalAlerts"
         static let sportsCompetitions = "arrowslit.sports.competitions"
         static let sportsFollowedTeams = "arrowslit.sports.followedTeams"
         static let sportsPinnedMatch = "arrowslit.sports.pinnedMatch"

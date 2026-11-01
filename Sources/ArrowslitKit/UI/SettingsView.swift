@@ -479,6 +479,15 @@ private struct SportsSettingsSection: View {
                     )
                 )
                 SettingsRowDivider()
+                SettingsToggle(
+                    title: "Goal notifications",
+                    detail: "Shows a popup and a haptic when the match in the notch scores. Only while Arrowslit is running.",
+                    isOn: Binding(
+                        get: { state.settings.sportsGoalAlerts },
+                        set: { state.setSportsGoalAlerts($0) }
+                    )
+                )
+                SettingsRowDivider()
                 refreshRow
                 SettingsRowDivider()
                 competitions

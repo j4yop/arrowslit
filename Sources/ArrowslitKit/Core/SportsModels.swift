@@ -216,6 +216,41 @@ public struct SportsFootballEvent: Identifiable, Hashable, Sendable {
     }
 }
 
+public struct SportsGoalEvent: Equatable, Sendable {
+    public let matchID: String
+    public let teamName: String
+    public let teamShortName: String
+    public let homeShortName: String
+    public let awayShortName: String
+    public let homeScore: Int
+    public let awayScore: Int
+    public let minute: String?
+
+    public init(
+        matchID: String,
+        teamName: String,
+        teamShortName: String,
+        homeShortName: String,
+        awayShortName: String,
+        homeScore: Int,
+        awayScore: Int,
+        minute: String?
+    ) {
+        self.matchID = matchID
+        self.teamName = teamName
+        self.teamShortName = teamShortName
+        self.homeShortName = homeShortName
+        self.awayShortName = awayShortName
+        self.homeScore = homeScore
+        self.awayScore = awayScore
+        self.minute = minute
+    }
+
+    public var scoreLine: String {
+        "\(homeShortName) \(homeScore)–\(awayScore) \(awayShortName)"
+    }
+}
+
 public struct SportsMatch: Identifiable, Hashable, Sendable {
     public let id: String
     public let competition: SportsCompetition

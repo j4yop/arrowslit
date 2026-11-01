@@ -70,6 +70,42 @@ public enum SportsFormat {
     }
 }
 
+// MARK: - Goals
+
+public enum SportsGoalRules {
+    /// Returns a goal only when a live match's score actually increased. The
+    /// first snapshot has nil previous values and never alerts.
+    public static func goal(
+        match: SportsMatch,
+        previousHome: Int?,
+        previousAway: Int?
+    ) -> SportsGoalEvent? {
+        guard match.isLive,
+              let oldHome = previousHome,
+              let oldAway = previousAway,
+              let newHome = match.homeScore,
+              let newAway = match.awayScore else { return nil }
+
+        let homeDelta = newHome - oldHome
+        let awayDelta = newAway - oldAway
+        guard homeDelta > 0 || awayDelta > 0 else { return nil }
+
+        let homeScored = homeDelta >= awayDelta
+        let team = homeScored ? match.home : match.away
+        let minute = match.statusText.contains("'") ? match.statusText : nil
+        return SportsGoalEvent(
+            matchID: match.id,
+            teamName: team.name,
+            teamShortName: team.shortName,
+            homeShortName: match.home.shortName,
+            awayShortName: match.away.shortName,
+            homeScore: newHome,
+            awayScore: newAway,
+            minute: minute
+        )
+    }
+}
+
 // MARK: - Ranking
 
 public enum SportsRanking {

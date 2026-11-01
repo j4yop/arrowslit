@@ -118,6 +118,51 @@ struct SportsFormattingTests {
     }
 }
 
+@Suite("Football goals")
+struct SportsGoalRulesTests {
+    private let epl = SportsCatalog.competition(id: "football/epl")!
+    private let arsenal = SportsTeam(id: "arsenal", name: "Arsenal", shortName: "ARS")
+    private let chelsea = SportsTeam(id: "chelsea", name: "Chelsea", shortName: "CHE")
+
+    private func match(home: Int, away: Int, state: SportsMatchState = .live) -> SportsMatch {
+        SportsMatch(
+            id: "g1", competition: epl, home: arsenal, away: chelsea,
+            start: sportsBase, state: state,
+            homeScore: home, awayScore: away, statusText: "67'"
+        )
+    }
+
+    @Test func homeGoalNamesTheHomeTeam() {
+        let goal = SportsGoalRules.goal(match: match(home: 2, away: 1), previousHome: 1, previousAway: 1)
+        #expect(goal?.teamName == "Arsenal")
+        #expect(goal?.scoreLine == "ARS 2–1 CHE")
+        #expect(goal?.minute == "67'")
+    }
+
+    @Test func awayGoalNamesTheAwayTeam() {
+        let goal = SportsGoalRules.goal(match: match(home: 1, away: 2), previousHome: 1, previousAway: 1)
+        #expect(goal?.teamName == "Chelsea")
+    }
+
+    @Test func noAlertOnFirstSnapshotOrUnchangedScore() {
+        #expect(SportsGoalRules.goal(match: match(home: 1, away: 0), previousHome: nil, previousAway: nil) == nil)
+        #expect(SportsGoalRules.goal(match: match(home: 1, away: 0), previousHome: 1, previousAway: 0) == nil)
+        #expect(SportsGoalRules.goal(match: match(home: 1, away: 0, state: .finished), previousHome: 0, previousAway: 0) == nil)
+    }
+
+    @Test func goalAlertUsesTheSportKindAndLongEnoughDuration() {
+        let goal = SportsGoalEvent(
+            matchID: "g1", teamName: "Arsenal", teamShortName: "ARS",
+            homeShortName: "ARS", awayShortName: "CHE",
+            homeScore: 2, awayScore: 1, minute: "67'"
+        )
+        let alert = NotchAlert.sportsGoal(goal)
+        #expect(alert.kind == .sports)
+        #expect(alert.displayDuration == 7)
+        #expect(!alert.usesCompactHUD)
+    }
+}
+
 @Suite("Football demo")
 struct SportsDemoTests {
     @Test func demoIncludesLiveAndUpcomingFootball() {
@@ -339,12 +384,14 @@ struct SportsSettingsTests {
         #expect(settings.isTabEnabled(.sports))
         #expect(settings.sportsPreview)
         #expect(settings.sportsRefreshSeconds == 60)
+        #expect(settings.sportsGoalAlerts)
         #expect(settings.sportsCompetitionIDs.contains("football/epl"))
 
         settings.setTabEnabled(.sports, true)
         settings.sportsPreview = false
         settings.sportsRefreshSeconds = 30
         settings.sportsShowInNotch = false
+        settings.sportsGoalAlerts = false
         settings.sportsCompetitionIDs = ["football/epl", "football/ucl"]
         settings.sportsFollowedTeams = ["arsenal"]
         settings.sportsPinnedMatchID = "match-1"
@@ -354,6 +401,7 @@ struct SportsSettingsTests {
         #expect(!reloaded.sportsPreview)
         #expect(reloaded.sportsRefreshSeconds == 30)
         #expect(!reloaded.sportsShowInNotch)
+        #expect(!reloaded.sportsGoalAlerts)
         #expect(reloaded.sportsCompetitionIDs == ["football/epl", "football/ucl"])
         #expect(reloaded.sportsFollowedTeams == ["arsenal"])
         #expect(reloaded.sportsPinnedMatchID == "match-1")

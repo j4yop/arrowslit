@@ -133,6 +133,10 @@ public final class AppState {
                 provider: event.joinProvider
             ))
         }
+        self.sports.onGoal = { [weak self] goal in
+            guard let self, self.settings.sportsGoalAlerts else { return }
+            self.receive(.sportsGoal(goal))
+        }
     }
 
     public func start() {
@@ -146,6 +150,7 @@ public final class AppState {
         system.start()
         nowPlaying.start()
         calendar.start()
+        sports.startAppAlerts()
         if settings.clipboardEnabled { clipboard.start() }
         updater.onAvailable = { [weak self] release in
             guard let self else { return false }
@@ -301,6 +306,11 @@ public final class AppState {
         timer.playsSound = enabled
     }
 
+    public func setSportsGoalAlerts(_ enabled: Bool) {
+        settings.sportsGoalAlerts = enabled
+        sports.goalAlertsChanged()
+    }
+
     public func toggleShortcut(_ tab: WorkbenchTab) {
         settings.toggleShortcut(tab)
     }
@@ -318,6 +328,7 @@ public final class AppState {
             if !enabled { stats.stop() }
         case .sports:
             if !enabled { sports.stop() }
+            if enabled { sports.startAppAlerts() }
             if enabled, activeTab == .sports, isExpanded { sports.openPane() }
         default:
             break
@@ -370,6 +381,9 @@ public final class AppState {
     public func receive(_ alert: NotchAlert) -> Bool {
         if session.isLocked, !settings.showOnLockScreen { return false }
         if alert.isInstant, isExpanded { return false }
+        if case .sportsGoal = alert, settings.hapticFeedback {
+            NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+        }
         alerts.enqueue(alert, now: Date())
         if alerts.current != nil {
             scheduleAlertExpiry()
