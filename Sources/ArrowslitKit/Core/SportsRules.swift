@@ -162,7 +162,9 @@ public struct SportsQuota: Equatable, Sendable {
             headers.map { ($0.key.lowercased(), $0.value) },
             uniquingKeysWith: { first, _ in first }
         )
-        if let value = normalized["x-ratelimit-limit"].flatMap(Int.init) {
+        if let value = normalized["x-ratelimit-limit-day"].flatMap(Int.init) {
+            limit = value
+        } else if let value = normalized["x-ratelimit-limit"].flatMap(Int.init) {
             limit = value
         }
         if let value = normalized["x-ratelimit-remaining"].flatMap(Int.init) {
@@ -182,7 +184,7 @@ public struct SportsQuota: Equatable, Sendable {
     }
 
     public var summary: String {
-        guard let remaining else { return "BigBallsData Free" }
-        return "\(remaining) of \(limit) requests left today"
+        if isExhausted { return "BigBallsData · request limit reached" }
+        return "BigBallsData · \(limit) requests/day"
     }
 }
