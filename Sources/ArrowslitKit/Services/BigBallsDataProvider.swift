@@ -77,22 +77,18 @@ public struct BigBallsDataProvider: Sendable {
         self.session = session
     }
 
-    public func liveMatches(includeCricket: Bool = true) async throws -> SportsProviderPayload {
-        var query = [
+    public func liveMatches(allowCricketFallback: Bool = true) async throws -> SportsProviderPayload {
+        let query = [
             URLQueryItem(name: "status", value: "live"),
             URLQueryItem(name: "limit", value: "200"),
         ]
-        // The all-sports form is one request. If a caller only follows football,
-        // skip the cricket fallback entirely.
-        if !includeCricket {
-            query.insert(URLQueryItem(name: "sport", value: "football"), at: 0)
-        }
         var payload = try await getMatches(path: "/v1/matches", query: query)
 
         // The all-sports form is documented to include every sport. If cricket is
         // followed and the response carried none, make one explicit cricket call.
-        // This costs one extra request, not one per match, and only when needed.
-        if includeCricket,
+        // The caller only allows this once per session, so a quiet cricket day
+        // cannot double every poll.
+        if allowCricketFallback,
            !payload.matches.contains(where: { $0.sport == .cricket }),
            payload.quota.remaining.map({ $0 > 20 }) ?? true {
             if let cricket = try? await getMatches(

@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.8.0/Arrowslit-0.8.0.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.8.1/Arrowslit-0.8.1.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -82,7 +82,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.8.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.0/Arrowslit-0.8.0.dmg)** and open it.
+1. Download **[Arrowslit-0.8.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.1/Arrowslit-0.8.1.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -99,9 +99,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.8.0 (build 26) |
-| **Direct Download** | [Arrowslit-0.8.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.0/Arrowslit-0.8.0.dmg) |
-| **SHA-256** | `1f697d0bfb96e65e55862988c3bff865d67a1d5fdb7e1b0decc304ba0934ad61` |
+| **Version** | 0.8.1 (build 27) |
+| **Direct Download** | [Arrowslit-0.8.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.1/Arrowslit-0.8.1.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -145,7 +145,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.8.0
+## What is in 0.8.1
 
 * Sports tab with live La Liga, Premier League, Champions League, IPL, T20I, ODI and Test scores
 * BigBallsData Free adapter with a Keychain-stored key and a 250-request/day quota display
