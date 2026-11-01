@@ -320,17 +320,16 @@ private struct SportsCompactScore: View {
             HStack(spacing: 5) {
                 Circle()
                     .fill(accent)
-                    .frame(width: 4, height: 4)
+                    .frame(width: 4.5, height: 4.5)
                 Text(match.home.shortName)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(ArrowTheme.bone)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 Text(match.homeScore.map(String.init) ?? "–")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(ArrowTheme.bone)
-                    .contentTransition(.numericText())
             }
             .padding(.leading, 12)
             .frame(width: ear, alignment: .leading)
@@ -340,22 +339,16 @@ private struct SportsCompactScore: View {
 
             HStack(spacing: 4) {
                 Text(match.away.shortName)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(ArrowTheme.bone)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 Text(match.awayScore.map(String.init) ?? "–")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(ArrowTheme.bone)
-                    .contentTransition(.numericText())
-                Text(SportsFormat.compactStatus(match))
-                    .font(.system(size: 8.5, weight: .bold))
-                    .foregroundStyle(accent)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
             }
-            .padding(.trailing, 8)
+            .padding(.trailing, 12)
             .frame(width: ear, alignment: .trailing)
         }
     }
