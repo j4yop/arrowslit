@@ -214,8 +214,19 @@ public struct BigBallsDataProvider: Sendable {
     private func getMatches(path: String, query: [URLQueryItem]) async throws -> SportsProviderPayload {
         let response: (BBSEnvelope<[BBSMatch]>, SportsQuota) = try await get(path: path, query: query)
         guard let rows = response.0.data else { throw SportsProviderError.invalidResponse }
-        let now = Date()
-        let matches = rows.compactMap { row -> SportsMatch? in
+        return SportsProviderPayload(matches: Self.map(rows, now: Date()), quota: response.1)
+    }
+
+    /// Decodes a `/v1/matches` or `/v1/cricket/matches` envelope. Exposed for
+    /// tests so the wire format can be exercised without a live key.
+    public static func decodeMatches(from data: Data, now: Date = Date()) throws -> [SportsMatch] {
+        let envelope = try decoder().decode(BBSEnvelope<[BBSMatch]>.self, from: data)
+        guard let rows = envelope.data else { throw SportsProviderError.invalidResponse }
+        return map(rows, now: now)
+    }
+
+    private static func map(_ rows: [BBSMatch], now: Date) -> [SportsMatch] {
+        rows.compactMap { row -> SportsMatch? in
             guard let sport = Sport(rawValue: row.sport) else { return nil }
             guard sport == .football || sport == .cricket else { return nil }
             guard let state = SportsMatchState(providerStatus: row.status) else { return nil }
@@ -247,7 +258,20 @@ public struct BigBallsDataProvider: Sendable {
                 lastUpdated: now
             )
         }
-        return SportsProviderPayload(matches: matches, quota: response.1)
+    }
+
+    private static func decoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let value = try container.decode(String.self)
+            if let date = parseDate(value) { return date }
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unrecognised date: \(value)"
+            )
+        }
+        return decoder
     }
 
     private func get<T: Decodable>(
@@ -298,18 +322,8 @@ public struct BigBallsDataProvider: Sendable {
             }
         }
 
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let value = try container.decode(String.self)
-            if let date = Self.parseDate(value) { return date }
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Unrecognised date: \(value)"
-            )
-        }
         do {
-            let envelope = try decoder.decode(BBSEnvelope<T>.self, from: data)
+            let envelope = try Self.decoder().decode(BBSEnvelope<T>.self, from: data)
             if let error = envelope.error {
                 throw SportsProviderError.message(error.message ?? "BigBallsData returned an error.")
             }

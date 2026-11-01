@@ -349,7 +349,7 @@ private struct SportsCompactScore: View {
                     .monospacedDigit()
                     .foregroundStyle(ArrowTheme.bone)
                     .contentTransition(.numericText())
-                Text(SportsFormat.shortStatus(match))
+                Text(SportsFormat.compactStatus(match))
                     .font(.system(size: 8.5, weight: .bold))
                     .foregroundStyle(accent)
                     .lineLimit(1)
