@@ -139,10 +139,10 @@ public final class CalendarService {
         }
 
         let now = Date()
-        let end = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now
-        let predicate = store.predicateForEvents(withStart: now, end: end, calendars: nil)
+        let range = CalendarRules.loadRange(at: now)
+        let predicate = store.predicateForEvents(withStart: range.start, end: range.end, calendars: nil)
         let fresh = store.events(matching: predicate)
-            .filter { $0.status != .canceled && !Self.isDeclined($0) && $0.endDate > now }
+            .filter { $0.status != .canceled && !Self.isDeclined($0) && $0.endDate > range.start }
             .sorted { $0.startDate < $1.startDate }
             .map { event in
                 let join = MeetingLinks.joinLink(in: [

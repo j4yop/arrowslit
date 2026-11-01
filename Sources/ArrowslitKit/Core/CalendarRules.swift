@@ -65,3 +65,77 @@ public enum CalendarRules {
         max(0, Int((date.timeIntervalSince(now) / 60).rounded(.up)))
     }
 }
+
+/// The days of one month laid out in weeks, starting on the user's first weekday.
+public struct MonthLayout: Equatable {
+    public var cells: [Int?]
+    public var today: Int
+    public var weekdaySymbols: [String]
+
+    public init(containing date: Date, calendar: Calendar = .current) {
+        let start = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+        let days = calendar.range(of: .day, in: .month, for: date)?.count ?? 30
+        let weekday = calendar.component(.weekday, from: start)
+        let lead = (weekday - calendar.firstWeekday + 7) % 7
+        cells = Array(repeating: nil, count: lead) + (1...days).map { Optional($0) }
+        today = calendar.component(.day, from: date)
+        let symbols = calendar.veryShortStandaloneWeekdaySymbols
+        let first = calendar.firstWeekday - 1
+        weekdaySymbols = Array(symbols[first...] + symbols[..<first])
+    }
+}
+
+extension CalendarRules {
+    /// The events on one day, all-day ones first. On today, the ones already over are left out.
+    public static func events(
+        on day: Date,
+        in events: [CalendarEvent],
+        at date: Date,
+        calendar: Calendar = .current
+    ) -> [CalendarEvent] {
+        let start = calendar.startOfDay(for: day)
+        let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+        return events
+            .filter { $0.start < end && $0.end > start }
+            .filter { !calendar.isDate(day, inSameDayAs: date) || $0.end > date }
+            .sorted { $0.isAllDay != $1.isAllDay ? $0.isAllDay : $0.start < $1.start }
+    }
+
+    /// The next few events, grouped in calendar order.
+    public static func upcoming(in events: [CalendarEvent], at date: Date, limit: Int) -> [CalendarEvent] {
+        let calendar = Calendar.current
+        return Array(
+            events
+                .filter { $0.end > date }
+                .sorted {
+                    let dayA = calendar.startOfDay(for: max($0.start, date))
+                    let dayB = calendar.startOfDay(for: max($1.start, date))
+                    if dayA != dayB { return dayA < dayB }
+                    if $0.isAllDay != $1.isAllDay { return $0.isAllDay }
+                    return $0.start < $1.start
+                }
+                .prefix(limit)
+        )
+    }
+
+    /// The days the Calendar panel reads: the whole month plus the coming week.
+    public static func loadRange(at date: Date, calendar: Calendar = .current) -> (start: Date, end: Date) {
+        let today = calendar.startOfDay(for: date)
+        let monthStart = calendar.dateInterval(of: .month, for: date)?.start ?? today
+        let monthEnd = calendar.dateInterval(of: .month, for: date)?.end ?? today
+        let weekStart = calendar.date(byAdding: .day, value: -2, to: today) ?? today
+        let weekEnd = calendar.date(byAdding: .day, value: 8, to: today) ?? today
+        return (min(monthStart, weekStart), max(monthEnd, weekEnd))
+    }
+
+    /// "Today", "Tomorrow", or the weekday and date for later in the week.
+    public static func dayLabel(for event: CalendarEvent, at date: Date, calendar: Calendar = .current) -> String {
+        let day = max(event.start, date)
+        if calendar.isDate(day, inSameDayAs: date) { return "Today" }
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: date),
+           calendar.isDate(day, inSameDayAs: tomorrow) {
+            return "Tomorrow"
+        }
+        return day.formatted(.dateTime.weekday(.wide).day().month(.abbreviated))
+    }
+}
