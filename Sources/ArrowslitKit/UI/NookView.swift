@@ -22,6 +22,7 @@ struct NookView: View {
                 case .clipboard: CompactClipboard(state: state)
                 case .notes: CompactNotes(state: state)
                 case .stats: CompactStats(state: state)
+                case .sports: SportsPane(state: state)
                 case .reminders: CompactReminders(state: state)
                 case .keepAwake: CompactKeepAwake(state: state)
                 case .launcher: LauncherPane(state: state)

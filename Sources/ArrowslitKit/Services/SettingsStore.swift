@@ -21,6 +21,12 @@ public final class SettingsStore {
     public var notesEnabled: Bool { didSet { defaults.set(notesEnabled, forKey: Key.notes) } }
     public var lyricsEnabled: Bool { didSet { defaults.set(lyricsEnabled, forKey: Key.lyrics) } }
     public var checksForUpdates: Bool { didSet { defaults.set(checksForUpdates, forKey: Key.checksForUpdates) } }
+    public var sportsPreview: Bool { didSet { defaults.set(sportsPreview, forKey: Key.sportsPreview) } }
+    public var sportsRefreshSeconds: Int { didSet { defaults.set(sportsRefreshSeconds, forKey: Key.sportsRefreshSeconds) } }
+    public var sportsShowInNotch: Bool { didSet { defaults.set(sportsShowInNotch, forKey: Key.sportsShowInNotch) } }
+    public var sportsCompetitionIDs: [String] { didSet { defaults.set(sportsCompetitionIDs, forKey: Key.sportsCompetitions) } }
+    public var sportsFollowedTeams: [String] { didSet { defaults.set(sportsFollowedTeams, forKey: Key.sportsFollowedTeams) } }
+    public var sportsPinnedMatchID: String? { didSet { defaults.set(sportsPinnedMatchID, forKey: Key.sportsPinnedMatch) } }
     public var enabledTabs: Set<String> { didSet { defaults.set(Array(enabledTabs).sorted(), forKey: Key.tabs) } }
     public var shortcutTabs: [String] { didSet { defaults.set(shortcutTabs, forKey: Key.shortcuts) } }
     public static let shortcutLimit = 3
@@ -46,7 +52,14 @@ public final class SettingsStore {
         notesEnabled = defaults.object(forKey: Key.notes) as? Bool ?? true
         lyricsEnabled = defaults.object(forKey: Key.lyrics) as? Bool ?? false
         checksForUpdates = defaults.object(forKey: Key.checksForUpdates) as? Bool ?? true
-        enabledTabs = Set(defaults.stringArray(forKey: Key.tabs) ?? WorkbenchTab.allCases.map(\.rawValue))
+        sportsPreview = defaults.object(forKey: Key.sportsPreview) as? Bool ?? true
+        sportsRefreshSeconds = defaults.object(forKey: Key.sportsRefreshSeconds) as? Int ?? 60
+        sportsShowInNotch = defaults.object(forKey: Key.sportsShowInNotch) as? Bool ?? true
+        sportsCompetitionIDs = defaults.stringArray(forKey: Key.sportsCompetitions) ?? SportsCatalog.featuredIDs
+        sportsFollowedTeams = defaults.stringArray(forKey: Key.sportsFollowedTeams) ?? []
+        sportsPinnedMatchID = defaults.string(forKey: Key.sportsPinnedMatch)
+        let defaultTabs = WorkbenchTab.allCases.filter { $0 != .sports }.map(\.rawValue)
+        enabledTabs = Set(defaults.stringArray(forKey: Key.tabs) ?? defaultTabs)
         let defaultsShortcuts = [WorkbenchTab.tray.rawValue, WorkbenchTab.clipboard.rawValue]
         let valid = Set(WorkbenchTab.allCases.map(\.rawValue))
         var seen = Set<String>()
@@ -108,6 +121,12 @@ public final class SettingsStore {
         static let notes = "arrowslit.notesEnabled"
         static let lyrics = "arrowslit.lyricsEnabled"
         static let checksForUpdates = "arrowslit.checksForUpdates"
+        static let sportsPreview = "arrowslit.sports.preview"
+        static let sportsRefreshSeconds = "arrowslit.sports.refreshSeconds"
+        static let sportsShowInNotch = "arrowslit.sports.showInNotch"
+        static let sportsCompetitions = "arrowslit.sports.competitions"
+        static let sportsFollowedTeams = "arrowslit.sports.followedTeams"
+        static let sportsPinnedMatch = "arrowslit.sports.pinnedMatch"
         static let tabs = "arrowslit.enabledTabs"
         static let shortcuts = "arrowslit.shortcutTabs"
     }
