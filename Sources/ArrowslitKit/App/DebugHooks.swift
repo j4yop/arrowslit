@@ -88,6 +88,13 @@ final class DebugHooks {
         case "clipboard": state.expand(.clipboard)
         case "notes": state.expand(.notes)
         case "stats": state.expand(.stats)
+        case "sports": state.expand(.sports)
+        case "sports-notch":
+            state.settings.setTabEnabled(.sports, true)
+            if let demo = SportsDemoData.matches().first(where: { $0.sport == .football }) {
+                state.sports.showDemoCompact(demo)
+            }
+            state.collapse()
         case "reminders": state.expand(.reminders)
         case "stopwatch": state.expand(.stopwatch)
         case "keepawake": state.expand(.keepAwake)

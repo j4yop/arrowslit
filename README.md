@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.7.1/Arrowslit-0.7.1.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.8.0/Arrowslit-0.8.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -46,7 +46,7 @@ And when you click it, you get a little home base right under the notch:
 * **Mirror**, a quick look at your camera before you hop on a call, with a button to turn the camera off
 * **Timer / Pomodoro / Stopwatch**, a shared iPhone-style clock panel with a sliding minute ruler, one haptic detent per minute, a 5-minute Pomodoro break, and a tenths-of-a-second stopwatch
 * **Stats** with memory, CPU, disk and network tiles and animated bars that only sample while you look at them
-* Stats is available from the launcher grid (the Stats tile was missing from the launcher in 0.7.0)
+* **Sports** with live La Liga, Premier League, Champions League, IPL, T20I, ODI and Test scores, Following + Featured, and a compact notch score. Preview works without a key; live mode uses a BigBallsData free key
 * **Files** with the full-width drop zone, pinned files that survive a quit, and AirDrop/open/reveal actions
 * **Calendar** with a live month grid, busy-day dots, day-by-day event lists, start times, a five-minute heads-up, and Join buttons for Meet, Zoom, Teams and Webex
 * **Reminders**, today's to-dos from Apple Reminders that you can tick off right in the notch
@@ -54,7 +54,7 @@ And when you click it, you get a little home base right under the notch:
 
 Drag files onto the notch and you can also AirDrop them straight from there. Files are references only; pin one to keep it across launches, while unpinned items clear when you quit. Your originals are never touched.
 
-Everything else lives behind the grid button at the top right: the timer, stopwatch, calendar, today's reminders, the scratchpad, your camera mirror, system stats, and Keep Awake.
+Everything else lives behind the grid button at the top right: the timer, stopwatch, calendar, today's reminders, the scratchpad, your camera mirror, system stats, Sports, and Keep Awake.
 
 Next to Home at the top left sit up to three shortcuts of your own. They start as Files and Clipboard, and Files shows how many things are in your Tray. To change them, open the grid, click the pencil, and pick your favorites. Click **Done** when you are happy.
 
@@ -82,7 +82,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.7.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.7.1/Arrowslit-0.7.1.dmg)** and open it.
+1. Download **[Arrowslit-0.8.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.0/Arrowslit-0.8.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -99,9 +99,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.7.1 (build 25) |
-| **Direct Download** | [Arrowslit-0.7.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.7.1/Arrowslit-0.7.1.dmg) |
-| **SHA-256** | `ad5666e736204f1d1c289d2647c8b38cdcdbd8815472014b2fa8cff1d49459d7` |
+| **Version** | 0.8.0 (build 26) |
+| **Direct Download** | [Arrowslit-0.8.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.0/Arrowslit-0.8.0.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -131,7 +131,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 **How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub when it starts and once a day after that, and shows **Download & Open** in the notch or Settings › Updates; after the DMG opens, drag Arrowslit into Applications. Manual users can always download the latest DMG. You can turn the check off in Settings.
 
-**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub when it starts and once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
+**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub when it starts and once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Sports is optional too: preview matches are local, and live mode sends only your BigBallsData key and competition queries to BigBallsData after you connect it in Settings. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
 
 **Why is it asking for my camera or calendar?** Only if you use those bits. It asks for the camera when you open Mirror, calendar access when you click Connect on Calendar, and reminders access when you open Reminders. If you say no, those specific tabs stay disabled while the rest of Arrowslit keeps working.
 
@@ -145,8 +145,15 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.7.1
+## What is in 0.8.0
 
+* Sports tab with live La Liga, Premier League, Champions League, IPL, T20I, ODI and Test scores
+* BigBallsData Free adapter with a Keychain-stored key and a 250-request/day quota display
+* Sports starts in Preview with sample matches, so the nook works before you connect a key
+* Following + Featured ranking: pin a match, follow teams, or filter by competition
+* 32px notch score for the pinned or first live match, including the football clock and cricket status
+* Inline match detail with football key events and cricket innings/run-rate
+* Quota-aware refresh at 30/60/120 seconds; polling slows down when requests run low
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions
 * Shared Timer/Pomodoro/Stopwatch panel with a sliding minute ruler and per-minute haptic detents
