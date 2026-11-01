@@ -102,15 +102,20 @@ public enum SportsFormat {
     }
 
     public static func cricketDetailLine(_ state: SportsCricketState?) -> String? {
-        guard let state, let score = state.scoreLine else { return nil }
-        var parts = [score]
+        guard let state else { return nil }
+        var parts: [String] = []
         if let runRate = runRate(state.runRate) {
             parts.append("RR \(runRate)")
         }
-        if let target = state.target, let required = runRate(state.requiredRate) {
-            parts.append("Need \(max(0, target - (state.runs ?? 0))) at \(required)")
+        if let target = state.target {
+            let needed = max(0, target - (state.runs ?? 0))
+            if let required = runRate(state.requiredRate) {
+                parts.append("Need \(needed) at \(required)")
+            } else {
+                parts.append("Need \(needed)")
+            }
         }
-        return parts.joined(separator: " · ")
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }
 

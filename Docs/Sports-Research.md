@@ -6,6 +6,16 @@
 
 ---
 
+## 0. Implemented choice (1 November 2026)
+
+Arrowslit now ships the **BigBallsData Free** adapter selected here:
+
+- Sports starts in **Preview** with sample La Liga, UCL, IPL, T20I and Test matches, so the nook works without a key.
+- A free `bbs_live_…` key is entered in **Settings › Sports** and stored in the macOS Keychain.
+- One all-sports live request refreshes both football and cricket; fixtures are cached for 30 minutes.
+- The nook shows a **Following + Featured** shelf, inline match detail, team follow stars, a pin button and a 32px compact score.
+- The free tier is 250 requests/day. Polling is 30/60/120 seconds, slows down when the quota is low, and stops at zero.
+
 ## 1. Bottom line
 
 There is no free, official, production-grade feed that covers all of the requested competitions reliably.
