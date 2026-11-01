@@ -9,7 +9,7 @@ struct SettingsView: View {
 
     private let featureTabs: [WorkbenchTab] = [
         .nowPlaying, .timer, .stopwatch, .calendar,
-        .clipboard, .keepAwake, .mirror, .notes, .stats, .reminders
+        .clipboard, .keepAwake, .mirror, .notes, .stats, .sports, .reminders
     ]
 
     var body: some View {
@@ -39,6 +39,8 @@ struct SettingsView: View {
                         SettingsRowDivider()
                         FileTraySettingsRow(state: state)
                     }
+
+                    SportsSettingsSection(state: state)
 
                     SettingsSection(
                         title: "Music",
@@ -419,6 +421,324 @@ struct SettingsView: View {
             loginError = "Could not change the login item. \(error.localizedDescription)"
             syncLogin()
         }
+    }
+}
+
+private struct SportsSettingsSection: View {
+    @Bindable var state: AppState
+    @State private var keyDraft = ""
+    @State private var isEditingKey = false
+
+    private var service: SportsService { state.sports }
+    private var isOn: Bool { state.settings.isTabEnabled(.sports) }
+
+    var body: some View {
+        SettingsSection(
+            title: "Sports",
+            note: "Live football and cricket from BigBallsData. Off by default; nothing is requested until you connect."
+        ) {
+            SettingsToggle(
+                title: "Sports in the launcher",
+                detail: "La Liga, Premier League, Champions League, IPL, T20Is, ODIs and Tests.",
+                isOn: Binding(
+                    get: { isOn },
+                    set: { state.setTabEnabled(.sports, $0) }
+                )
+            )
+
+            if isOn {
+                SettingsRowDivider()
+                providerRow
+                SettingsRowDivider()
+                keyRow
+                SettingsRowDivider()
+                SettingsToggle(
+                    title: "Preview with sample matches",
+                    detail: service.hasAPIKey
+                        ? "Shows demo matches without using BigBallsData requests."
+                        : "Connect a key below to switch from preview to live scores.",
+                    isOn: Binding(
+                        get: { state.settings.sportsPreview },
+                        set: { value in
+                            guard service.hasAPIKey else {
+                                state.settings.sportsPreview = true
+                                return
+                            }
+                            state.settings.sportsPreview = value
+                            state.sports.refresh(force: true)
+                        }
+                    )
+                )
+                .disabled(!service.hasAPIKey)
+                .opacity(service.hasAPIKey ? 1 : 0.62)
+                SettingsRowDivider()
+                SettingsToggle(
+                    title: "Show live score in the notch",
+                    detail: "Uses the pinned match first, otherwise the first live favorite. Needs a live key.",
+                    isOn: Binding(
+                        get: { state.settings.sportsShowInNotch },
+                        set: { state.settings.sportsShowInNotch = $0 }
+                    )
+                )
+                SettingsRowDivider()
+                refreshRow
+                SettingsRowDivider()
+                competitions
+                SettingsRowDivider()
+                quotaRow
+            }
+        }
+    }
+
+    private var providerRow: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color(red: 0.20, green: 0.72, blue: 0.45))
+                Image(systemName: "sportscourt")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 30, height: 30)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("BigBallsData")
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Text(service.account.map { "\($0.plan.capitalized) plan" } ?? "Free plan · 250 requests/day")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+            }
+
+            Spacer(minLength: 8)
+
+            if service.hasAPIKey {
+                Label("Connected", systemImage: "checkmark.circle.fill")
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.green)
+            } else {
+                Text("Not connected")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(ArrowTheme.faint)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+    }
+
+    @ViewBuilder
+    private var keyRow: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            if service.hasAPIKey, !isEditingKey {
+                HStack(spacing: 8) {
+                    Image(systemName: "key.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(ArrowTheme.amber)
+                    Text(service.keyHint ?? "Key saved")
+                        .font(.system(size: 10.5))
+                        .foregroundStyle(ArrowTheme.muted)
+                    Spacer(minLength: 4)
+                    Button("Test") { service.validateKey() }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .padding(.horizontal, 8)
+                        .frame(height: 24)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.08)))
+                    Button("Replace") { isEditingKey = true }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .padding(.horizontal, 8)
+                        .frame(height: 24)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.08)))
+                    Button("Remove") { service.removeAPIKey() }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(ArrowTheme.red)
+                        .padding(.horizontal, 8)
+                        .frame(height: 24)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.04)))
+                }
+            } else {
+                HStack(spacing: 7) {
+                    SecureField("bbs_live_…", text: $keyDraft)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .padding(.horizontal, 9)
+                        .frame(height: 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(Color.white.opacity(0.06))
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+                        }
+                    Button("Save") {
+                        service.saveAPIKey(keyDraft)
+                        keyDraft = ""
+                        isEditingKey = false
+                    }
+                    .buttonStyle(NookPressStyle())
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.ink)
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(keyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                ? Color.white.opacity(0.12)
+                                : ArrowTheme.amber)
+                    )
+                    .disabled(keyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Button("Get a free key") {
+                        if let url = URL(string: "https://bigballsdata.com/signup?plan=free") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .buttonStyle(NookPressStyle())
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .padding(.horizontal, 8)
+                    .frame(height: 28)
+                    .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.08)))
+                }
+                Text("Stored in the macOS Keychain. Arrowslit never puts the key in the app bundle or logs.")
+                    .font(ArrowTheme.caption)
+                    .foregroundStyle(ArrowTheme.faint)
+            }
+
+            if let error = service.errorMessage {
+                Text(error)
+                    .font(ArrowTheme.caption)
+                    .foregroundStyle(ArrowTheme.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+    }
+
+    private var refreshRow: some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Refresh while Sports is open")
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Text("Free tier: one request refreshes all live football and cricket.")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+            }
+            Spacer(minLength: 8)
+            Picker("", selection: Binding(
+                get: { state.settings.sportsRefreshSeconds },
+                set: { state.settings.sportsRefreshSeconds = $0 }
+            )) {
+                Text("30s").tag(30)
+                Text("60s").tag(60)
+                Text("120s").tag(120)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(width: 150)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+    }
+
+    private var competitions: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Text("Competitions")
+                    .font(ArrowTheme.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Spacer()
+                Text("Following + Featured")
+                    .font(ArrowTheme.caption)
+                    .foregroundStyle(ArrowTheme.faint)
+            }
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 5), GridItem(.flexible(), spacing: 5)],
+                spacing: 5
+            ) {
+                ForEach(SportsCatalog.all) { competition in
+                    SportsCompetitionToggle(state: state, competition: competition)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+    }
+
+    private var quotaRow: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "gauge.with.dots.needle.33percent")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(service.quota.isLow ? ArrowTheme.amber : ArrowTheme.green)
+            Text(service.quota.summary)
+                .font(ArrowTheme.caption)
+                .foregroundStyle(ArrowTheme.muted)
+            Spacer(minLength: 4)
+            Button("Data by BigBallsData") {
+                if let url = URL(string: "https://bigballsdata.com") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 10, weight: .medium))
+            .foregroundStyle(ArrowTheme.amber)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+    }
+}
+
+private struct SportsCompetitionToggle: View {
+    @Bindable var state: AppState
+    let competition: SportsCompetition
+    @State private var isHovering = false
+
+    private var isOn: Bool {
+        state.settings.sportsCompetitionIDs.contains(competition.id)
+    }
+
+    var body: some View {
+        Button {
+            state.sports.setCompetition(competition.id, enabled: !isOn)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: competition.sport.symbol)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(isOn ? ArrowTheme.green : ArrowTheme.faint)
+                    .frame(width: 14)
+                Text(competition.shortName)
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(isOn ? ArrowTheme.bone : ArrowTheme.muted)
+                    .lineLimit(1)
+                Spacer(minLength: 2)
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(isOn ? ArrowTheme.green : ArrowTheme.faint)
+            }
+            .padding(.horizontal, 7)
+            .frame(height: 26)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isHovering ? Color.white.opacity(0.06) : Color.white.opacity(0.028))
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(isOn ? ArrowTheme.green.opacity(0.25) : ArrowTheme.hairline, lineWidth: 0.5)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(NookPressStyle(pressedScale: 0.97))
+        .onHover { isHovering = $0 }
     }
 }
 

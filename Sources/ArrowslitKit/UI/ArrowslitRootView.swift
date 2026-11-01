@@ -103,6 +103,8 @@ private struct CompactBar: View {
                     .foregroundStyle(ArrowTheme.bone)
                     .padding(.trailing, 10)
                     .frame(width: ear, alignment: .trailing)
+            } else if let match = state.sports.notchMatch {
+                SportsCompactScore(match: match, ear: ear, notchWidth: notchWidth)
             } else if let track = musicTrack {
                 compactArtwork
                     .padding(.leading, 10)
@@ -289,6 +291,9 @@ private struct CompactBar: View {
         if state.timer.isActive {
             return "Arrowslit. \(state.compactLabel) \(state.compactValue)"
         }
+        if let match = state.sports.notchMatch {
+            return "Arrowslit. \(match.home.shortName) \(match.homeScore ?? 0), \(match.away.shortName) \(match.awayScore ?? 0), \(SportsFormat.shortStatus(match))"
+        }
         if let track = musicTrack {
             return "Arrowslit. Now playing \(track.title) by \(track.artist)"
         }
@@ -298,6 +303,61 @@ private struct CompactBar: View {
         return state.compactLabel == "Ready"
             ? "Arrowslit. \(state.compactValue)"
             : "Arrowslit. \(state.compactLabel) \(state.compactValue)"
+    }
+}
+
+/// The closed notch's live sports ear: home abbreviation + score on one side,
+/// away abbreviation + score on the other, with the camera housing between.
+private struct SportsCompactScore: View {
+    let match: SportsMatch
+    let ear: CGFloat
+    let notchWidth: CGFloat
+
+    private var accent: Color { match.isLive ? ArrowTheme.green : ArrowTheme.muted }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(accent)
+                    .frame(width: 4, height: 4)
+                Text(match.home.shortName)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Text(match.homeScore.map(String.init) ?? "–")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.bone)
+                    .contentTransition(.numericText())
+            }
+            .padding(.leading, 12)
+            .frame(width: ear, alignment: .leading)
+
+            Color.clear
+                .frame(width: notchWidth)
+
+            HStack(spacing: 4) {
+                Text(match.away.shortName)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Text(match.awayScore.map(String.init) ?? "–")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.bone)
+                    .contentTransition(.numericText())
+                Text(SportsFormat.shortStatus(match))
+                    .font(.system(size: 8.5, weight: .bold))
+                    .foregroundStyle(accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .padding(.trailing, 8)
+            .frame(width: ear, alignment: .trailing)
+        }
     }
 }
 

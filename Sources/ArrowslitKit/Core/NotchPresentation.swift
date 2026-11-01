@@ -5,6 +5,7 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
     case call
     case timer
     case stopwatch
+    case sports
     case nowPlaying
     case charging
     case stats
@@ -15,9 +16,10 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
         case .call: 0
         case .timer: 1
         case .stopwatch: 2
-        case .nowPlaying: 3
-        case .charging: 4
-        case .stats: 5
+        case .sports: 3
+        case .nowPlaying: 4
+        case .charging: 5
+        case .stats: 6
         }
     }
 }
