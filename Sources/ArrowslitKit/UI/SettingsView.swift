@@ -36,6 +36,8 @@ struct SettingsView: View {
                             }
                         }
                         .padding(6)
+                        SettingsRowDivider()
+                        FileTraySettingsRow(state: state)
                     }
 
                     SettingsSection(
@@ -69,6 +71,16 @@ struct SettingsView: View {
                             isOn: Binding(
                                 get: { state.settings.hapticFeedback },
                                 set: { state.settings.hapticFeedback = $0 }
+                            )
+                        )
+                    }
+
+                    SettingsSection(title: "Timer") {
+                        SettingsToggle(
+                            title: "Play a sound when a timer ends",
+                            isOn: Binding(
+                                get: { state.settings.timerSound },
+                                set: { state.setTimerSound($0) }
                             )
                         )
                     }
@@ -406,6 +418,81 @@ struct SettingsView: View {
         } catch {
             loginError = "Could not change the login item. \(error.localizedDescription)"
             syncLogin()
+        }
+    }
+}
+
+private struct FileTraySettingsRow: View {
+    @Bindable var state: AppState
+
+    private var isOn: Bool { state.settings.isTabEnabled(.tray) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color(red: 0.17, green: 0.78, blue: 0.93))
+                    Image(systemName: "tray.full.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 30, height: 30)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("File Tray")
+                        .font(ArrowTheme.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(ArrowTheme.bone)
+                    Text("Files you drop on the notch, or saved document windows. Up to 30; clears when the app quits, except pinned ones")
+                        .font(ArrowTheme.detail)
+                        .foregroundStyle(ArrowTheme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 8)
+
+                Toggle("", isOn: Binding(
+                    get: { isOn },
+                    set: { state.setTabEnabled(.tray, $0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .tint(ArrowTheme.amber)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+
+            if isOn {
+                SettingsRowDivider()
+                Button("Allow document window dragging…") {
+                    DocumentWindowDrag.requestAccess()
+                }
+                .buttonStyle(NookPressStyle())
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(ArrowTheme.bone)
+                .padding(.horizontal, 14)
+                .frame(height: 30)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color.white.opacity(0.08))
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 9)
+
+                Text("Enable Arrowslit in macOS Accessibility settings to store a saved document by dragging its whole window to the notch. The source app must expose its saved document location. Some apps also ask for Automation access. Unsaved or ambiguous documents cannot be stored.")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 7)
+                    .padding(.bottom, 10)
+            }
         }
     }
 }

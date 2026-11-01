@@ -4,12 +4,15 @@ The goal is a quiet, fast, local-only notch utility — not a clone of any exist
 feature set is inspired by the best free notch projects, but the interaction model, visual
 language and code are our own.
 
-## What exists today (0.6.0)
+## What exists today (0.7.0)
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status
 - Expanded workbench: vertical feature rail, header, footer
 - Shared Timer/Pomodoro/Stopwatch clock panel with a sliding minute ruler and haptic detents
+- Three-column Home with lyric media card, calendar event and timer quick actions
+- Four-tile Stats panel and month-grid Calendar
+- File Tray drop zone and pinned files
 - Narrow running timer/stopwatch compact strip with pause and close
 - Calendar next event with EventKit permission flow
 - Five-minute calendar heads-up with Join buttons for Meet, Zoom, Teams and Webex
