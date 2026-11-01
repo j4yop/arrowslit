@@ -230,8 +230,11 @@ public struct BigBallsDataProvider: Sendable {
             guard let sport = Sport(rawValue: row.sport) else { return nil }
             guard sport == .football || sport == .cricket else { return nil }
             guard let state = SportsMatchState(providerStatus: row.status) else { return nil }
-            let competition = SportsCatalog.competition(for: row.league, sport: sport)
-                ?? SportsCatalog.fallback(for: row.league, sport: sport)
+            let competition = SportsCatalog.competition(
+                for: row.league,
+                sport: sport,
+                teamNames: [row.home.name, row.away.name]
+            ) ?? SportsCatalog.fallback(for: row.league, sport: sport)
             return SportsMatch(
                 id: row.id,
                 sport: sport,
