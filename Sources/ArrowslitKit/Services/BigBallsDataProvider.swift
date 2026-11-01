@@ -53,8 +53,8 @@ public enum SportsProviderError: LocalizedError {
             message ?? "BigBallsData returned HTTP \(status)."
         case .invalidResponse:
             "BigBallsData returned an unreadable response."
-        case .decoding:
-            "BigBallsData returned data Arrowslit could not read."
+        case .decoding(let reason):
+            "BigBallsData returned data Arrowslit could not read. \(reason.prefix(180))"
         case .network:
             "Couldn't reach BigBallsData. Check your connection and try again."
         case .message(let message):
@@ -208,55 +208,93 @@ public struct BigBallsDataProvider: Sendable {
     // MARK: - Requests
 
     private func getMatches(path: String, query: [URLQueryItem]) async throws -> SportsProviderPayload {
-        let response: (BBSEnvelope<[BBSMatch]>, SportsQuota) = try await get(path: path, query: query)
-        guard let rows = response.0.data else { throw SportsProviderError.invalidResponse }
+        let response: (BBSEnvelope<BBSMatchList>, SportsQuota) = try await get(path: path, query: query)
+        guard let rows = response.0.data?.matches else { throw SportsProviderError.invalidResponse }
         return SportsProviderPayload(matches: Self.map(rows, now: Date()), quota: response.1)
     }
 
     /// Decodes a `/v1/matches` or `/v1/cricket/matches` envelope. Exposed for
     /// tests so the wire format can be exercised without a live key.
     public static func decodeMatches(from data: Data, now: Date = Date()) throws -> [SportsMatch] {
-        let envelope = try decoder().decode(BBSEnvelope<[BBSMatch]>.self, from: data)
-        guard let rows = envelope.data else { throw SportsProviderError.invalidResponse }
+        let envelope = try decoder().decode(BBSEnvelope<BBSMatchList>.self, from: data)
+        guard let rows = envelope.data?.matches else { throw SportsProviderError.invalidResponse }
         return map(rows, now: now)
     }
 
     private static func map(_ rows: [BBSMatch], now: Date) -> [SportsMatch] {
         rows.compactMap { row -> SportsMatch? in
-            guard let sport = Sport(rawValue: row.sport) else { return nil }
-            guard sport == .football || sport == .cricket else { return nil }
-            guard let state = SportsMatchState(providerStatus: row.status) else { return nil }
+            guard let sportName = row.sport,
+                  let sport = Sport(rawValue: sportName),
+                  sport == .football || sport == .cricket,
+                  let home = row.home,
+                  let away = row.away,
+                  let homeName = home.name ?? home.shortName,
+                  let awayName = away.name ?? away.shortName else {
+                return nil
+            }
+            let league = row.league ?? "Sports"
+            let start = row.kickoffUTC?.value
+            let state = row.status.flatMap(SportsMatchState.init(providerStatus:)) ?? .live
             let competition = SportsCatalog.competition(
-                for: row.league,
+                for: league,
                 sport: sport,
-                teamNames: [row.home.name, row.away.name]
-            ) ?? SportsCatalog.fallback(for: row.league, sport: sport)
+                teamNames: [homeName, awayName]
+            ) ?? SportsCatalog.fallback(for: league, sport: sport)
             return SportsMatch(
-                id: row.id,
+                id: row.id ?? fallbackID(
+                    sport: sport,
+                    league: league,
+                    home: homeName,
+                    away: awayName,
+                    start: start
+                ),
                 sport: sport,
                 competition: competition,
                 home: SportsTeam(
-                    id: row.home.id,
-                    name: row.home.name,
-                    shortName: row.home.shortName,
+                    id: home.id ?? fallbackTeamID(homeName),
+                    name: homeName,
+                    shortName: home.shortName,
                     colorHex: nil
                 ),
                 away: SportsTeam(
-                    id: row.away.id,
-                    name: row.away.name,
-                    shortName: row.away.shortName,
+                    id: away.id ?? fallbackTeamID(awayName),
+                    name: awayName,
+                    shortName: away.shortName,
                     colorHex: nil
                 ),
-                start: row.kickoffUTC,
+                start: start ?? now,
                 state: state,
-                homeScore: row.score?.home,
-                awayScore: row.score?.away,
-                statusText: row.status,
+                homeScore: row.score?.home.value,
+                awayScore: row.score?.away.value,
+                statusText: row.status ?? "live",
                 round: row.round,
                 venue: row.venue,
                 lastUpdated: now
             )
         }
+    }
+
+    private static func fallbackID(
+        sport: Sport,
+        league: String,
+        home: String,
+        away: String,
+        start: Date?
+    ) -> String {
+        let startKey = start.map { String(Int($0.timeIntervalSince1970)) } ?? "unknown"
+        return "bbs-\(stableHash("\(sport.rawValue)|\(league)|\(home)|\(away)|\(startKey)"))"
+    }
+
+    private static func fallbackTeamID(_ name: String) -> String {
+        "team-\(stableHash(name))"
+    }
+
+    private static func stableHash(_ value: String) -> String {
+        var hash: UInt64 = 1_469_598_103_934_665_603
+        for byte in value.utf8 {
+            hash = (hash ^ UInt64(byte)) &* 1_099_511_628_211
+        }
+        return String(hash, radix: 16)
     }
 
     private static func decoder() -> JSONDecoder {
@@ -337,13 +375,28 @@ public struct BigBallsDataProvider: Sendable {
         }
     }
 
-    private static func parseDate(_ value: String) -> Date? {
+    fileprivate static func parseDate(_ value: String) -> Date? {
         let fractional = ISO8601DateFormatter()
         fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = fractional.date(from: value) { return date }
         let plain = ISO8601DateFormatter()
         plain.formatOptions = [.withInternetDateTime]
-        return plain.date(from: value)
+        if let date = plain.date(from: value) { return date }
+
+        let formats = [
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd",
+        ]
+        for format in formats {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.dateFormat = format
+            if let date = formatter.date(from: value) { return date }
+        }
+        return nil
     }
 }
 
@@ -353,6 +406,17 @@ private struct BBSEnvelope<T: Decodable>: Decodable {
     var data: T?
     var error: BBSError?
     var meta: BBSMeta?
+
+    enum CodingKeys: String, CodingKey {
+        case data, error, meta
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        data = try? container.decode(T.self, forKey: .data)
+        error = try? container.decode(BBSError.self, forKey: .error)
+        meta = try? container.decode(BBSMeta.self, forKey: .meta)
+    }
 }
 
 private struct BBSErrorEnvelope: Decodable {
@@ -377,14 +441,41 @@ private struct BBSMeta: Decodable {
     }
 }
 
+private struct BBSMatchList: Decodable {
+    var matches: [BBSMatch]
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let rows = try? container.decode([BBSMatch].self) {
+            matches = rows
+            return
+        }
+        if let object = try? container.decode(Object.self) {
+            matches = object.matches ?? object.data ?? object.items ?? object.results ?? []
+            return
+        }
+        throw DecodingError.dataCorruptedError(
+            in: container,
+            debugDescription: "Expected a match array or an object containing one."
+        )
+    }
+
+    private struct Object: Decodable {
+        var matches: [BBSMatch]?
+        var data: [BBSMatch]?
+        var items: [BBSMatch]?
+        var results: [BBSMatch]?
+    }
+}
+
 private struct BBSMatch: Decodable {
-    var id: String
-    var sport: String
-    var league: String
-    var kickoffUTC: Date
-    var status: String
-    var home: BBSSide
-    var away: BBSSide
+    var id: String?
+    var sport: String?
+    var league: String?
+    var kickoffUTC: BBSDate?
+    var status: String?
+    var home: BBSSide?
+    var away: BBSSide?
     var score: BBSScore?
     var round: String?
     var venue: String?
@@ -393,11 +484,25 @@ private struct BBSMatch: Decodable {
         case id, sport, league, status, home, away, score, round, venue
         case kickoffUTC = "kickoff_utc"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try? container.decode(String.self, forKey: .id)
+        sport = try? container.decode(String.self, forKey: .sport)
+        league = try? container.decode(String.self, forKey: .league)
+        kickoffUTC = try? container.decode(BBSDate.self, forKey: .kickoffUTC)
+        status = try? container.decode(String.self, forKey: .status)
+        home = try? container.decode(BBSSide.self, forKey: .home)
+        away = try? container.decode(BBSSide.self, forKey: .away)
+        score = try? container.decode(BBSScore.self, forKey: .score)
+        round = try? container.decode(String.self, forKey: .round)
+        venue = try? container.decode(String.self, forKey: .venue)
+    }
 }
 
 private struct BBSSide: Decodable {
-    var id: String
-    var name: String
+    var id: String?
+    var name: String?
     var shortName: String?
     var logoURL: String?
 
@@ -405,12 +510,93 @@ private struct BBSSide: Decodable {
         case id, name
         case shortName = "short_name"
         case logoURL = "logo_url"
+        case teamID = "team_id"
+        case teamName = "team_name"
+    }
+
+    init(from decoder: Decoder) throws {
+        if let single = try? decoder.singleValueContainer(),
+           let value = try? single.decode(String.self) {
+            id = nil
+            name = value
+            shortName = nil
+            logoURL = nil
+            return
+        }
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = (try? container.decode(String.self, forKey: .id))
+            ?? (try? container.decode(String.self, forKey: .teamID))
+        name = (try? container.decode(String.self, forKey: .name))
+            ?? (try? container.decode(String.self, forKey: .teamName))
+        shortName = try? container.decode(String.self, forKey: .shortName)
+        logoURL = try? container.decode(String.self, forKey: .logoURL)
     }
 }
 
 private struct BBSScore: Decodable {
-    var home: Int?
-    var away: Int?
+    var home: BBSFlexibleInt
+    var away: BBSFlexibleInt
+
+    enum CodingKeys: String, CodingKey {
+        case home, away
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        home = (try? container.decode(BBSFlexibleInt.self, forKey: .home)) ?? BBSFlexibleInt(value: nil)
+        away = (try? container.decode(BBSFlexibleInt.self, forKey: .away)) ?? BBSFlexibleInt(value: nil)
+    }
+}
+
+private struct BBSFlexibleInt: Decodable {
+    var value: Int?
+
+    init(value: Int?) {
+        self.value = value
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() {
+            value = nil
+            return
+        }
+        if let int = try? container.decode(Int.self) {
+            value = int
+            return
+        }
+        if let double = try? container.decode(Double.self) {
+            value = Int(double)
+            return
+        }
+        if let string = try? container.decode(String.self) {
+            value = Int(string)
+            return
+        }
+        value = nil
+    }
+}
+
+private struct BBSDate: Decodable {
+    var value: Date?
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() {
+            value = nil
+            return
+        }
+        if let string = try? container.decode(String.self) {
+            value = BigBallsDataProvider.parseDate(string)
+            return
+        }
+        if let number = try? container.decode(Double.self) {
+            let seconds = number > 10_000_000_000 ? number / 1000 : number
+            value = Date(timeIntervalSince1970: seconds)
+            return
+        }
+        value = nil
+    }
 }
 
 private struct BBSFootballEvent: Decodable {
