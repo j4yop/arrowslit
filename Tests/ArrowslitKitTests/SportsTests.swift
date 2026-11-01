@@ -104,7 +104,7 @@ struct SportsFormattingTests {
         #expect(quota.limit == 250)
         #expect(quota.remaining == 37)
         #expect(quota.resetAt != nil)
-        #expect(quota.summary == "37 of 250 requests left today")
+        #expect(quota.summary == "BigBallsData · 250 requests/day")
     }
 
     @Test func mapsProviderStatuses() {

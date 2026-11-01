@@ -93,11 +93,11 @@ struct SportsPane: View {
                         .foregroundStyle(ArrowTheme.green)
                 }
                 .help("\(service.liveCount) live matches")
-            } else if let remaining = service.quota.remaining {
-                Text("\(remaining) left")
+            } else {
+                Text("\(service.quota.limit)/day")
                     .font(.system(size: 8.5, weight: .semibold))
                     .monospacedDigit()
-                    .foregroundStyle(remaining <= 20 ? ArrowTheme.red : ArrowTheme.faint)
+                    .foregroundStyle(service.quota.isExhausted ? ArrowTheme.red : ArrowTheme.faint)
                     .help(service.quota.summary)
             }
 
@@ -247,11 +247,10 @@ private struct SportsMatchCard: View {
                                 .foregroundStyle(accent)
                                 .lineLimit(1)
                         }
-                    } else {
-                        Text(SportsFormat.shortStatus(match))
+                    } else if match.state == .finished {
+                        Text("FT")
                             .font(.system(size: 7.5, weight: .semibold))
                             .foregroundStyle(ArrowTheme.faint)
-                            .lineLimit(1)
                     }
                 }
 

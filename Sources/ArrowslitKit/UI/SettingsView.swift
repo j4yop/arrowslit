@@ -504,7 +504,7 @@ private struct SportsSettingsSection: View {
                     .font(ArrowTheme.body)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
-                Text(service.coverageNote ?? service.account.map { "\($0.plan.capitalized) plan · 250 requests/day" } ?? "Free plan · 250 requests/day")
+                Text(service.coverageNote ?? service.account.map { "\($0.plan.capitalized) plan" } ?? "Free plan")
                     .font(ArrowTheme.detail)
                     .foregroundStyle(service.coverageNote == nil ? ArrowTheme.muted : ArrowTheme.amber)
                     .lineLimit(2)
