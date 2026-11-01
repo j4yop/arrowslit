@@ -91,7 +91,7 @@ final class DebugHooks {
         case "sports": state.expand(.sports)
         case "sports-notch":
             state.settings.setTabEnabled(.sports, true)
-            if let demo = SportsDemoData.matches().first(where: { $0.sport == .football }) {
+            if let demo = SportsDemoData.matches().first {
                 state.sports.showDemoCompact(demo)
             }
             state.collapse()

@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.8.5/Arrowslit-0.8.5.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.9.0/Arrowslit-0.9.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -46,7 +46,7 @@ And when you click it, you get a little home base right under the notch:
 * **Mirror**, a quick look at your camera before you hop on a call, with a button to turn the camera off
 * **Timer / Pomodoro / Stopwatch**, a shared iPhone-style clock panel with a sliding minute ruler, one haptic detent per minute, a 5-minute Pomodoro break, and a tenths-of-a-second stopwatch
 * **Stats** with memory, CPU, disk and network tiles and animated bars that only sample while you look at them
-* **Sports** with live La Liga, Premier League, Champions League, IPL, T20I, ODI and Test scores, Following + Featured, and a compact notch score. Preview works without a key; live mode uses a BigBallsData free key
+* **Sports** with live Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1 scores, Following + Featured, and a compact notch score. Preview works without a key; live mode uses a BigBallsData free key
 * **Files** with the full-width drop zone, pinned files that survive a quit, and AirDrop/open/reveal actions
 * **Calendar** with a live month grid, busy-day dots, day-by-day event lists, start times, a five-minute heads-up, and Join buttons for Meet, Zoom, Teams and Webex
 * **Reminders**, today's to-dos from Apple Reminders that you can tick off right in the notch
@@ -82,7 +82,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.8.5.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.5/Arrowslit-0.8.5.dmg)** and open it.
+1. Download **[Arrowslit-0.9.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.9.0/Arrowslit-0.9.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -99,9 +99,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.8.5 (build 31) |
-| **Direct Download** | [Arrowslit-0.8.5.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.8.5/Arrowslit-0.8.5.dmg) |
-| **SHA-256** | `ec1bd328dcc34ca46e11af090f6fcea68ff6c742eb23fbe1131a6e1921910b6d` |
+| **Version** | 0.9.0 (build 32) |
+| **Direct Download** | [Arrowslit-0.9.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.9.0/Arrowslit-0.9.0.dmg) |
+| **SHA-256** | `PENDING_RELEASE_SHA` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -145,14 +145,14 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.8.5
+## What is in 0.9.0
 
-* Sports tab with live La Liga, Premier League, Champions League, IPL, T20I, ODI and Test scores
+* Sports tab with live Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1 scores
 * BigBallsData Free adapter with a Keychain-stored key and a 250-request/day quota display
 * Sports starts in Preview with sample matches, so the nook works before you connect a key
 * Following + Featured ranking: pin a match, follow teams, or filter by competition
-* 32px notch score for the pinned or first live match, including the football clock and cricket status
-* Inline match detail with football key events and cricket innings/run-rate
+* 32px notch score for the pinned or first live match, with the football clock in the Sports pane and detail
+* Inline match detail with football key events
 * Quota-aware refresh at 30/60/120 seconds; polling slows down when requests run low
 * Menu bar accessory with notch-fused compact strip
 * 560×178 pt expanded workbench with smooth spring transitions

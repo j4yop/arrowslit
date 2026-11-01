@@ -435,11 +435,11 @@ private struct SportsSettingsSection: View {
     var body: some View {
         SettingsSection(
             title: "Sports",
-            note: "Live football and cricket from BigBallsData. Off by default; nothing is requested until you connect."
+            note: "Live football from BigBallsData. Off by default; nothing is requested until you connect."
         ) {
             SettingsToggle(
                 title: "Sports in the launcher",
-                detail: "La Liga, Premier League, Champions League, IPL, T20Is, ODIs and Tests.",
+                detail: "Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1.",
                 isOn: Binding(
                     get: { isOn },
                     set: { state.setTabEnabled(.sports, $0) }
@@ -493,7 +493,7 @@ private struct SportsSettingsSection: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(Color(red: 0.20, green: 0.72, blue: 0.45))
-                Image(systemName: "sportscourt")
+                Image(systemName: "soccerball")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -629,7 +629,7 @@ private struct SportsSettingsSection: View {
                     .font(ArrowTheme.body)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
-                Text("Free tier: one request refreshes all live football and cricket.")
+                Text("Free tier: one request refreshes all live football.")
                     .font(ArrowTheme.detail)
                     .foregroundStyle(ArrowTheme.muted)
             }
@@ -712,10 +712,6 @@ private struct SportsCompetitionToggle: View {
             state.sports.setCompetition(competition.id, enabled: !isOn)
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: competition.sport.symbol)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(isOn ? ArrowTheme.green : ArrowTheme.faint)
-                    .frame(width: 14)
                 Text(competition.shortName)
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(isOn ? ArrowTheme.bone : ArrowTheme.muted)

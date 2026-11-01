@@ -4,7 +4,7 @@ The goal is a quiet, fast, local-only notch utility — not a clone of any exist
 feature set is inspired by the best free notch projects, but the interaction model, visual
 language and code are our own.
 
-## What exists today (0.8.5)
+## What exists today (0.9.0)
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status
@@ -13,7 +13,7 @@ language and code are our own.
 - Three-column Home with lyric media card, calendar event and timer quick actions
 - Four-tile Stats panel and month-grid Calendar
 - File Tray drop zone and pinned files
-- Sports shelf with live football and cricket, Following + Featured, and a 32px notch score
+- Football shelf with Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1, Following + Featured, and a 32px notch score
 - BigBallsData Free adapter with Keychain key storage and quota-aware refresh
 - Narrow running timer/stopwatch nudge with pause and close
 - Calendar next event with EventKit permission flow

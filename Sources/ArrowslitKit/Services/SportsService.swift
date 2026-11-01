@@ -1,13 +1,13 @@
 import Foundation
 import Observation
 
-/// Live football and cricket for the nook. Demo data until a BigBallsData key
-/// is connected; then one all-sports live request per refresh.
+/// Live football for the nook. Demo data until a BigBallsData key is
+/// connected; then one football live request per refresh.
 @MainActor
 @Observable
 public final class SportsService {
     public private(set) var matches: [SportsMatch] = []
-    public private(set) var details: [String: SportsMatchDetail] = [:]
+    public private(set) var details: [String: [SportsFootballEvent]] = [:]
     public private(set) var detailLoading: Set<String> = []
     public private(set) var detailErrors: [String: String] = [:]
     public private(set) var isLoading = false
@@ -26,7 +26,6 @@ public final class SportsService {
     @ObservationIgnored private var detailTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private var isPaneVisible = false
     @ObservationIgnored private var lastFixturesLoad: Date?
-    @ObservationIgnored private var didProbeCricketLive = false
 
     private static let keychainAccount = "bigballsdata"
 
@@ -197,13 +196,9 @@ public final class SportsService {
 
         let provider = BigBallsDataProvider(apiKey: apiKey, session: session)
         let followed = followedCompetitionIDs
-        let followsCricket = followed.contains { SportsCatalog.competition(id: $0)?.sport == .cricket }
 
         do {
-            let live = try await provider.liveMatches(
-                allowCricketFallback: followsCricket && !didProbeCricketLive
-            )
-            if followsCricket { didProbeCricketLive = true }
+            let live = try await provider.liveMatches()
             quota = live.quota
 
             var gathered = live.matches.filter { followed.contains($0.competition.id) }
@@ -284,7 +279,6 @@ public final class SportsService {
         isDemo = true
         lastUpdated = Date()
         errorMessage = nil
-        didProbeCricketLive = false
         stopPolling()
     }
 
@@ -336,16 +330,9 @@ public final class SportsService {
         detailTasks[match.id] = Task { [weak self] in
             guard let self else { return }
             do {
-                switch match.sport {
-                case .football:
-                    let result = try await provider.events(for: match.id)
-                    quota = result.quota
-                    details[match.id] = .football(result.events)
-                case .cricket:
-                    let result = try await provider.cricketState(for: match.id)
-                    quota = result.quota
-                    details[match.id] = .cricket(result.state)
-                }
+                let result = try await provider.events(for: match.id)
+                quota = result.quota
+                details[match.id] = result.events
             } catch let error as SportsProviderError {
                 if case .sportNotIncluded(let message) = error {
                     coverageNote = message

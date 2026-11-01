@@ -50,7 +50,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "doc.on.clipboard"
         case .notes: "square.and.pencil"
         case .stats: "gauge.with.dots.needle.33percent"
-        case .sports: "sportscourt"
+        case .sports: "soccerball"
         case .reminders: "checklist"
         case .stopwatch: "stopwatch"
         case .keepAwake: "cup.and.saucer.fill"
