@@ -25,6 +25,7 @@ public final class SportsService {
     @ObservationIgnored private var detailTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private var isPaneVisible = false
     @ObservationIgnored private var lastFixturesLoad: Date?
+    @ObservationIgnored private var didProbeCricketLive = false
 
     private static let keychainAccount = "bigballsdata"
 
@@ -197,7 +198,10 @@ public final class SportsService {
         let followsCricket = followed.contains { SportsCatalog.competition(id: $0)?.sport == .cricket }
 
         do {
-            let live = try await provider.liveMatches(includeCricket: followsCricket)
+            let live = try await provider.liveMatches(
+                allowCricketFallback: followsCricket && !didProbeCricketLive
+            )
+            if followsCricket { didProbeCricketLive = true }
             quota = live.quota
 
             var gathered = live.matches.filter { followed.contains($0.competition.id) }
@@ -277,6 +281,7 @@ public final class SportsService {
         isDemo = true
         lastUpdated = Date()
         errorMessage = nil
+        didProbeCricketLive = false
         stopPolling()
     }
 
