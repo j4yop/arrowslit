@@ -4,9 +4,12 @@ import SwiftUI
 /// The tall expanded music player: artwork, title/artist, lyrics, progress and transport controls.
 struct NowPlayingPlayerView: View {
     @Bindable var state: AppState
+    @Environment(\.panelGeometry) private var geometry
 
     private var service: NowPlayingService { state.nowPlaying }
-    private var track: NowPlayingTrack? { service.track }
+    private var track: NowPlayingTrack? { service.activeTrack }
+
+    private var size: CGSize { state.panelSize(for: .expanded(.nowPlaying), geometry: geometry) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,21 +22,21 @@ struct NowPlayingPlayerView: View {
             Spacer(minLength: 0)
         }
         .padding(.bottom, 14)
-        .frame(width: NotchPanelMetrics.playerSize.width, height: NotchPanelMetrics.playerSize.height)
-        .background(ArrowTheme.ink)
-        .clipShape(SlitShape(radius: 18))
+        .frame(width: size.width, height: size.height)
+        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 30, flare: 10, notchBand: geometry.notch?.height ?? 0))
+        .clipShape(SlitShape(radius: 30, flare: 10))
         .overlay {
-            SlitShape(radius: 18)
+            SlitShape(radius: 30, flare: 10)
                 .stroke(ArrowTheme.hairline, lineWidth: 0.5)
         }
         .onAppear { updateLyrics() }
-        .onChange(of: service.track) { _, _ in updateLyrics() }
+        .onChange(of: service.activeTrack) { _, _ in updateLyrics() }
         .onChange(of: state.settings.lyricsEnabled) { _, _ in updateLyrics() }
         .accessibilityElement(children: .contain)
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 6) {
             Button {
                 state.expand(.home)
             } label: {
@@ -46,10 +49,76 @@ struct NowPlayingPlayerView: View {
             .buttonStyle(PlayerPressStyle())
             .help("Home")
             .accessibilityLabel("Back to Home")
+
+            if !service.otherSources.isEmpty {
+                sourceSwitcher
+            }
             Spacer()
         }
         .padding(.leading, 14)
         .frame(height: 32)
+    }
+
+    private var sourceSwitcher: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                sourceChip(
+                    title: "Now",
+                    symbol: "music.note",
+                    image: nil,
+                    selected: service.selectedSource == nil
+                ) {
+                    service.selectSource(nil)
+                }
+                ForEach(service.otherSources) { source in
+                    sourceChip(
+                        title: source.name,
+                        symbol: "music.note",
+                        image: source.icon,
+                        selected: service.selectedSourceID == source.id
+                    ) {
+                        service.selectSource(source.id)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: 250)
+    }
+
+    private func sourceChip(
+        title: String,
+        symbol: String,
+        image: NSImage?,
+        selected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let image {
+                    Image(nsImage: image)
+                        .resizable()
+                        .frame(width: 14, height: 14)
+                        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                } else {
+                    Image(systemName: symbol)
+                        .font(.system(size: 9, weight: .semibold))
+                }
+                Text(title)
+                    .font(.system(size: 9.5, weight: .medium))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(selected ? ArrowTheme.bone : ArrowTheme.muted)
+            .padding(.horizontal, 6)
+            .frame(height: 22)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(selected ? Color.white.opacity(0.12) : Color.white.opacity(0.04))
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(title)
+        .accessibilityLabel(title)
     }
 
     private func player(_ track: NowPlayingTrack, lyrics: SyncedLyrics?) -> some View {
@@ -60,10 +129,8 @@ struct NowPlayingPlayerView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(track.title)
-                        .font(.system(size: 15, weight: .semibold))
+                    MediaTitle(title: track.title, isPlaying: track.isPlaying, fontSize: 15)
                         .foregroundStyle(ArrowTheme.bone)
-                        .lineLimit(1)
                     Text(track.artist.isEmpty ? "Unknown artist" : track.artist)
                         .font(.system(size: 13))
                         .foregroundStyle(ArrowTheme.muted)
@@ -73,7 +140,7 @@ struct NowPlayingPlayerView: View {
 
                 MusicBars(
                     isPlaying: track.isPlaying,
-                    color: service.accent.color,
+                    color: service.activeAccent.color,
                     height: 18,
                     width: 20
                 )
@@ -87,30 +154,48 @@ struct NowPlayingPlayerView: View {
             PlayerProgressRow(state: state, layout: .inline, tint: .white)
                 .padding(.top, 10)
 
-            HStack(spacing: 30) {
-                PlayerGlyphButton(symbol: "backward.fill", size: 19, heightFactor: 1.6, label: "Previous Track") {
-                    service.previous()
+            if service.isControllingCurrentSource {
+                HStack(spacing: 30) {
+                    PlayerGlyphButton(symbol: "backward.fill", size: 19, heightFactor: 1.6, label: "Previous Track") {
+                        service.previous()
+                    }
+                    PlayerGlyphButton(
+                        symbol: track.isPlaying ? "pause.fill" : "play.fill",
+                        size: 27,
+                        heightFactor: 1.6,
+                        label: track.isPlaying ? "Pause" : "Play"
+                    ) {
+                        service.toggle()
+                    }
+                    PlayerGlyphButton(symbol: "forward.fill", size: 19, heightFactor: 1.6, label: "Next Track") {
+                        service.next()
+                    }
                 }
-                PlayerGlyphButton(
-                    symbol: track.isPlaying ? "pause.fill" : "play.fill",
-                    size: 27,
-                    heightFactor: 1.6,
-                    label: track.isPlaying ? "Pause" : "Play"
-                ) {
-                    service.toggle()
+                .padding(.top, 4)
+            } else if let source = service.selectedSource {
+                Button {
+                    service.open(source)
+                } label: {
+                    Label("Open \(source.name)", systemImage: "arrow.up.forward")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .padding(.horizontal, 12)
+                        .frame(height: 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(Color.white.opacity(0.08))
+                        )
                 }
-                PlayerGlyphButton(symbol: "forward.fill", size: 19, heightFactor: 1.6, label: "Next Track") {
-                    service.next()
-                }
+                .buttonStyle(NookPressStyle())
+                .padding(.top, 6)
             }
-            .padding(.top, 4)
         }
         .padding(.horizontal, 22)
     }
 
     private var artwork: some View {
         Group {
-            if let artwork = service.artwork {
+            if let artwork = service.activeArtwork {
                 Image(nsImage: artwork)
                     .resizable()
                     .interpolation(.high)
@@ -169,7 +254,7 @@ struct NowPlayingPlayerView: View {
     }
 
     private func updateLyrics() {
-        state.lyrics.update(for: service.track, enabled: state.settings.lyricsEnabled)
+        state.lyrics.update(for: service.activeTrack, enabled: state.settings.lyricsEnabled)
     }
 }
 
@@ -190,7 +275,7 @@ struct PlayerProgressRow: View {
     private var fontSize: CGFloat { layout == .inline ? 11 : 10 }
 
     var body: some View {
-        let track = service.track
+        let track = service.activeTrack
         TimelineView(.animation(minimumInterval: 0.5, paused: track?.isPlaying != true)) { context in
             let duration = track?.duration
             let elapsed = track?.elapsed(at: context.date) ?? 0
@@ -198,7 +283,7 @@ struct PlayerProgressRow: View {
             let progress = scrubProgress ?? track?.progress(at: context.date) ?? 0
             let scrubber = PlayerScrubBar(
                 progress: progress,
-                isEnabled: duration != nil,
+                isEnabled: duration != nil && service.isControllingCurrentSource,
                 tint: tint,
                 barHeight: barHeight,
                 dragHeight: dragHeight

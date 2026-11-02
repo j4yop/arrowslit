@@ -17,7 +17,7 @@ struct NowPlayingPane: View {
                 }
             }
 
-            if let track = service.track, track.hasContent {
+            if let track = service.activeTrack, track.hasContent {
                 player(track)
             } else if !service.isAvailable {
                 empty(
@@ -92,7 +92,7 @@ struct NowPlayingPane: View {
 
     private var artwork: some View {
         Group {
-            if let image = service.artwork {
+            if let image = service.activeArtwork {
                 Image(nsImage: image)
                     .resizable()
                     .interpolation(.high)

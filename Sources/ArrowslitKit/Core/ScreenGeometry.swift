@@ -44,6 +44,32 @@ public struct ScreenGeometry: Equatable, Sendable {
 
 @MainActor
 public enum ScreenReader {
+    /// The display the panel is currently on. The panel sets this before its SwiftUI view is
+    /// evaluated, so every surface uses the same geometry.
+    public static var activeScreen: NSScreen?
+
+    public static func uuid(for screen: NSScreen) -> String? {
+        let id = (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
+        guard let uuid = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue() else { return nil }
+        return CFUUIDCreateString(nil, uuid) as String?
+    }
+
+    public static func screen(for choice: DisplayChoice) -> NSScreen? {
+        switch choice {
+        case .automatic:
+            return builtIn()
+        case .main:
+            return NSScreen.main ?? builtIn()
+        case .followPointer:
+            let pointer = NSEvent.mouseLocation
+            return NSScreen.screens.first { NSMouseInRect(pointer, $0.frame, false) } ?? builtIn()
+        case .specific(let uuid):
+            return NSScreen.screens.first { self.uuid(for: $0) == uuid } ?? builtIn()
+        case .all:
+            return builtIn()
+        }
+    }
+
     public static func geometry(for screen: NSScreen) -> ScreenGeometry {
         let frame = screen.frame
         var notch: CGRect?
@@ -67,7 +93,7 @@ public enum ScreenReader {
 
     /// Geometry for the display the panel is on, with a safe fallback.
     public static var current: ScreenGeometry {
-        if let screen = builtIn() {
+        if let screen = activeScreen ?? builtIn() {
             return geometry(for: screen)
         }
         return ScreenGeometry(

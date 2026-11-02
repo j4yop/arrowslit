@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.9.2/Arrowslit-0.9.2.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.10.0/Arrowslit-0.10.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -58,7 +58,7 @@ Everything else lives behind the grid button at the top right: the timer, stopwa
 
 Next to Home at the top left sit up to three shortcuts of your own. They start as Files and Clipboard, and Files shows how many things are in your Tray. To change them, open the grid, click the pencil, and pick your favorites. Click **Done** when you are happy.
 
-Arrowslit lives on your MacBook's built-in display for now. Multi-display support is planned.
+Arrowslit works on the built-in display and on external monitors. Choose Built-in, Main, Follow the pointer, a named display, or All displays in Settings › General › Display; screens without a camera housing get a virtual notch.
 
 It does not need an account and does not track anything. Arrowslit asks GitHub when it starts and once a day after that whether a new version is out; you can turn that off in Settings. Lyrics are optional and off by default; if you turn them on, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Everything else stays on your Mac. All of this is free and open source.
 
@@ -82,7 +82,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.9.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.9.2/Arrowslit-0.9.2.dmg)** and open it.
+1. Download **[Arrowslit-0.10.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.10.0/Arrowslit-0.10.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -99,9 +99,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.9.2 (build 34) |
-| **Direct Download** | [Arrowslit-0.9.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.9.2/Arrowslit-0.9.2.dmg) |
-| **SHA-256** | `4e4559e34e9cdadfd7d167ad2be54287239741a46ffb7aa990dab6b38cbd8277` |
+| **Version** | 0.10.0 (build 35) |
+| **Direct Download** | [Arrowslit-0.10.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.10.0/Arrowslit-0.10.0.dmg) |
+| **SHA-256** | `5812532e59cedb1500767eee231d861c1b969f6f36e320e16134b0cfe76a29b9` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -120,6 +120,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 | Open from the menu bar | Click the slit icon in your menu bar |
 | Open Settings | Click the gear icon at the top right, or choose Settings from the menu bar |
 | Use the notch on the lock screen | Turn on Settings › Show on Lock Screen |
+| Put the notch on another display | Settings › General › Display: Built-in, Main, Follow the pointer, All displays, or a named display |
 
 ## Things people ask
 
@@ -129,7 +130,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 **My music isn't showing.** Play something and give it a second. Arrowslit talks to macOS media services through an isolated helper process. If Apple media services ever stall, Arrowslit stays fast and unaffected.
 
-**How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub when it starts and once a day after that, and shows **Download & Open** in the notch or Settings › Updates; after the DMG opens, drag Arrowslit into Applications. Manual users can always download the latest DMG. You can turn the check off in Settings.
+**How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub when it starts and once a day after that. When a signed update is available, Settings › About offers **Install and Relaunch** and verifies the Ed25519 manifest, size and SHA-256 before swapping the app; otherwise it opens the DMG. Manual users can always download the latest DMG. You can turn the check off in Settings.
 
 **Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub when it starts and once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Sports is optional too: preview matches are local, and live mode sends only your BigBallsData key and competition queries to BigBallsData after you connect it in Settings. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
 
@@ -144,6 +145,26 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * macOS 14 (Sonoma) or newer
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
+
+## What is in 0.10.0
+
+This is the DynamicLedge 1.4.2 parity release. It is a broad shell port, not only a feature drop:
+
+* DynamicLedge's appearance engine: size, width, thickness, theme, glass tint, pitch black, standard/elongated layout and reset
+* Hidden-at-rest notch with a hover peek, configurable hover delay, idle pill, click-to-open and collapse-on-leave
+* 274×32 compact ears, concave shoulders, the 30 pt expanded radius and 16 pt alert radius
+* Home at 560×178 and the elongated 1240×178 row for Home, Tray and Clipboard
+* Multi-display support: Built-in, Main, Follow the pointer, named display and All displays, with one active panel and mirror panels
+* Virtual notch on external displays without a camera housing
+* Buttons to allow, deny or ask on behalf of Claude Code, Codex, Copilot CLI, Antigravity, Cursor and OpenCode
+* Calls and microphone detection with mute, a call panel and app-specific hang-up routes
+* Download progress, finished-download alerts, Show in Finder and Stop, including a Chrome/Firefox partial-file fallback
+* Media source switching, app filtering, scrolling titles and paused-media linger
+* Clipboard search, pinned clips and Return-to-copy
+* Rich Notes, inline to-dos, the Shortcuts runner and Reminders
+* Tray links, drop preview, compact Stats and the detached second-activity bubble
+* Signed in-place updates with an Ed25519 manifest and a stable self-signed permission identity
+* Five-tab native Settings shell with labelled controls, 4 pt hit slop, spoken timer values and accessibility actions
 
 ## What is in 0.9.2
 

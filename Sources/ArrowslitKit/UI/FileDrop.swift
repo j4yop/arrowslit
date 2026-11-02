@@ -10,7 +10,7 @@ extension NSItemProvider {
         let types = [UTType.fileURL.identifier, UTType.url.identifier]
         for type in types where hasItemConformingToTypeIdentifier(type) {
             guard let data = await loadData(forTypeIdentifier: type) else { continue }
-            if let url = FileDrop.url(from: data) { return url }
+            if let url = FileDrop.anyURL(from: data) { return url }
         }
         return nil
     }
@@ -27,6 +27,7 @@ extension NSItemProvider {
 @MainActor
 enum FileDrop {
     /// Finder sends the URL as UTF-8 text; some apps send bookmark data.
+    /// Finder and most apps hand over a file URL.
     static func url(from data: Data) -> URL? {
         if let string = String(data: data, encoding: .utf8),
            let url = URL(string: string),
@@ -35,6 +36,24 @@ enum FileDrop {
         }
         if let url = URL(dataRepresentation: data, relativeTo: nil), url.isFileURL {
             return url
+        }
+        return nil
+    }
+
+    /// Browser drags hand over an http(s) URL, which the Tray can keep as a shortcut.
+    static func anyURL(from data: Data) -> URL? {
+        func accepted(_ url: URL) -> URL? {
+            if url.isFileURL { return url }
+            guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return nil }
+            return url
+        }
+        if let string = String(data: data, encoding: .utf8),
+           let url = URL(string: string),
+           let accepted = accepted(url) {
+            return accepted
+        }
+        if let url = URL(dataRepresentation: data, relativeTo: nil), let accepted = accepted(url) {
+            return accepted
         }
         return nil
     }
@@ -53,6 +72,7 @@ enum FileDrop {
 /// The blue Files Tray / AirDrop sheet that appears while a file is dragged
 /// anywhere over the open nook.
 struct NookDropOverlay: View {
+    let tray: TrayStore
     let point: CGPoint
     let split: CGFloat
 
@@ -92,18 +112,22 @@ struct NookDropOverlay: View {
         active: Bool,
         filled: Bool
     ) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Image(systemName: symbol)
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(Color(red: 0.28, green: 0.62, blue: 1))
-            Spacer(minLength: 4)
-            Text(title)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(filled ? .white : Color(red: 0.35, green: 0.66, blue: 1))
-                .lineLimit(1)
-            Text(detail)
-                .font(.system(size: 9))
-                .foregroundStyle(filled ? .white.opacity(0.6) : Color(red: 0.35, green: 0.66, blue: 1).opacity(0.65))
+        HStack(alignment: .bottom, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
+                Image(systemName: symbol)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.28, green: 0.62, blue: 1))
+                Spacer(minLength: 4)
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(filled ? .white : Color(red: 0.35, green: 0.66, blue: 1))
+                    .lineLimit(1)
+                Text(detail)
+                    .font(.system(size: 9))
+                    .foregroundStyle(filled ? .white.opacity(0.6) : Color(red: 0.35, green: 0.66, blue: 1).opacity(0.65))
+            }
+            Spacer(minLength: 0)
+            if !filled { TrayDropPeek(tray: tray) }
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -120,6 +144,32 @@ struct NookDropOverlay: View {
         }
         .scaleEffect(active ? 1.015 : 1)
         .animation(.easeOut(duration: 0.12), value: active)
+    }
+}
+
+/// Up to four of the newest Tray items, so the drop target shows what is already there.
+private struct TrayDropPeek: View {
+    let tray: TrayStore
+
+    var body: some View {
+        let items = Array(tray.items.prefix(4))
+        if !items.isEmpty {
+            let size: CGFloat = 24
+            LazyVGrid(
+                columns: [GridItem(.fixed(size), spacing: 5), GridItem(.fixed(size), spacing: 5)],
+                spacing: 5
+            ) {
+                ForEach(items) { item in
+                    Image(nsImage: tray.icon(for: item))
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: size, height: size)
+                }
+            }
+            .frame(width: size * 2 + 5)
+            .accessibilityHidden(true)
+        }
     }
 }
 

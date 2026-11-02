@@ -5,7 +5,13 @@ import Security
 /// logs or the app bundle.
 @MainActor
 public enum SportsKeychain {
+    #if DEBUG
+    /// Development builds must not touch the release Keychain item. Besides avoiding a
+    /// password prompt on every rebuild, this keeps a debug key from replacing the real one.
+    private static let service = "com.j4yop.arrowslit.sports.dev"
+    #else
     private static let service = "com.j4yop.arrowslit.sports"
+    #endif
 
     public static func read(account: String) -> String? {
         let query: [String: Any] = [

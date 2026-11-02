@@ -27,12 +27,100 @@ final class DebugHooks {
 
     private func run(_ command: String) {
         switch command {
+        case "parity-compact":
+            state.settings.appearance = .standard
+            state.settings.showWhenIdle = true
+            state.collapse()
+        case "parity-home":
+            state.settings.appearance = .standard
+            state.settings.showWhenIdle = false
+            state.expand(.home)
+        case "parity-elongated":
+            var appearance = NotchAppearance.standard
+            appearance.nookLayout = .elongated
+            state.settings.appearance = appearance
+            state.settings.showWhenIdle = false
+            state.expand(.home)
+        case "parity-launcher":
+            state.settings.appearance = .standard
+            state.expand(.launcher)
+        case "parity-tray":
+            state.settings.appearance = .standard
+            state.expand(.tray)
+        case "parity-clipboard":
+            state.settings.appearance = .standard
+            state.expand(.clipboard)
+        case "parity-hud":
+            state.settings.appearance = .standard
+            state.dismissAlert()
+            state.collapse()
+            state.receive(.level(kind: .volume, value: 0.62, muted: false))
+        case "parity-goal":
+            state.settings.appearance = .standard
+            state.settings.setTabEnabled(.sports, true)
+            state.dismissAlert()
+            state.collapse()
+            state.receive(.sportsGoal(SportsGoalEvent(
+                matchID: "parity-football-1",
+                teamName: "Real Madrid",
+                teamShortName: "RMA",
+                homeShortName: "RMA",
+                awayShortName: "BAR",
+                homeScore: 2,
+                awayScore: 1,
+                minute: "67'"
+            )))
+        case "parity-nowplaying":
+            state.settings.appearance = .standard
+            showDemoTrack()
+            state.expand(.nowPlaying)
+        case "parity-agent":
+            state.settings.appearance = .standard
+            state.dismissAlert()
+            state.collapse()
+            state.receive(.agentRequest(AgentRequest(
+                kind: .opencode,
+                project: "arrowslit",
+                toolName: "Bash",
+                title: "Run a command",
+                detail: "swift test --build-system native"
+            )))
+        case "parity-reset":
+            state.settings.appearance = .standard
+            state.settings.showWhenIdle = false
+            state.dismissAlert()
+            state.collapse()
         case "expand": state.expand(.timer)
         case "home": state.expand(.home)
+        case "elongated":
+            state.settings.appearance.nookLayout = .elongated
+            state.expand(.home)
+        case "elongated-hold":
+            state.settings.appearance.nookLayout = .elongated
+            state.settings.collapseOnLeave = false
+            state.expand(.home)
+        case "todo-demo":
+            state.todos.add("Review the notch layout")
+            state.todos.add("Ship the parity port")
+            state.expand(.home)
+        case "clipboard-demo":
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString("Arrowslit clipboard preview: a copied paragraph that should wrap onto a second line.", forType: .string)
+            state.expand(.clipboard)
         case "collapse": state.collapse()
         case "nowplaying": state.expand(.nowPlaying)
         case "nowplaying-demo":
             showDemoTrack()
+            state.expand(.nowPlaying)
+        case "nowplaying-sources":
+            showDemoTrack()
+            state.nowPlaying.showDemoSource(
+                name: "Spotify",
+                bundleID: "com.spotify.client",
+                title: "One More Time",
+                artist: "Daft Punk"
+            )
             state.expand(.nowPlaying)
         case "home-demo":
             showDemoTrack()
@@ -83,6 +171,9 @@ final class DebugHooks {
             ))
         case "dismissalert": state.dismissAlert()
         case "tray": state.expand(.tray)
+        case "traylink":
+            state.tray.add([URL(string: "https://example.com/article")!])
+            state.expand(.tray)
         case "addfile": state.tray.add([URL(fileURLWithPath: "/etc/hosts")])
         case "mirror": state.expand(.mirror)
         case "clipboard": state.expand(.clipboard)
@@ -111,6 +202,34 @@ final class DebugHooks {
         case "stopwatch": state.expand(.stopwatch)
         case "keepawake": state.expand(.keepAwake)
         case "launcher": state.expand(.launcher)
+        case "downloads-on": state.setDownloadsEnabled(true)
+        case "download-state":
+            let items = state.downloadProgress.items
+            let text = items.map { "\($0.name):\($0.completed)/\($0.total)" }.joined(separator: ",")
+            FileHandle.standardError.write(Data("ARROWSLIT_DOWNLOADS count=\(items.count) \(text)\n".utf8))
+        case "download-tab": state.expand(.download)
+        case "download-progress":
+            state.downloadProgress.showDemo()
+            state.collapse()
+        case "download-end":
+            state.downloadProgress.endDemo()
+            state.collapse()
+        case "agent-ready":
+            state.agents.enabledKinds = Set(AgentKind.allCases)
+            state.agents.start()
+            FileHandle.standardError.write(Data("ARROWSLIT_AGENT_READY \(state.agents.socketPath) running=\(state.agents.isRunning)\n".utf8))
+        case "agent-demo":
+            state.agents.enabledKinds = Set(AgentKind.allCases)
+            state.agents.start()
+            state.agents.showDemo(kind: .opencode)
+        case "agent-alert":
+            state.receive(.agentRequest(AgentRequest(
+                kind: .opencode,
+                project: "arrowslit",
+                toolName: "Bash",
+                title: "Run a command",
+                detail: "swift test --build-system native"
+            )))
         case "settings":
             state.collapse()
             state.onOpenSettings?()
@@ -118,6 +237,17 @@ final class DebugHooks {
             state.expand(.launcher)
             state.isEditingShortcuts = true
         case "focus": state.startFocus()
+        case "presentation-state":
+            FileHandle.standardError.write(Data("ARROWSLIT_PRESENT active=\(state.presentation) mirror=\(state.mirrorPresentation) alert=\(String(describing: state.currentAlert))\n".utf8))
+        case "ax-state":
+            FileHandle.standardError.write(Data("ARROWSLIT_AX trusted=\(AXIsProcessTrusted())\n".utf8))
+        case "window-state":
+            let key = NSApp.keyWindow
+            let responder = key?.firstResponder.map { String(describing: type(of: $0)) } ?? "none"
+            let accepts = (key as? NSPanel).map { _ in "?" } ?? "?"
+            FileHandle.standardError.write(Data(
+                "ARROWSLIT_STATE expanded=\(state.isExpanded) typing=\(state.isTypingInNook) key=\(key != nil) responder=\(responder) accepts=\(accepts)\n".utf8
+            ))
         case "start5": state.startTimer(minutes: 5)
         case "start25": state.startTimer(minutes: 25)
         case "toggle": state.toggleTimer()
