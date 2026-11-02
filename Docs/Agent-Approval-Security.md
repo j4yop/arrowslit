@@ -46,4 +46,5 @@
 - [ ] Verify a replaced/mismatched Arrowslit binary is rejected by the CLI hook.
 - [ ] Verify Allow, Deny and Ask for each of the six assistants.
 - [x] Verify uninstall leaves valid JSON and removes only Arrowslit's entries (unit test).
-- [ ] Verify OpenCode `permission.asked` and `permission.v2.asked` on the current release.
+- [x] Verify OpenCode's V2 `permission.evaluate` hook returns allow, deny and unchanged (functional test).
+- [ ] Verify a live OpenCode permission prompt in the notch on the current release.
