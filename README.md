@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.9.2/Arrowslit-0.9.2.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.10.0/Arrowslit-0.10.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -82,7 +82,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.9.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.9.2/Arrowslit-0.9.2.dmg)** and open it.
+1. Download **[Arrowslit-0.10.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.10.0/Arrowslit-0.10.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -99,9 +99,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.9.2 (build 34) |
-| **Direct Download** | [Arrowslit-0.9.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.9.2/Arrowslit-0.9.2.dmg) |
-| **SHA-256** | `4e4559e34e9cdadfd7d167ad2be54287239741a46ffb7aa990dab6b38cbd8277` |
+| **Version** | 0.10.0 (build 35) |
+| **Direct Download** | [Arrowslit-0.10.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.10.0/Arrowslit-0.10.0.dmg) |
+| **SHA-256** | `5812532e59cedb1500767eee231d861c1b969f6f36e320e16134b0cfe76a29b9` |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
