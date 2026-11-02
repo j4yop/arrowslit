@@ -57,7 +57,7 @@ struct MediaLingerTests {
         #expect(service.isLingering)
         #expect(service.isVisible)
 
-        try? await Task.sleep(for: .milliseconds(250))
+        try? await Task.sleep(for: .milliseconds(500))
         #expect(!service.isLingering)
     }
 }

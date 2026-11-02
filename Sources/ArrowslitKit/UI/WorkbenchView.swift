@@ -39,10 +39,16 @@ struct WorkbenchView: View {
         .background(ArrowTheme.ink)
         .clipShape(SlitShape(radius: 22))
         .overlay {
-            SlitShape(radius: 22)
-                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            if !state.settings.appearance.pitchBlack {
+                SlitShape(radius: 22)
+                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            }
         }
-        .shadow(color: .black.opacity(0.45), radius: 24, y: 10)
+        .shadow(
+            color: state.settings.appearance.pitchBlack ? .clear : .black.opacity(0.45),
+            radius: 24,
+            y: 10
+        )
     }
 }
 

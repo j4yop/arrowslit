@@ -26,8 +26,10 @@ struct NowPlayingPlayerView: View {
         .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 30, flare: 10, notchBand: geometry.notch?.height ?? 0))
         .clipShape(SlitShape(radius: 30, flare: 10))
         .overlay {
-            SlitShape(radius: 30, flare: 10)
-                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            if !state.settings.appearance.pitchBlack {
+                SlitShape(radius: 30, flare: 10)
+                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            }
         }
         .onAppear { updateLyrics() }
         .onChange(of: service.activeTrack) { _, _ in updateLyrics() }
@@ -147,12 +149,14 @@ struct NowPlayingPlayerView: View {
             }
             .frame(height: 56)
 
-            lyricsLine(track, lyrics: lyrics)
-                .padding(.top, 8)
-                .frame(height: 34)
+            if state.settings.lyricsEnabled, lyrics != nil {
+                lyricsLine(track, lyrics: lyrics)
+                    .padding(.top, 8)
+                    .frame(height: 34)
+            }
 
             PlayerProgressRow(state: state, layout: .inline, tint: .white)
-                .padding(.top, 10)
+                .padding(.top, state.settings.lyricsEnabled && lyrics != nil ? 10 : 14)
 
             if service.isControllingCurrentSource {
                 HStack(spacing: 30) {
@@ -266,7 +270,7 @@ struct PlayerProgressRow: View {
 
     @Bindable var state: AppState
     var layout: Layout = .stacked
-    var tint: Color = Color(red: 0.04, green: 0.52, blue: 1)
+    var tint: Color = ArrowTheme.blue
     @State private var scrubProgress: Double?
 
     private var service: NowPlayingService { state.nowPlaying }
@@ -324,7 +328,7 @@ struct PlayerProgressRow: View {
 struct PlayerScrubBar: View {
     var progress: Double
     var isEnabled: Bool
-    var tint: Color = Color(red: 0.04, green: 0.52, blue: 1)
+    var tint: Color = ArrowTheme.blue
     var barHeight: CGFloat = 4
     var dragHeight: CGFloat = 6
     var onScrub: (Double, Bool) -> Void

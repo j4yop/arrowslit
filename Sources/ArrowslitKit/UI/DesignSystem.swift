@@ -7,13 +7,13 @@ import SwiftUI
 enum NookMotion {
     static var liquidAnimations = true
 
-    static let press = Animation.easeOut(duration: 0.12)
-    static let hover = Animation.easeOut(duration: 0.14)
+    static let press = Animation.spring(duration: 0.2, bounce: 0.4)
+    static let hover = Animation.easeOut(duration: 0.15)
     static let quick = Animation.easeOut(duration: 0.18)
-    static let open = Animation.spring(response: 0.34, dampingFraction: 1.0)
-    static let close = Animation.spring(response: 0.26, dampingFraction: 1.0)
-    static let content = Animation.spring(response: 0.3, dampingFraction: 1.0)
-    static let drop = Animation.spring(response: 0.28, dampingFraction: 1.0)
+    static let open = Animation.spring(response: 0.48, dampingFraction: 0.8)
+    static let close = Animation.smooth(duration: 0.42)
+    static let content = Animation.spring(response: 0.38, dampingFraction: 0.86)
+    static let drop = Animation.spring(response: 0.38, dampingFraction: 0.86)
 
     /// `nil` means no implicit animation at all when the user turns Liquid animations off.
     static func reducing(_ animation: Animation, reduceMotion: Bool) -> Animation? {
@@ -22,11 +22,11 @@ enum NookMotion {
     }
 }
 
-/// Every pressable surface in the nook gets the same physical press: a 3%
-/// scale and a small opacity dip on mouse-down, released quickly. Reduce
-/// Motion keeps the opacity feedback but drops the scale.
+/// Every pressable surface in the nook gets DynamicLedge's physical press: a 10%
+/// scale and a deeper opacity dip on mouse-down, released with a small spring.
+/// Reduce Motion keeps the opacity feedback but drops the scale.
 struct NookPressStyle: ButtonStyle {
-    var pressedScale: CGFloat = 0.97
+    var pressedScale: CGFloat = 0.9
 
     func makeBody(configuration: Configuration) -> some View {
         NookPressBody(configuration: configuration, pressedScale: pressedScale)
@@ -40,13 +40,47 @@ struct NookPressStyle: ButtonStyle {
         var body: some View {
             configuration.label
                 .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? pressedScale : 1))
-                .opacity(configuration.isPressed ? 0.86 : 1)
+                .opacity(configuration.isPressed ? 0.7 : 1)
                 .animation(
                     NookMotion.reducing(NookMotion.press, reduceMotion: reduceMotion),
                     value: configuration.isPressed
                 )
                 .contentShape(Rectangle())
         }
+    }
+}
+
+/// Shared haptic feedback. DynamicLedge uses the alignment haptic for holds, edits and
+/// one-shot switches; Arrowslit keeps the same feel and respects the user's toggle.
+@MainActor
+enum NookHaptics {
+    static func perform(enabled: Bool) {
+        guard enabled else { return }
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+    }
+}
+
+/// A click that behaves like DynamicLedge's launcher tile: a short hold runs `onHold`,
+/// while a normal click runs `onClick`. A plain Button also fires after a long hold, which
+/// would open a feature while the user is trying to edit the shortcuts.
+struct ClickNotHold: ViewModifier {
+    var onHold: (() -> Void)?
+    let onClick: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .gesture(
+                LongPressGesture(minimumDuration: 0.4)
+                    .exclusively(before: TapGesture())
+                    .onEnded { result in
+                        switch result {
+                        case .first: onHold?()
+                        case .second: onClick()
+                        }
+                    }
+            )
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { onClick() }
     }
 }
 

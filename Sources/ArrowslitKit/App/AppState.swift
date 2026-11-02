@@ -31,7 +31,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .timer: "Timer"
         case .calendar: "Calendar"
         case .tray: "Files"
-        case .mirror: "Mirror"
+        case .mirror: "Camera Mirror"
         case .clipboard: "Clipboard"
         case .notes: "Scratchpad"
         case .stats: "Stats"
@@ -54,14 +54,38 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .tray: "tray.full"
         case .mirror: "web.camera"
         case .clipboard: "doc.on.clipboard"
-        case .notes: "square.and.pencil"
+        case .notes: "note.text"
         case .stats: "gauge.with.dots.needle.33percent"
         case .sports: "soccerball"
         case .reminders: "checklist"
         case .stopwatch: "stopwatch"
-        case .keepAwake: "cup.and.saucer.fill"
+        case .keepAwake: "cup.and.saucer"
         case .launcher: "square.grid.2x2"
         }
+    }
+
+    /// The letter pressed with Control and Option for the launcher and Home shortcuts.
+    /// Sports uses F (football); the rest follow DynamicLedge's chosen keys.
+    public var shortcutKey: Character? {
+        switch self {
+        case .nowPlaying: "M"
+        case .timer: "R"
+        case .stopwatch: "S"
+        case .calendar: "A"
+        case .sports: "F"
+        case .reminders: "O"
+        case .clipboard: "B"
+        case .tray: "L"
+        case .notes: "N"
+        case .mirror: "W"
+        case .keepAwake: "Z"
+        case .stats: "P"
+        case .home, .launcher, .call, .download: nil
+        }
+    }
+
+    public var shortcutLabel: String? {
+        shortcutKey.map { "⌃⌥\($0)" }
     }
 
     /// Tabs that live in the top strip beside the camera.
@@ -101,6 +125,7 @@ public final class AppState {
     public let updater = UpdateService()
     public let stopwatch = StopwatchService()
     public let keepAwake = KeepAwakeService()
+    public let hotKeys = HotKeys()
 
     public private(set) var activeTab: WorkbenchTab = .home
     public var clockMode: ClockMode = .timer
@@ -176,6 +201,7 @@ public final class AppState {
             self?.receive(.shortcut(name: name, succeeded: succeeded))
         }
         agents.onChange = { [weak self] in self?.syncAgentAlert() }
+        hotKeys.onPress = { [weak self] tab in self?.openShortcut(tab) }
     }
 
     public func start() {
@@ -197,6 +223,7 @@ public final class AppState {
             downloads.start()
             downloadProgress.start()
         }
+        if settings.keyboardShortcutsEnabled { hotKeys.register() }
         agents.enabledKinds = settings.agentApprovals
         if !settings.agentApprovals.isEmpty {
             agents.start()
@@ -220,6 +247,7 @@ public final class AppState {
         downloads.stop()
         downloadProgress.stop()
         agents.stop()
+        hotKeys.unregister()
         calendar.stop()
         clipboard.stop()
         stats.stop()
@@ -290,6 +318,24 @@ public final class AppState {
 
     public func expandDefault() {
         expand(defaultTab)
+    }
+
+    /// A ⌃⌥ shortcut from the launcher. Keep Awake and Stats are switches, like their tiles;
+    /// everything else opens the feature.
+    public func openShortcut(_ tab: WorkbenchTab) {
+        switch tab {
+        case .nowPlaying:
+            expand(nowPlaying.isVisible ? .nowPlaying : .home)
+        case .keepAwake:
+            keepAwake.toggle()
+            NookHaptics.perform(enabled: settings.hapticFeedback)
+        case .stats:
+            settings.statsEnabled.toggle()
+            if settings.statsEnabled { stats.start() } else { stats.stop() }
+            NookHaptics.perform(enabled: settings.hapticFeedback)
+        default:
+            expand(tab)
+        }
     }
 
     /// Installs or removes an assistant's hook, then updates the live bridge. Returns an error
@@ -446,6 +492,11 @@ public final class AppState {
         if enabled { updater.startAutomaticChecks() } else { updater.stop() }
     }
 
+    public func setKeyboardShortcuts(_ enabled: Bool) {
+        settings.keyboardShortcutsEnabled = enabled
+        if enabled { hotKeys.register() } else { hotKeys.unregister() }
+    }
+
     public func setLiquidAnimations(_ enabled: Bool) {
         settings.liquidAnimations = enabled
         NookMotion.liquidAnimations = enabled
@@ -461,7 +512,8 @@ public final class AppState {
         sports.goalAlertsChanged()
     }
 
-    public func toggleShortcut(_ tab: WorkbenchTab) {
+    @discardableResult
+    public func toggleShortcut(_ tab: WorkbenchTab) -> Bool {
         settings.toggleShortcut(tab)
     }
 
@@ -540,12 +592,17 @@ public final class AppState {
             return ParityLayout.compactSize(settings.appearance, geometry: geometry)
         case .compact(_, let secondary):
             return ParityLayout.compactSize(settings.appearance, geometry: geometry, hasSecondary: secondary != nil)
-        case .expanded(let tab) where tab == .call || tab == .nowPlaying || tab == .download || tab == .launcher || tab == .home || tab == .tray || tab == .clipboard:
+        case .expanded(let tab):
             return ParityLayout.expandedSize(
                 for: tab,
                 appearance: settings.appearance,
-                geometry: geometry
+                geometry: geometry,
+                clipboardSearching: tab == .clipboard && isSearchingClipboard,
+                hasLyrics: tab == .nowPlaying && settings.lyricsEnabled && lyrics.current != nil,
+                hasMediaSwitcher: tab == .nowPlaying && !nowPlaying.otherSources.isEmpty
             )
+        case .clockRunning:
+            return ParityLayout.clockSize(settings.appearance, geometry: geometry)
         case .alert(.agentRequest(let request)):
             let lines = request.reviewLineCount(charactersPerLine: 70)
             return CGSize(

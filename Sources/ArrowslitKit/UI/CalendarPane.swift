@@ -18,7 +18,8 @@ struct CalendarPanelBody: View {
     @Bindable var state: AppState
     @State private var selected: Date?
     private var calendar: CalendarService { state.calendar }
-    private let red = Color(red: 1, green: 0.27, blue: 0.23)
+    private let red = ArrowTheme.red
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         switch calendar.access {
@@ -60,13 +61,13 @@ struct CalendarPanelBody: View {
                             selected = isCurrent || cal.isDate(day, inSameDayAs: context.date) ? nil : day
                         }
                     }
-                    .frame(width: 168, alignment: .leading)
+                    .frame(width: 168 * scale, alignment: .leading)
 
                     Rectangle()
                         .fill(ArrowTheme.hairline)
                         .frame(width: 1)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, 16 * scale)
+                        .padding(.vertical, 2 * scale)
 
                     Group {
                         if let selected {
@@ -78,7 +79,6 @@ struct CalendarPanelBody: View {
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
-            .padding(.top, 2)
         }
     }
 
@@ -95,26 +95,27 @@ private struct DayList: View {
     @Bindable var state: AppState
     let day: Date
     let now: Date
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         let events = CalendarRules.events(on: day, in: state.calendar.events, at: now)
         let shown = events.prefix(3)
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 6 * scale) {
             Text(day.formatted(.dateTime.weekday(.wide).day().month(.abbreviated)).uppercased())
-                .font(.system(size: 9.5, weight: .semibold))
+                .font(.system(size: 9.5 * scale, weight: .semibold))
                 .kerning(0.4)
                 .foregroundStyle(ArrowTheme.muted)
             if events.isEmpty {
                 HStack(spacing: 8) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 16))
+                        .font(.system(size: 16 * scale))
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(ArrowTheme.muted)
                     Text("No events")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 12 * scale, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
-                .padding(.top, 8)
+                .padding(.top, 8 * scale)
             } else {
                 ForEach(shown) { event in
                     EventRow(event: event, now: now) {
@@ -123,7 +124,7 @@ private struct DayList: View {
                 }
                 if events.count > shown.count {
                     Text("+\(events.count - shown.count) more")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 10 * scale, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
             }
@@ -136,30 +137,31 @@ private struct DayList: View {
 private struct UpNext: View {
     @Bindable var state: AppState
     let now: Date
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         let upcoming = CalendarRules.upcoming(in: state.calendar.events, at: now, limit: 3)
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4 * scale) {
             Text(upcoming.first.map { CalendarRules.dayLabel(for: $0, at: now) }?.uppercased() ?? "UP NEXT")
-                .font(.system(size: 9.5, weight: .semibold))
+                .font(.system(size: 9.5 * scale, weight: .semibold))
                 .kerning(0.4)
                 .foregroundStyle(ArrowTheme.muted)
             if upcoming.isEmpty {
                 HStack(spacing: 8) {
                     Image(systemName: "calendar.badge.checkmark")
-                        .font(.system(size: 16))
+                        .font(.system(size: 16 * scale))
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(ArrowTheme.muted)
                     Text("Nothing on your calendar this week")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 12 * scale, weight: .medium))
                         .foregroundStyle(ArrowTheme.muted)
                 }
-                .padding(.top, 8)
+                .padding(.top, 8 * scale)
             } else {
                 ForEach(Array(upcoming.enumerated()), id: \.element.id) { index, event in
                     if index > 0, CalendarRules.dayLabel(for: event, at: now) != CalendarRules.dayLabel(for: upcoming[index - 1], at: now) {
                         Text(CalendarRules.dayLabel(for: event, at: now).uppercased())
-                            .font(.system(size: 9.5, weight: .semibold))
+                            .font(.system(size: 9.5 * scale, weight: .semibold))
                             .kerning(0.4)
                             .foregroundStyle(ArrowTheme.muted)
                             .padding(.top, 1)
@@ -178,34 +180,35 @@ private struct EventRow: View {
     let now: Date
     let open: () -> Void
     @State private var isHovering = false
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         let happening = event.isHappening(at: now)
         Button(action: open) {
-            HStack(spacing: 9) {
-                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                    .fill(Color(red: 1, green: 0.27, blue: 0.23))
-                    .frame(width: 3, height: 26)
-                VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 9 * scale) {
+                RoundedRectangle(cornerRadius: 1.5 * scale, style: .continuous)
+                    .fill(ArrowTheme.red)
+                    .frame(width: 3 * scale, height: 24 * scale)
+                VStack(alignment: .leading, spacing: 1 * scale) {
                     Text(event.title)
-                        .font(.system(size: 12.5, weight: .semibold))
+                        .font(.system(size: 12.5 * scale, weight: .semibold))
                         .foregroundStyle(ArrowTheme.bone)
                         .lineLimit(1)
                     Text(CalendarRules.timeRange(for: event, at: now))
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(.system(size: 10.5 * scale, weight: .medium))
                         .monospacedDigit()
                         .foregroundStyle(happening ? ArrowTheme.green : ArrowTheme.muted)
                         .lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, 6 * scale)
+            .padding(.vertical, 1 * scale)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: 8 * scale, style: .continuous)
                     .fill(Color.white.opacity(isHovering ? 0.08 : 0))
             )
-            .padding(.horizontal, -6)
+            .padding(.horizontal, -6 * scale)
             .contentShape(Rectangle())
         }
         .buttonStyle(NookPressStyle())
@@ -220,21 +223,22 @@ private struct MonthGrid: View {
     let selected: Date?
     let busyDays: Set<Int>
     let pick: (Date) -> Void
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         let month = MonthLayout(containing: today)
-        let columns = Array(repeating: GridItem(.fixed(22), spacing: 1), count: 7)
-        VStack(alignment: .leading, spacing: 4) {
+        let columns = Array(repeating: GridItem(.fixed(22 * scale), spacing: 1 * scale), count: 7)
+        VStack(alignment: .leading, spacing: 3 * scale) {
             Text(today.formatted(.dateTime.month(.wide)).uppercased())
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 10 * scale, weight: .bold))
                 .kerning(0.5)
-                .foregroundStyle(Color(red: 1, green: 0.27, blue: 0.23))
+                .foregroundStyle(ArrowTheme.red)
             LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(Array(month.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                     Text(symbol)
-                        .font(.system(size: 8, weight: .semibold))
+                        .font(.system(size: 8 * scale, weight: .semibold))
                         .foregroundStyle(ArrowTheme.muted)
-                        .frame(height: 12)
+                        .frame(height: 11 * scale)
                 }
                 ForEach(month.cells.indices.map { $0 + 100 }, id: \.self) { index in
                     let day = month.cells[index - 100]
@@ -273,6 +277,7 @@ private struct DayCell: View {
     let isBusy: Bool
     let pick: (Date) -> Void
     @State private var isHovering = false
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         if let date {
@@ -289,24 +294,24 @@ private struct DayCell: View {
     private var face: some View {
         ZStack {
             if isToday {
-                Circle().fill(Color(red: 1, green: 0.27, blue: 0.23)).frame(width: 15, height: 15)
+                Circle().fill(ArrowTheme.red).frame(width: 15 * scale, height: 15 * scale)
             } else if isSelected {
-                Circle().fill(Color.white.opacity(0.22)).frame(width: 15, height: 15)
+                Circle().fill(Color.white.opacity(0.22)).frame(width: 15 * scale, height: 15 * scale)
             } else if isHovering {
-                Circle().fill(Color.white.opacity(0.1)).frame(width: 15, height: 15)
+                Circle().fill(Color.white.opacity(0.1)).frame(width: 15 * scale, height: 15 * scale)
             }
             Text(day.map(String.init) ?? "")
-                .font(.system(size: 9, weight: isToday || isSelected ? .bold : .medium))
+                .font(.system(size: 9 * scale, weight: isToday || isSelected ? .bold : .medium))
                 .monospacedDigit()
                 .foregroundStyle(.white.opacity(isToday || isSelected ? 1 : 0.85))
             if isBusy, !isToday, !isSelected {
                 Circle()
                     .fill(Color.white.opacity(0.45))
-                    .frame(width: 2.5, height: 2.5)
-                    .offset(y: 7)
+                    .frame(width: 2.5 * scale, height: 2.5 * scale)
+                    .offset(y: 7 * scale)
             }
         }
-        .frame(width: 22, height: 14.5)
+        .frame(width: 22 * scale, height: 13 * scale)
         .contentShape(Rectangle())
     }
 }
@@ -316,25 +321,26 @@ private struct ConnectPrompt: View {
     let button: String
     let tint: Color
     let action: () -> Void
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 12 * scale) {
             Image(systemName: "calendar")
-                .font(.system(size: 24, weight: .regular))
+                .font(.system(size: 24 * scale, weight: .regular))
                 .foregroundStyle(tint)
             Text(text)
-                .font(.system(size: 11.5))
+                .font(.system(size: 11.5 * scale))
                 .foregroundStyle(ArrowTheme.muted)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 360)
+                .frame(maxWidth: 360 * scale)
             Button(button, action: action)
                 .buttonStyle(NookPressStyle())
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: 11 * scale, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
-                .padding(.horizontal, 15)
-                .frame(height: 32)
+                .padding(.horizontal, 15 * scale)
+                .frame(height: 32 * scale)
                 .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    RoundedRectangle(cornerRadius: 7 * scale, style: .continuous)
                         .fill(ArrowTheme.amber)
                 )
         }

@@ -40,20 +40,24 @@ sleep 0.5
 defaults write com.j4yop.arrowslit arrowslit.display -string automatic
 defaults write com.j4yop.arrowslit arrowslit.openSettingsOnLaunch -bool false
 
-CONFIG=debug VERSION=0.10.0 BUILD_NUMBER=35 ./Scripts/build-app.sh >/tmp/parity-build.log 2>&1
+CONFIG=debug VERSION=0.10.1 BUILD_NUMBER=36 ./Scripts/build-app.sh >/tmp/parity-build.log 2>&1
 "$ROOT/build/Arrowslit.app/Contents/MacOS/Arrowslit" >/tmp/parity-app.log 2>&1 &
 sleep 3
 
 STATES=(
   "compact|parity-compact|274x32|0.9"
-  "home|parity-home|560x178|1.0"
+  "home|parity-home|580x178|1.0"
   "elongated|parity-elongated|1240x178|1.0"
-  "launcher|parity-launcher|560x228|1.0"
-  "tray|parity-tray|560x178|1.0"
-  "clipboard|parity-clipboard|560x178|1.0"
+  "calendar|parity-calendar|580x178|1.0"
+  "timer|parity-timer|580x178|1.0"
+  "stats|parity-stats|580x178|1.0"
+  "notes|parity-notes|580x178|1.0"
+  "launcher|parity-launcher|580x228|1.0"
+  "tray|parity-tray|580x178|1.0"
+  "clipboard|parity-clipboard|580x178|1.0"
   "hud|parity-hud|340x32|0.45"
   "goal|parity-goal||0.6"
-  "nowplaying|parity-nowplaying|390x218|1.0"
+  "nowplaying|parity-nowplaying|390x188|1.0"
   "agent|parity-agent||0.6"
 )
 

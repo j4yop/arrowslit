@@ -87,6 +87,7 @@ struct ArrowslitRootView: View {
         .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: presentation)
         .environment(\.colorScheme, .dark)
         .environment(\.panelGeometry, geometry)
+        .environment(\.panelScale, state.settings.appearance.size.scale)
     }
 }
 
@@ -137,7 +138,7 @@ private struct SecondaryBubble: View {
         case .download:
             Image(systemName: "arrow.down")
                 .font(.system(size: diameter * 0.42, weight: .bold))
-                .foregroundStyle(Color(red: 0.04, green: 0.52, blue: 1))
+                .foregroundStyle(ArrowTheme.blue)
         case .call:
             Image(systemName: "phone.fill")
                 .font(.system(size: diameter * 0.4, weight: .semibold))
@@ -400,9 +401,14 @@ private struct CompactBar: View {
         .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 12, flare: 6, notchBand: geometry.notch?.height ?? 0))
         .clipShape(SlitShape(radius: 12, flare: 6))
         .overlay {
-            SlitShape(radius: 12, flare: 6)
-                .stroke(isDropTargeted ? Color(red: 0.20, green: 0.55, blue: 1) : ArrowTheme.hairline, lineWidth: isDropTargeted ? 1.5 : 0.5)
-                .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isDropTargeted)
+            if isDropTargeted || !state.settings.appearance.pitchBlack {
+                SlitShape(radius: 12, flare: 6)
+                    .stroke(
+                        isDropTargeted ? ArrowTheme.blue : ArrowTheme.hairline,
+                        lineWidth: isDropTargeted ? 1.5 : 0.5
+                    )
+                    .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isDropTargeted)
+            }
         }
         .contentShape(SlitShape(radius: 12, flare: 6))
         .onTapGesture { state.expandDefault() }

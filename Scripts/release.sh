@@ -2,7 +2,7 @@
 # Builds, signs and publishes an Arrowslit release.
 #
 # Required environment:
-#   VERSION=0.10.0
+#   VERSION=0.10.1
 #   UPDATE_SIGNING_KEY_FILE=$HOME/Library/Application Support/Arrowslit/update-signing-key
 # Optional:
 #   SIGN_IDENTITY="Arrowslit" (stable self-signed certificate; otherwise ad-hoc)
@@ -13,7 +13,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-VERSION="${VERSION:?Set VERSION, e.g. VERSION=0.10.0}"
+VERSION="${VERSION:?Set VERSION, e.g. VERSION=0.10.1}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git rev-list --count HEAD)}"
 TAG="v$VERSION"
 DMG="$ROOT/build/Arrowslit-$VERSION.dmg"
