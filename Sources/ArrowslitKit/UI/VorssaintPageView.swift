@@ -13,7 +13,7 @@ struct VorssaintPageView: View {
             case .mixer:
                 VorssaintMixerPane(state: state)
             case .music:
-                NowPlayingPane(state: state)
+                VorssaintNowPlayingPane(state: state)
             case .clipboard:
                 ClipboardPane(state: state)
             case .captures:
@@ -21,19 +21,19 @@ struct VorssaintPageView: View {
             case .files:
                 TrayPane(state: state)
             case .system:
-                StatsPane(state: state)
+                VorssaintSystemPane(state: state)
             case .tools:
                 VorssaintToolsPane(state: state)
             case .calendar:
-                CalendarPane(state: state)
+                VorssaintCalendarPane(state: state)
             case .notifications:
                 VorssaintNotificationsPane(state: state)
             case .timer:
-                TimerPane(state: state)
+                VorssaintTimerPane(state: state)
             case .camera:
                 MirrorPane(state: state)
             case .downloads:
-                DownloadPane(state: state)
+                VorssaintDownloadsPane(state: state)
             case .scratchpad:
                 NotesPane(state: state)
             case .agents:

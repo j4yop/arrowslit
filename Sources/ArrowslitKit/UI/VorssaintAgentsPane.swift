@@ -4,7 +4,7 @@ struct VorssaintAgentsPane: View {
     @Bindable var state: AppState
     @StateObject private var usage = AgentUsageService.shared
     @StateObject private var resets = AgentCodexResetService.shared
-    @State private var period: AgentPeriod = .today
+    @AppStorage("arrowslit.agents.period") private var periodRaw = AgentPeriod.today.rawValue
     @State private var limitDisplay: LimitDisplay = .remaining
     @State private var confirmingReset = false
 
@@ -12,11 +12,18 @@ struct VorssaintAgentsPane: View {
         case remaining, used
     }
 
+    private var period: AgentPeriod {
+        AgentPeriod(rawValue: periodRaw) ?? .today
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             PaneHeader("AI Agents") {
                 HStack(spacing: 7) {
-                    Picker("Period", selection: $period) {
+                    Picker("Period", selection: Binding(
+                        get: { period },
+                        set: { periodRaw = $0.rawValue }
+                    )) {
                         Text("Today").tag(AgentPeriod.today)
                         Text("7 days").tag(AgentPeriod.week)
                         Text("30 days").tag(AgentPeriod.month)

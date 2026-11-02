@@ -14,6 +14,9 @@ struct NookView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if state.activeTab == .launcher {
+                VorssaintLauncherSurface(state: state)
+            } else {
             NookHeader(state: state, notchWidth: ParityLayout.notch(in: geometry).width)
             Group {
                 switch state.activeTab {
@@ -54,23 +57,31 @@ struct NookView: View {
                         .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
                 }
             }
+            }
         }
         .frame(width: size.width, height: size.height)
-        .background(NotchSurfaceBackground(
-            appearance: state.settings.appearance,
-            radius: state.activeTab == .launcher ? 22 : 30,
-            flare: 10,
-            notchBand: geometry.notch?.height ?? 0
-        ))
-        .clipShape(SlitShape(radius: state.activeTab == .launcher ? 22 : 30, flare: 10))
+        .background {
+            if state.activeTab != .launcher {
+                NotchSurfaceBackground(
+                    appearance: state.settings.appearance,
+                    radius: 30,
+                    flare: 10,
+                    notchBand: geometry.notch?.height ?? 0
+                )
+            }
+        }
+        .clipShape(state.activeTab == .launcher
+            ? AnyShape(Rectangle())
+            : AnyShape(SlitShape(radius: 30, flare: 10)))
         .overlay {
-            if !state.settings.appearance.pitchBlack {
-                SlitShape(radius: state.activeTab == .launcher ? 22 : 30, flare: 10)
+            if state.activeTab != .launcher, !state.settings.appearance.pitchBlack {
+                SlitShape(radius: 30, flare: 10)
                     .stroke(ArrowTheme.hairline, lineWidth: 0.5)
             }
         }
         .shadow(
-            color: state.settings.appearance.pitchBlack ? .clear : .black.opacity(0.4),
+            color: state.activeTab == .launcher || state.settings.appearance.pitchBlack
+                ? .clear : .black.opacity(0.4),
             radius: 18,
             y: 8
         )

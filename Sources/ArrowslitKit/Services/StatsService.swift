@@ -1,11 +1,13 @@
 import Darwin
 import Foundation
+import IOKit
 import Observation
 
 @MainActor
 @Observable
 public final class StatsService {
     public private(set) var cpu: Double = 0
+    public private(set) var gpu: Double?
     public private(set) var memoryUsed: UInt64 = 0
     public private(set) var memoryTotal: UInt64 = ProcessInfo.processInfo.physicalMemory
     public private(set) var pressure: UsageLevel = .normal
@@ -64,6 +66,7 @@ public final class StatsService {
             }
             lastCPU = sample
         }
+        gpu = Self.readGPU()
         if let used = Self.readMemory() {
             memoryUsed = used
         }
@@ -83,6 +86,26 @@ public final class StatsService {
             diskTotal = disk.total
             lastDiskCheck = now
         }
+    }
+
+    private static func readGPU() -> Double? {
+        var iterator = io_iterator_t()
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOAccelerator"),
+                                           &iterator) == kIOReturnSuccess else { return nil }
+        defer { IOObjectRelease(iterator) }
+        while case let entry = IOIteratorNext(iterator), entry != 0 {
+            defer { IOObjectRelease(entry) }
+            guard let ref = IORegistryEntryCreateCFProperty(entry, "PerformanceStatistics" as CFString,
+                                                             kCFAllocatorDefault, 0),
+                  let stats = ref.takeRetainedValue() as? [String: Any] else { continue }
+            if let utilization = stats["Device Utilization %"] as? Int {
+                return Double(utilization) / 100
+            }
+            if let utilization = stats["Device Utilization %"] as? Double {
+                return utilization / 100
+            }
+        }
+        return nil
     }
 
     private static func readNetwork() -> (received: UInt64, sent: UInt64)? {

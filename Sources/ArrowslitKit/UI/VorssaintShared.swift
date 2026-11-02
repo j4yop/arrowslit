@@ -1,5 +1,27 @@
 import SwiftUI
 
+/// The measured Vorssaint palette. The panel is smoked glass, so the cards
+/// and tiles are a light film over it rather than fixed grey: over the dark
+/// wallpaper in the recordings they measure #1a1a1a and #1b1b1b, while on a
+/// bright desktop the same film picks up the blur behind the panel.
+enum VorssaintTheme {
+    static let panel = Color.black
+    static let card = Color.white.opacity(0.105)
+    static let cardHover = Color.white.opacity(0.155)
+    static let tile = Color.white.opacity(0.095)
+    static let menu = Color.white.opacity(0.16)
+    static let stroke = Color.white.opacity(0.075)
+    static let secondary = Color.white.opacity(0.55)
+    static let tertiary = Color.white.opacity(0.34)
+    static let orange = Color(red: 252 / 255, green: 146 / 255, blue: 11 / 255)
+    static let pink = Color(red: 255 / 255, green: 45 / 255, blue: 85 / 255)
+    static let red = Color(red: 255 / 255, green: 69 / 255, blue: 58 / 255)
+    static let green = Color(red: 48 / 255, green: 209 / 255, blue: 88 / 255)
+    static let blue = Color(red: 10 / 255, green: 132 / 255, blue: 255 / 255)
+    static let purple = Color(red: 191 / 255, green: 90 / 255, blue: 242 / 255)
+    static let yellow = Color(red: 255 / 255, green: 214 / 255, blue: 10 / 255)
+}
+
 /// Shared card and button chrome for the Vorssaint-style pages.
 struct VorssaintCard<Content: View>: View {
     var padding: CGFloat = 12
@@ -11,11 +33,11 @@ struct VorssaintCard<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.white.opacity(0.06))
+                    .fill(VorssaintTheme.card)
             )
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                    .stroke(VorssaintTheme.stroke, lineWidth: 0.5)
             }
     }
 }
@@ -38,25 +60,28 @@ struct VorssaintActionTile: View {
                     .foregroundStyle(tint)
                     .frame(height: 20)
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.92))
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let detail {
                     Text(detail)
-                        .font(.system(size: 9.5, weight: .medium))
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(active ? tint.opacity(0.9) : .white.opacity(0.42))
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.white.opacity(hovering ? 0.11 : 0.06))
+                    .fill(hovering ? VorssaintTheme.cardHover : VorssaintTheme.card)
             )
             .overlay {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(active ? tint.opacity(0.45) : Color.white.opacity(0.06), lineWidth: 0.75)
+                    .stroke(active ? tint.opacity(0.45) : VorssaintTheme.stroke, lineWidth: 0.75)
             }
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }

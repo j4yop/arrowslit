@@ -44,6 +44,22 @@ struct VorssaintPagesTests {
             appearance: .standard,
             geometry: geometry
         )
-        #expect(size == CGSize(width: 596, height: 256))
+        #expect(size == CGSize(width: 704, height: 316))
+    }
+
+    @Test func launcherUsesTheVorssaintPanelAndQuickAccessGeometry() {
+        #expect(VorssaintWindow.panelWidth == 560)
+        #expect(VorssaintWindow.gutter == 72)
+        #expect(VorssaintWindow.totalWidth == 704)
+        #expect(VorssaintWindow.quickDiameter == 44)
+        #expect(VorssaintWindow.quickRowSpacing == 54)
+        #expect(VorssaintWindow.leftQuickCenter(index: 0) == CGPoint(x: 38, y: 66))
+        #expect(VorssaintWindow.rightQuickCenter(index: 1) == CGPoint(x: 666, y: 120))
+        #expect(VorssaintWindow.musicCenter(for: nil) == CGPoint(x: 352, y: 278))
+        #expect(ParityLayout.launcherSize() == CGSize(width: 704, height: 316))
+        #expect(ParityLayout.launcherSize(for: .agents) == CGSize(width: 704, height: 400))
+        #expect(VorssaintWindow.panelHeight(for: .agents) == 328)
+        #expect(VorssaintWindow.contentHeight(for: .agents) == 264)
+        #expect(VorssaintWindow.contentHeight(for: .system) == 180)
     }
 }

@@ -123,6 +123,12 @@ public enum ParityLayout {
         return tab == .home || tab == .tray || tab == .clipboard
     }
 
+    /// The Vorssaint floating layer: a 560-pt panel with a 72-pt gutter on
+    /// each side, plus the player button hanging below the panel.
+    public static func launcherSize(for page: VorssaintPage? = nil) -> CGSize {
+        CGSize(width: VorssaintWindow.totalWidth, height: VorssaintWindow.windowHeight(for: page))
+    }
+
     public static func expandedSize(
         for tab: WorkbenchTab,
         appearance: NotchAppearance,
@@ -131,6 +137,7 @@ public enum ParityLayout {
         hasLyrics: Bool = false,
         hasMediaSwitcher: Bool = false
     ) -> CGSize {
+        if tab == .launcher { return launcherSize() }
         // Everything except the three dedicated activity panels lives in the nook width.
         let nook = tab != .call && tab != .download && tab != .nowPlaying
         let width: CGFloat

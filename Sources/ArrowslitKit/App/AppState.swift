@@ -153,6 +153,7 @@ public final class AppState {
     public var isEditingShortcuts = false
     /// The Vorssaint-style page currently open inside the launcher surface.
     public private(set) var vorssaintPage: VorssaintPage?
+    public private(set) var vorssaintPinned = false
     /// Recent notch alerts for the Notifications page.
     public private(set) var alertHistory: [AlertHistoryItem] = []
 
@@ -309,6 +310,7 @@ public final class AppState {
 
     /// A click outside the notch closes an alert first, then the workbench.
     public func outsideClick() {
+        if isExpanded, activeTab == .launcher, vorssaintPinned { return }
         if alerts.current != nil {
             dismissAlert()
         } else {
@@ -461,6 +463,10 @@ public final class AppState {
 
     public func closeVorssaintPage() {
         vorssaintPage = nil
+    }
+
+    public func toggleVorssaintPinned() {
+        vorssaintPinned.toggle()
     }
 
     public func clearAlertHistory() {
@@ -631,6 +637,9 @@ public final class AppState {
         case .compact(_, let secondary):
             return ParityLayout.compactSize(settings.appearance, geometry: geometry, hasSecondary: secondary != nil)
         case .expanded(let tab):
+            if tab == .launcher {
+                return ParityLayout.launcherSize(for: vorssaintPage)
+            }
             return ParityLayout.expandedSize(
                 for: tab,
                 appearance: settings.appearance,

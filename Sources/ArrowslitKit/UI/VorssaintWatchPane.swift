@@ -139,14 +139,61 @@ struct VorssaintWatchPane: View {
     @State private var watch = VorssaintScreenWatch()
 
     var body: some View {
+        Group {
+            if !watch.isWatching && watch.text.isEmpty && watch.message == nil {
+                VStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(Color.white.opacity(0.085))
+                            .frame(width: 64, height: 64)
+                        Image(systemName: "eye")
+                            .font(.system(size: 24, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.75))
+                    }
+                    Text("Choose any part of a window, like a progress bar, a build status or a score. The island reads it for you and tells you when it changes.")
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                        .frame(maxWidth: 400)
+                    Button("Choose Area") {
+                        watch.start()
+                        NookHaptics.perform(enabled: state.settings.hapticFeedback)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .padding(.horizontal, 20)
+                    .frame(height: 36)
+                    .background(Capsule().fill(Color.white.opacity(0.12)))
+                    if let error = watch.error {
+                        Text(error)
+                            .font(.system(size: 10))
+                            .foregroundStyle(VorssaintTheme.red)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                watchControls
+            }
+        }
+        .padding(.top, 2)
+        .onDisappear { watch.stop() }
+    }
+
+    private var watchControls: some View {
         VStack(alignment: .leading, spacing: 9) {
-            PaneHeader("Watch") {
+            HStack {
+                Text(watch.isWatching ? "Watching the screen" : "Last reading")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(watch.isWatching ? VorssaintTheme.green : .white.opacity(0.55))
+                Spacer()
                 Button(watch.isWatching ? "Stop" : "Watch screen") {
                     if watch.isWatching { watch.stop() } else { watch.start() }
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(watch.isWatching ? ArrowTheme.red : ArrowTheme.amber)
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(watch.isWatching ? VorssaintTheme.red : VorssaintTheme.orange)
             }
 
             HStack(alignment: .top, spacing: 10) {
@@ -177,12 +224,12 @@ struct VorssaintWatchPane: View {
                         if let message = watch.message {
                             Text(message)
                                 .font(.system(size: 9.5, weight: .semibold))
-                                .foregroundStyle(ArrowTheme.green)
+                                .foregroundStyle(VorssaintTheme.green)
                         }
                         if let error = watch.error {
                             Text(error)
                                 .font(.system(size: 9.5))
-                                .foregroundStyle(ArrowTheme.red)
+                                .foregroundStyle(VorssaintTheme.red)
                         }
                     }
                 }
@@ -204,7 +251,5 @@ struct VorssaintWatchPane: View {
             }
             .frame(maxHeight: .infinity)
         }
-        .padding(.top, 2)
-        .onDisappear { watch.stop() }
     }
 }

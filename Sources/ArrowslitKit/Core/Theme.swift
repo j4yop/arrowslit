@@ -4,7 +4,7 @@ public enum ArrowTheme {
     public static let ink = Color.black
     public static let panel = Color(red: 0.035, green: 0.035, blue: 0.035)
     public static let raised = Color(red: 0.085, green: 0.085, blue: 0.085)
-    public static let amber = Color(red: 1.0, green: 159 / 255, blue: 10 / 255)
+    public static let amber = Color(red: 252 / 255, green: 146 / 255, blue: 11 / 255)
     public static let amberSoft = amber.opacity(0.16)
     public static let bone = Color.white
     public static let muted = Color.white.opacity(0.55)

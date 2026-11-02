@@ -19,7 +19,7 @@ struct VorssaintControlsPane: View {
 
             HStack(alignment: .top, spacing: 10) {
                 musicCard
-                    .frame(width: 235)
+                    .frame(width: 214)
 
                 LazyVGrid(
                     columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3),
@@ -39,7 +39,7 @@ struct VorssaintControlsPane: View {
                     VorssaintActionTile(
                         symbol: "speaker.wave.2.fill",
                         title: "Volume",
-                        detail: "Mixer and outputs",
+                        detail: "System audio",
                         tint: .white
                     ) {
                         state.openVorssaint(.mixer)
@@ -79,7 +79,7 @@ struct VorssaintControlsPane: View {
                     VorssaintActionTile(
                         symbol: "doc.on.clipboard",
                         title: "Clipboard",
-                        detail: "\(state.clipboard.entries.count) clips",
+                        detail: state.clipboard.entries.count == 1 ? "1 clip" : "\(state.clipboard.entries.count) clips",
                         tint: .white
                     ) {
                         state.openVorssaint(.clipboard)
@@ -135,11 +135,15 @@ struct VorssaintControlsPane: View {
                     .foregroundStyle(.white.opacity(0.8))
                     .buttonStyle(.plain)
                 } else {
-                    Spacer(minLength: 0)
-                    Button("Open Now Playing") { state.openVorssaint(.music) }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 9.5, weight: .semibold))
-                        .foregroundStyle(ArrowTheme.amber)
+                    Spacer(minLength: 2)
+                    HStack {
+                        Spacer(minLength: 0)
+                        Button("Open Now Playing") { state.openVorssaint(.music) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 9.5, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.amber)
+                        Spacer(minLength: 0)
+                    }
                 }
             }
         }

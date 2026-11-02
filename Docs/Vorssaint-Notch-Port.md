@@ -4,20 +4,34 @@
 **Source:** Vorssaint v3.4.3, commit `a5da763` (GPL-3.0-or-later)
 **Target:** Arrowslit's notch / Dynamic Island surface
 
-This branch replaces the old 560×178 tabbed nook with a 596×256 Vorssaint-style
-Explore surface. It keeps Arrowslit's existing services and tab model underneath,
+This branch replaces the old 560×178 tabbed nook with Vorssaint's floating
+expanded island. It keeps Arrowslit's existing services and tab model underneath,
 so the port does not create a second app or a second set of stores.
 
 ## What is exact
 
-- **Panel footprint:** 596 × 256 pt, 5 columns × 2 rows, three pages, 3 page dots.
+- **Floating layer:** a 560-pt panel inside a 704-pt window with 72-pt gutters,
+  44-pt quick-access circles, 54-pt row spacing and a player circle hanging below.
+  The panel is 244 pt on compact pages and 328 pt on the AI page; the window grows
+  from 316 to 400 pt with the same spring.
+- **Quick access:** Explore/back and Timer on the left; Settings and Volume mixer on
+  the right; Now Playing below the panel. The circles spring out from behind the
+  panel with the reference's scale and offset.
+- **Explore:** 5 columns × 2 rows, three pages, vertical page dots, wheel paging,
+  back and search in the header, and the recorded #1a1a1a tiles.
+- **Page header:** one Vorssaint title row with the ellipsis menu; *Keep open*,
+  *Settings…* and *Collapse* live in the reference's rounded grey menu.
 - **Explore order:** Controls, Volume mixer, Now Playing, Clipboard, Recent captures,
   Files, System, Tools, Calendar, Notifications, Timer, Camera mirror, Downloads,
   Scratchpad, AI Agents, Watch. Arrowslit's own sports, reminders, stopwatch,
   keep-awake, call and home pages live on the third page.
 - **Tile language:** black rounded tiles, 20-pt icon, 11.5-pt title, ⌥⌘ shortcut,
   hover wash, press spring, live/check marks.
-- **Header:** back to Explore, house to Home, settings gear, page dots.
+- **Page layouts:** capsule faders and orange boost levels in the mixer; the
+  3-column System grid; the circular Tools rail; the week/month Calendar with event
+  dots and agenda; Timer/Pomodoro/Stopwatch tabs over the orange minute ruler; the
+  large-cover player with the white timeline and Lyrics/Up next pills; the Watch
+  empty state; a 2×2 capture grid; and the Downloads folder prompt.
 - **Shortcuts:** each page has its Vorssaint ⌥⌘ letter; global hotkeys are registered
   alongside Arrowslit's existing ⌃⌥ shortcuts.
 - **AI reader:** the Vorssaint AgentUsage service and its Claude/Codex/OpenCode/Copilot
@@ -64,10 +78,12 @@ claimed as finished here:
 ## Validation
 
 - `swift build --build-system native` passes.
-- `swift test --build-system native` passes: 171 tests in 50 suites.
+- `swift test --build-system native` passes: 172 tests in 50 suites.
 - The signed app was installed as `/Applications/Arrowslit.app`, version
-  `0.11.0-vorssaint` build 206, and the Explore grid, page 2, AI page, Timer ruler,
-  Controls, real per-app Mixer, Captures and Notifications were checked on screen.
+  `0.11.0-vorssaint` build 212, and the 704-pt floating layer, Explore paging by
+  dots and wheel, AI page height, Timer tabs and ruler, System grid, Tools rail,
+  Calendar, Watch, Captures, Downloads prompt, Clipboard, Scratchpad, Controls,
+  real per-app Mixer and Notifications were checked on screen.
 - Notification mirroring remains **Paused** until Arrowslit is switched on in
   System Settings › Privacy & Security › Accessibility.
 - Existing Arrowslit behavior is unchanged outside the launcher surface; the old

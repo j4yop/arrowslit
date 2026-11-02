@@ -99,6 +99,7 @@ final class PanelController {
             _ = state.settings.displayChoice
             _ = state.isSearchingClipboard
             _ = state.isTypingInNook
+            _ = state.vorssaintPage
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 await Task.yield()
