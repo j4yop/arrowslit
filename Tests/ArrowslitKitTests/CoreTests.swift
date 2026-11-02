@@ -17,6 +17,13 @@ struct ClockFormatTests {
         #expect(ClockFormat.wallClockIST(Date(timeIntervalSince1970: 0)) == "5:30 AM")
         #expect(ClockFormat.wallClockIST(Date(timeIntervalSince1970: 36_000)) == "3:30 PM")
     }
+
+    @Test func speaksDurationsForVoiceOver() {
+        #expect(ClockFormat.spoken(299) == "4 minutes, 59 seconds")
+        #expect(ClockFormat.spoken(60) == "1 minute")
+        #expect(ClockFormat.spoken(3_661) == "1 hour, 1 minute, 1 second")
+        #expect(ClockFormat.spoken(0) == "0 seconds")
+    }
 }
 
 @Suite("Countdown")

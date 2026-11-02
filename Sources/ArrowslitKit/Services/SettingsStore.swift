@@ -4,13 +4,83 @@ import Observation
 @MainActor
 @Observable
 public final class SettingsStore {
+    public var appearance: NotchAppearance {
+        didSet {
+            let clamped = appearance.clamped()
+            if clamped != appearance {
+                appearance = clamped
+                return
+            }
+            defaults.set(clamped.width, forKey: Key.width)
+            defaults.set(clamped.height, forKey: Key.height)
+            defaults.set(clamped.pitchBlack, forKey: Key.pitchBlack)
+            defaults.set(clamped.size.rawValue, forKey: Key.size)
+            defaults.set(clamped.nookLayout.rawValue, forKey: Key.nookLayout)
+            defaults.set(clamped.theme.rawValue, forKey: Key.theme)
+            defaults.set(clamped.glassTint, forKey: Key.glassTint)
+        }
+    }
     public var showMenuBarIcon: Bool { didSet { defaults.set(showMenuBarIcon, forKey: Key.menuBar) } }
+    public var displayChoice: DisplayChoice { didSet { defaults.set(displayChoice.rawValue, forKey: Key.display) } }
     public var openSettingsOnLaunch: Bool { didSet { defaults.set(openSettingsOnLaunch, forKey: Key.openSettingsOnLaunch) } }
+    public var showWhenIdle: Bool { didSet { defaults.set(showWhenIdle, forKey: Key.showWhenIdle) } }
     public var openOnHover: Bool { didSet { defaults.set(openOnHover, forKey: Key.openOnHover) } }
     public var collapseOnLeave: Bool { didSet { defaults.set(collapseOnLeave, forKey: Key.collapseOnLeave) } }
     public var liquidAnimations: Bool { didSet { defaults.set(liquidAnimations, forKey: Key.liquidAnimations) } }
     public var hapticFeedback: Bool { didSet { defaults.set(hapticFeedback, forKey: Key.haptic) } }
     public var showOnLockScreen: Bool { didSet { defaults.set(showOnLockScreen, forKey: Key.showOnLockScreen) } }
+    public var callsEnabled: Bool { didSet { defaults.set(callsEnabled, forKey: Key.calls) } }
+    public var downloadsEnabled: Bool { didSet { defaults.set(downloadsEnabled, forKey: Key.downloads) } }
+    public var nowPlayingAppMode: MediaAppFilter.Mode { didSet { defaults.set(nowPlayingAppMode.rawValue, forKey: Key.nowPlayingAppMode) } }
+    public var nowPlayingApps: [String] { didSet { defaults.set(nowPlayingApps, forKey: Key.nowPlayingApps) } }
+    public private(set) var recentMediaApps: RecentMediaApps { didSet { defaults.set(recentMediaApps.identifiers, forKey: Key.recentMediaApps) } }
+    public var pausedMediaLinger: TimeInterval { didSet { defaults.set(pausedMediaLinger, forKey: Key.linger) } }
+    public var shortcutsEnabled: Bool { didSet { defaults.set(shortcutsEnabled, forKey: Key.shortcutsEnabled) } }
+    public var agentApprovals: Set<AgentKind> {
+        didSet {
+            defaults.set(AgentKind.allCases.filter(agentApprovals.contains).map(\.rawValue), forKey: Key.agentApprovals)
+        }
+    }
+    public var favoriteShortcuts: [String] { didSet { defaults.set(favoriteShortcuts, forKey: Key.favoriteShortcuts) } }
+
+    public var mediaAppFilter: MediaAppFilter {
+        MediaAppFilter(mode: nowPlayingAppMode, allowed: Set(nowPlayingApps))
+    }
+
+    public static let lingerChoices: [TimeInterval] = [10, 30, 60, 300]
+    public static let maximumFavoriteShortcuts = 4
+
+    @discardableResult
+    public func toggleFavorite(_ name: String) -> Bool {
+        if let index = favoriteShortcuts.firstIndex(of: name) {
+            favoriteShortcuts.remove(at: index)
+            return true
+        }
+        guard favoriteShortcuts.count < Self.maximumFavoriteShortcuts else { return false }
+        favoriteShortcuts.append(name)
+        return true
+    }
+
+    public func noteMediaApp(_ identifier: String) {
+        var recent = recentMediaApps
+        if recent.note(identifier) { recentMediaApps = recent }
+    }
+
+    public func setNowPlaying(_ identifier: String, allowed: Bool) {
+        if allowed {
+            guard !identifier.isEmpty, !nowPlayingApps.contains(identifier) else { return }
+            nowPlayingApps.append(identifier)
+        } else {
+            nowPlayingApps.removeAll { $0 == identifier }
+        }
+    }
+
+    public func forgetMediaApp(_ identifier: String) {
+        setNowPlaying(identifier, allowed: false)
+        var recent = recentMediaApps
+        recent.remove(identifier)
+        if recent != recentMediaApps { recentMediaApps = recent }
+    }
     public var alertCharging: Bool { didSet { defaults.set(alertCharging, forKey: Key.alertCharging) } }
     public var alertLowBattery: Bool { didSet { defaults.set(alertLowBattery, forKey: Key.alertLowBattery) } }
     public var alertHeadphones: Bool { didSet { defaults.set(alertHeadphones, forKey: Key.alertHeadphones) } }
@@ -36,13 +106,36 @@ public final class SettingsStore {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        appearance = NotchAppearance(
+            width: defaults.object(forKey: Key.width) as? Double ?? NotchAppearance.standard.width,
+            height: defaults.object(forKey: Key.height) as? Double ?? NotchAppearance.standard.height,
+            pitchBlack: defaults.object(forKey: Key.pitchBlack) as? Bool ?? NotchAppearance.standard.pitchBlack,
+            size: defaults.string(forKey: Key.size).flatMap(NotchSize.init(rawValue:)) ?? NotchAppearance.standard.size,
+            nookLayout: defaults.string(forKey: Key.nookLayout).flatMap(NookLayout.init(rawValue:)) ?? NotchAppearance.standard.nookLayout,
+            theme: defaults.string(forKey: Key.theme).flatMap(NotchTheme.init(rawValue:)) ?? NotchAppearance.standard.theme,
+            glassTint: defaults.object(forKey: Key.glassTint) as? Double ?? NotchAppearance.standard.glassTint
+        ).clamped()
         showMenuBarIcon = defaults.object(forKey: Key.menuBar) as? Bool ?? true
+        displayChoice = defaults.string(forKey: Key.display).flatMap(DisplayChoice.init(rawValue:)) ?? .automatic
         openSettingsOnLaunch = defaults.object(forKey: Key.openSettingsOnLaunch) as? Bool ?? true
+        showWhenIdle = defaults.object(forKey: Key.showWhenIdle) as? Bool ?? false
         openOnHover = defaults.object(forKey: Key.openOnHover) as? Bool ?? true
         collapseOnLeave = defaults.object(forKey: Key.collapseOnLeave) as? Bool ?? true
         liquidAnimations = defaults.object(forKey: Key.liquidAnimations) as? Bool ?? true
         hapticFeedback = defaults.object(forKey: Key.haptic) as? Bool ?? true
         showOnLockScreen = defaults.object(forKey: Key.showOnLockScreen) as? Bool ?? false
+        callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
+        downloadsEnabled = defaults.object(forKey: Key.downloads) as? Bool ?? false
+        nowPlayingAppMode = defaults.string(forKey: Key.nowPlayingAppMode).flatMap(MediaAppFilter.Mode.init(rawValue:)) ?? .all
+        var seenApps = Set<String>()
+        nowPlayingApps = (defaults.stringArray(forKey: Key.nowPlayingApps) ?? [])
+            .filter { !$0.isEmpty && seenApps.insert($0).inserted }
+        recentMediaApps = RecentMediaApps(defaults.stringArray(forKey: Key.recentMediaApps) ?? [])
+        let linger = defaults.object(forKey: Key.linger) as? Double ?? 30
+        pausedMediaLinger = Self.lingerChoices.contains(linger) ? linger : 30
+        shortcutsEnabled = defaults.object(forKey: Key.shortcutsEnabled) as? Bool ?? true
+        agentApprovals = Set((defaults.stringArray(forKey: Key.agentApprovals) ?? []).compactMap(AgentKind.init(rawValue:)))
+        favoriteShortcuts = Array((defaults.stringArray(forKey: Key.favoriteShortcuts) ?? []).prefix(Self.maximumFavoriteShortcuts))
         alertCharging = defaults.object(forKey: Key.alertCharging) as? Bool ?? true
         alertLowBattery = defaults.object(forKey: Key.alertLowBattery) as? Bool ?? true
         alertHeadphones = defaults.object(forKey: Key.alertHeadphones) as? Bool ?? true
@@ -105,6 +198,10 @@ public final class SettingsStore {
         return true
     }
 
+    public func resetAppearance() {
+        appearance = .standard
+    }
+
     public func setTabEnabled(_ tab: WorkbenchTab, _ enabled: Bool) {
         guard tab != .home, tab != .launcher else { return }
         if enabled {
@@ -115,13 +212,31 @@ public final class SettingsStore {
     }
 
     private enum Key {
+        static let width = "arrowslit.appearance.width"
+        static let height = "arrowslit.appearance.height"
+        static let pitchBlack = "arrowslit.appearance.pitchBlack"
+        static let size = "arrowslit.appearance.size"
+        static let nookLayout = "arrowslit.appearance.nookLayout"
+        static let theme = "arrowslit.appearance.theme"
+        static let glassTint = "arrowslit.appearance.glassTint"
         static let menuBar = "arrowslit.showMenuBarIcon"
+        static let display = "arrowslit.display"
         static let openSettingsOnLaunch = "arrowslit.openSettingsOnLaunch"
+        static let showWhenIdle = "arrowslit.showWhenIdle"
         static let openOnHover = "arrowslit.openOnHover"
         static let collapseOnLeave = "arrowslit.collapseOnLeave"
         static let liquidAnimations = "arrowslit.liquidAnimations"
         static let haptic = "arrowslit.hapticFeedback"
         static let showOnLockScreen = "arrowslit.showOnLockScreen"
+        static let calls = "arrowslit.callsEnabled"
+        static let downloads = "arrowslit.downloadsEnabled"
+        static let nowPlayingAppMode = "arrowslit.nowPlaying.appMode"
+        static let nowPlayingApps = "arrowslit.nowPlaying.apps"
+        static let recentMediaApps = "arrowslit.nowPlaying.recentApps"
+        static let linger = "arrowslit.nowPlaying.pausedLinger"
+        static let shortcutsEnabled = "arrowslit.shortcutsEnabled"
+        static let agentApprovals = "arrowslit.agentApprovals"
+        static let favoriteShortcuts = "arrowslit.favoriteShortcuts"
         static let alertCharging = "arrowslit.alertCharging"
         static let alertLowBattery = "arrowslit.alertLowBattery"
         static let alertHeadphones = "arrowslit.alertHeadphones"

@@ -58,7 +58,7 @@ Everything else lives behind the grid button at the top right: the timer, stopwa
 
 Next to Home at the top left sit up to three shortcuts of your own. They start as Files and Clipboard, and Files shows how many things are in your Tray. To change them, open the grid, click the pencil, and pick your favorites. Click **Done** when you are happy.
 
-Arrowslit lives on your MacBook's built-in display for now. Multi-display support is planned.
+Arrowslit works on the built-in display and on external monitors. Choose Built-in, Main, Follow the pointer, a named display, or All displays in Settings › General › Display; screens without a camera housing get a virtual notch.
 
 It does not need an account and does not track anything. Arrowslit asks GitHub when it starts and once a day after that whether a new version is out; you can turn that off in Settings. Lyrics are optional and off by default; if you turn them on, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Everything else stays on your Mac. All of this is free and open source.
 
@@ -120,6 +120,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 | Open from the menu bar | Click the slit icon in your menu bar |
 | Open Settings | Click the gear icon at the top right, or choose Settings from the menu bar |
 | Use the notch on the lock screen | Turn on Settings › Show on Lock Screen |
+| Put the notch on another display | Settings › General › Display: Built-in, Main, Follow the pointer, All displays, or a named display |
 
 ## Things people ask
 
@@ -129,7 +130,7 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 **My music isn't showing.** Play something and give it a second. Arrowslit talks to macOS media services through an isolated helper process. If Apple media services ever stall, Arrowslit stays fast and unaffected.
 
-**How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub when it starts and once a day after that, and shows **Download & Open** in the notch or Settings › Updates; after the DMG opens, drag Arrowslit into Applications. Manual users can always download the latest DMG. You can turn the check off in Settings.
+**How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub when it starts and once a day after that. When a signed update is available, Settings › About offers **Install and Relaunch** and verifies the Ed25519 manifest, size and SHA-256 before swapping the app; otherwise it opens the DMG. Manual users can always download the latest DMG. You can turn the check off in Settings.
 
 **Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub when it starts and once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Sports is optional too: preview matches are local, and live mode sends only your BigBallsData key and competition queries to BigBallsData after you connect it in Settings. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
 
@@ -144,6 +145,26 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * macOS 14 (Sonoma) or newer
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
+
+## What is in 0.10.0
+
+This is the DynamicLedge 1.4.2 parity release. It is a broad shell port, not only a feature drop:
+
+* DynamicLedge's appearance engine: size, width, thickness, theme, glass tint, pitch black, standard/elongated layout and reset
+* Hidden-at-rest notch with a hover peek, configurable hover delay, idle pill, click-to-open and collapse-on-leave
+* 274×32 compact ears, concave shoulders, the 30 pt expanded radius and 16 pt alert radius
+* Home at 560×178 and the elongated 1240×178 row for Home, Tray and Clipboard
+* Multi-display support: Built-in, Main, Follow the pointer, named display and All displays, with one active panel and mirror panels
+* Virtual notch on external displays without a camera housing
+* Buttons to allow, deny or ask on behalf of Claude Code, Codex, Copilot CLI, Antigravity, Cursor and OpenCode
+* Calls and microphone detection with mute, a call panel and app-specific hang-up routes
+* Download progress, finished-download alerts, Show in Finder and Stop, including a Chrome/Firefox partial-file fallback
+* Media source switching, app filtering, scrolling titles and paused-media linger
+* Clipboard search, pinned clips and Return-to-copy
+* Rich Notes, inline to-dos, the Shortcuts runner and Reminders
+* Tray links, drop preview, compact Stats and the detached second-activity bubble
+* Signed in-place updates with an Ed25519 manifest and a stable self-signed permission identity
+* Five-tab native Settings shell with labelled controls, 4 pt hit slop, spoken timer values and accessibility actions
 
 ## What is in 0.9.2
 

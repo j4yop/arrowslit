@@ -8,7 +8,15 @@ public struct TrayItem: Identifiable, Equatable, Sendable {
     public let addedAt: Date
     public var isPinned: Bool
 
-    public var name: String { url.lastPathComponent }
+    public var isLink: Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return scheme == "http" || scheme == "https"
+    }
+
+    public var name: String {
+        if isLink { return url.host ?? url.absoluteString }
+        return url.lastPathComponent
+    }
 
     public init(id: UUID, url: URL, addedAt: Date, isPinned: Bool = false) {
         self.id = id
@@ -36,17 +44,19 @@ public final class TrayStore {
         let existing = Set(items.map(\.url.standardizedFileURL))
         var loaded: [TrayItem] = []
         for path in paths {
-            let url = URL(fileURLWithPath: path).standardizedFileURL
-            guard FileManager.default.fileExists(atPath: url.path),
-                  !existing.contains(url),
-                  loaded.count < Self.capacity else { continue }
-            loaded.append(TrayItem(id: UUID(), url: url, addedAt: Date(), isPinned: true))
+            let url = URL(string: path) ?? URL(fileURLWithPath: path)
+            let standard = url.standardizedFileURL
+            let usable = standard.isFileURL
+                ? FileManager.default.fileExists(atPath: standard.path)
+                : (url.scheme == "http" || url.scheme == "https")
+            guard usable, !existing.contains(standard), loaded.count < Self.capacity else { continue }
+            loaded.append(TrayItem(id: UUID(), url: standard, addedAt: Date(), isPinned: true))
         }
         items = loaded
     }
 
     private func savePinned() {
-        defaults.set(items.filter(\.isPinned).map(\.url.path), forKey: Key.pinned)
+        defaults.set(items.filter(\.isPinned).map(\.url.absoluteString), forKey: Key.pinned)
     }
 
     @discardableResult
@@ -55,10 +65,11 @@ public final class TrayStore {
         var existing = Set(items.map(\.url.standardizedFileURL))
         var added: [TrayItem] = []
         for url in urls {
-            guard url.isFileURL else { continue }
             let standard = url.standardizedFileURL
-            guard FileManager.default.fileExists(atPath: standard.path),
-                  !existing.contains(standard),
+            let usable = standard.isFileURL
+                ? FileManager.default.fileExists(atPath: standard.path)
+                : (url.scheme == "http" || url.scheme == "https")
+            guard usable, !existing.contains(standard),
                   items.count + added.count < Self.capacity else { continue }
             existing.insert(standard)
             added.append(TrayItem(id: UUID(), url: standard, addedAt: Date()))
@@ -93,7 +104,9 @@ public final class TrayStore {
     }
 
     public func pruneMissing() {
-        items.removeAll { !FileManager.default.fileExists(atPath: $0.url.path) }
+        items.removeAll { item in
+            item.isLink ? false : !FileManager.default.fileExists(atPath: item.url.path)
+        }
         savePinned()
     }
 
@@ -117,7 +130,11 @@ public final class TrayStore {
     }
 
     public func icon(for item: TrayItem) -> NSImage {
-        NSWorkspace.shared.icon(forFile: item.url.path)
+        if item.isLink {
+            return NSImage(systemSymbolName: "link.circle.fill", accessibilityDescription: "Link")
+                ?? NSWorkspace.shared.icon(for: .internetLocation)
+        }
+        return NSWorkspace.shared.icon(forFile: item.url.path)
     }
 
     private enum Key {

@@ -6,12 +6,23 @@ public struct ReleaseInfo: Equatable, Sendable {
     public var page: URL
     public var diskImage: URL
     public var checksum: URL?
+    /// The Ed25519-signed manifest that the in-place updater verifies.
+    public var signedManifest: URL?
 
-    public init(version: SemanticVersion, page: URL, diskImage: URL, checksum: URL? = nil) {
+    public init(version: SemanticVersion, page: URL, diskImage: URL, checksum: URL? = nil, signedManifest: URL? = nil) {
         self.version = version
         self.page = page
         self.diskImage = diskImage
         self.checksum = checksum
+        self.signedManifest = signedManifest
+    }
+
+    public static func diskImageName(for version: SemanticVersion) -> String {
+        "Arrowslit-\(version).dmg"
+    }
+
+    public static func manifestName(for version: SemanticVersion) -> String {
+        "Arrowslit-\(version).update.json"
     }
 
     public static func parse(_ data: Data) -> ReleaseInfo? {
@@ -32,12 +43,13 @@ public struct ReleaseInfo: Equatable, Sendable {
                 .flatMap { isAllowedURL($0, forAsset: true) ? $0 : nil }
         }
 
-        guard let diskImage = asset(named: "Arrowslit-\(version).dmg") else { return nil }
+        guard let diskImage = asset(named: diskImageName(for: version)) else { return nil }
         return ReleaseInfo(
             version: version,
             page: page,
             diskImage: diskImage,
-            checksum: asset(named: "Arrowslit-\(version).dmg.sha256")
+            checksum: asset(named: diskImageName(for: version) + ".sha256"),
+            signedManifest: asset(named: manifestName(for: version))
         )
     }
 
@@ -52,11 +64,17 @@ public struct ReleaseInfo: Equatable, Sendable {
             return nil
         }
         let base = "https://github.com/j4yop/arrowslit/releases/download/v\(version)/"
-        guard let diskImage = URL(string: base + "Arrowslit-\(version).dmg"),
-              let checksum = URL(string: base + "Arrowslit-\(version).dmg.sha256") else {
+        guard let diskImage = URL(string: base + diskImageName(for: version)),
+              let checksum = URL(string: base + diskImageName(for: version) + ".sha256") else {
             return nil
         }
-        return ReleaseInfo(version: version, page: url, diskImage: diskImage, checksum: checksum)
+        return ReleaseInfo(
+            version: version,
+            page: url,
+            diskImage: diskImage,
+            checksum: checksum,
+            signedManifest: URL(string: base + manifestName(for: version))
+        )
     }
 
     /// Release URLs are metadata, not a trust anchor. Keep them on GitHub.

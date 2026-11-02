@@ -3,7 +3,7 @@ import AppKit
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var state: AppState?
-    private var panel: PanelController?
+    private var panel: PanelManager?
     private var statusItem: StatusItemController?
     private var settingsWindow: SettingsWindowController?
     #if DEBUG
@@ -28,7 +28,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
         self.state = state
         self.settingsWindow = settingsWindow
-        panel = PanelController(state: state)
+        panel = PanelManager(state: state)
         statusItem = StatusItemController(state: state) { [weak settingsWindow] in settingsWindow?.show() }
         #if DEBUG
         debugHooks = DebugHooks(state: state)

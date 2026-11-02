@@ -402,7 +402,9 @@ private struct SportsMatchDetailView: View {
                         .background(Circle().fill(Color.white.opacity(0.07)))
                 }
                 .buttonStyle(NookPressStyle(pressedScale: 0.9))
+                .nookHitSlop(3)
                 .help(service.isPinned(match) ? "Unpin from the notch" : "Pin to the notch")
+                .accessibilityLabel(service.isPinned(match) ? "Unpin match from notch" : "Pin match to notch")
             }
         }
     }
@@ -424,7 +426,9 @@ private struct SportsMatchDetailView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(NookPressStyle(pressedScale: 0.88))
+            .nookHitSlop(3)
             .help(service.isFollowing(team) ? "Unfollow \(team.name)" : "Follow \(team.name)")
+            .accessibilityLabel(service.isFollowing(team) ? "Unfollow \(team.name)" : "Follow \(team.name)")
             Spacer(minLength: 3)
             Text(score.map(String.init) ?? "–")
                 .font(.system(size: 17, weight: .bold, design: .rounded))

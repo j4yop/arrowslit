@@ -282,10 +282,42 @@ struct PresentationResolverTests {
         #expect(NotchAlert.level(kind: .volume, value: 0.5, muted: false).usesCompactHUD)
     }
 
-    @Test func compactCanBeEmpty() {
+    @Test func hiddenWhenNothingIsHappening() {
         let presentation = PresentationResolver.resolve(PresentationInput(isExpanded: false, activeTab: .home))
 
-        #expect(presentation == .compact(primary: nil, secondary: nil))
+        #expect(presentation == .hidden(peek: false))
+    }
+
+    @Test func hoverPeeksTheHiddenNotch() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: false,
+            activeTab: .home,
+            isHoveringNotch: true
+        ))
+
+        #expect(presentation == .hidden(peek: true))
+    }
+
+    @Test func showWhenIdleKeepsThePill() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: false,
+            activeTab: .home,
+            showWhenIdle: true
+        ))
+
+        #expect(presentation == .idle)
+    }
+
+    @Test func anActivityBeatsHiddenAndIdle() {
+        let presentation = PresentationResolver.resolve(PresentationInput(
+            isExpanded: false,
+            activeTab: .home,
+            activeActivities: [.nowPlaying],
+            showWhenIdle: true,
+            isHoveringNotch: true
+        ))
+
+        #expect(presentation == .compact(primary: .nowPlaying, secondary: nil))
     }
 }
 
