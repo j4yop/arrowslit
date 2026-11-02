@@ -541,7 +541,7 @@ struct SportsMonogram: View {
 
     static func fallbackColor(for name: String) -> Color {
         let palette: [Color] = [
-            Color(red: 0.20, green: 0.55, blue: 1),
+            ArrowTheme.blue,
             Color(red: 0.95, green: 0.36, blue: 0.30),
             Color(red: 0.28, green: 0.78, blue: 0.52),
             Color(red: 1.0, green: 0.62, blue: 0.20),

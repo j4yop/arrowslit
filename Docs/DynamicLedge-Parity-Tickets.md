@@ -48,8 +48,9 @@
 - **Pointer handling is event-driven:** the hosting view's tracking area and a global mouse-moved monitor replace the fixed 0.12 s timer; one-shot timers exist only during a pending hover-open or leave check. A slow fallback is used only without Accessibility.
 - **Real assistant evidence:** OpenCode 2.2.5's `permission.ask` plugin hook returned `allow`, `deny` and `ask` for the real Arrowslit alert, and the Claude/Codex hook binary returned each format. Claude Code is not logged in for headless use, Codex exec forces approval off, and Copilot/Cursor/Antigravity are not installed here.
 - **Signed upgrade:** installed 0.10.0 over 0.9.2, then installed a second same-certificate build over it. Camera, Calendar and Accessibility survived; the existing Sports Keychain item asks for its one-time “Always Allow”.
-- **Released:** PR #26 was merged into `main` at `1aaaaf0`. The signed `0.10.0` app is installed, the public `v0.10.0` release is tagged at the merged commit and marked Latest, and the Homebrew cask PR was merged. `brew info` resolves 0.10.0 and `brew fetch` verifies the cask. The in-app network-update path remains untested until a newer release exists.
-- **160 tests pass in 47 suites.**
+- **Released 0.10.0:** PR #26 was merged into `main` at `1aaaaf0`. The signed `0.10.0` app is installed, the public `v0.10.0` release is tagged at the merged commit and marked Latest, and the Homebrew cask PR was merged. `brew info` resolves 0.10.0 and `brew fetch` verifies the cask. The in-app network-update path remains untested until a newer release exists.
+- **0.10.1 is the feel/finish pass:** DynamicLedge's exact palette and type scale, the persistent Home/Files/Clipboard header, the 580 pt nook geometry, the paged launcher with real ⌃⌥ labels, click/hover mode and hover delay, scaled Small/Medium content, the corrected Clipboard/Tray cards, conditional player lyrics and the 580×178 Calendar/Timer/Stats/Notes pages.
+- **162 tests pass in 47 suites.**
 
 Remaining for release: real-assistant approval QA for all six (hooks are deliberately not installed in the user's live configs), a real TCC permission-survival run with the stable certificate, final migration/release QA, and the Path A attribution policy decision.
 

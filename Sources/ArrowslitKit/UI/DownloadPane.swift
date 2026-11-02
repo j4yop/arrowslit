@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// Downloads use Safari's blue.
-private let downloadTint = Color(red: 0.04, green: 0.52, blue: 1)
+private let downloadTint = ArrowTheme.blue
 
 /// Left of the camera in the compact notch.
 struct DownloadCompactIcon: View {

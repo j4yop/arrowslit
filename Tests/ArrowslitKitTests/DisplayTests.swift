@@ -24,6 +24,36 @@ struct DisplayTests {
     }
 
     @MainActor
+    @Test func hoverDelayClampsAndPersists() throws {
+        let suite = "arrowslit.tests.hover." + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = SettingsStore(defaults: defaults)
+        #expect(settings.hoverDelay == 0.4)
+        #expect(settings.notchOpenMode == .hover)
+        settings.hoverDelay = 0.1
+        #expect(SettingsStore(defaults: defaults).hoverDelay == 0.1)
+        settings.hoverDelay = 9
+        #expect(settings.hoverDelay == 0.5)
+        settings.notchOpenMode = .click
+        #expect(!settings.openOnHover)
+        settings.notchOpenMode = .hover
+        #expect(settings.openOnHover)
+    }
+
+    @MainActor
+    @Test func launcherShortcutsAreCompleteAndUnique() {
+        let tabs = HotKeys.items
+        #expect(tabs.count == 12)
+        #expect(Set(tabs.compactMap(\.shortcutKey)).count == tabs.count)
+        #expect(WorkbenchTab.nowPlaying.shortcutLabel == "⌃⌥M")
+        #expect(WorkbenchTab.tray.shortcutLabel == "⌃⌥L")
+        #expect(WorkbenchTab.sports.shortcutLabel == "⌃⌥F")
+        #expect(HotKeys.keyCode("L") != nil)
+        #expect(HotKeys.keyCode("Q") == nil)
+    }
+
+    @MainActor
     @Test func panelSizesUseTheScreenTheyAreOn() throws {
         let notch = ScreenGeometry(
             size: CGSize(width: 1512, height: 982),
@@ -42,7 +72,7 @@ struct DisplayTests {
         let builtInCompact = state.panelSize(for: .idle, geometry: notch)
         let externalCompact = state.panelSize(for: .idle, geometry: external)
         #expect(builtInCompact.width != externalCompact.width)
-        #expect(state.panelSize(for: .expanded(.home), geometry: notch).width == 560)
+        #expect(state.panelSize(for: .expanded(.home), geometry: notch).width == 580)
         #expect(state.panelSize(for: .expanded(.home), geometry: notch).height == 178)
         #expect(ScreenReader.screen(for: .all) != nil)
     }

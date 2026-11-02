@@ -1,6 +1,14 @@
 import Foundation
 import Observation
 
+/// How a closed notch opens. Click always works; Hover also opens after a short delay.
+public enum NotchOpenMode: String, CaseIterable, Sendable, Identifiable {
+    case click
+    case hover
+
+    public var id: String { rawValue }
+}
+
 @MainActor
 @Observable
 public final class SettingsStore {
@@ -25,9 +33,17 @@ public final class SettingsStore {
     public var openSettingsOnLaunch: Bool { didSet { defaults.set(openSettingsOnLaunch, forKey: Key.openSettingsOnLaunch) } }
     public var showWhenIdle: Bool { didSet { defaults.set(showWhenIdle, forKey: Key.showWhenIdle) } }
     public var openOnHover: Bool { didSet { defaults.set(openOnHover, forKey: Key.openOnHover) } }
+    public var hoverDelay: Double {
+        didSet {
+            let clamped = max(0.1, min(0.5, (hoverDelay * 100).rounded() / 100))
+            if hoverDelay != clamped { hoverDelay = clamped }
+            defaults.set(hoverDelay, forKey: Key.hoverDelay)
+        }
+    }
     public var collapseOnLeave: Bool { didSet { defaults.set(collapseOnLeave, forKey: Key.collapseOnLeave) } }
     public var liquidAnimations: Bool { didSet { defaults.set(liquidAnimations, forKey: Key.liquidAnimations) } }
     public var hapticFeedback: Bool { didSet { defaults.set(hapticFeedback, forKey: Key.haptic) } }
+    public var keyboardShortcutsEnabled: Bool { didSet { defaults.set(keyboardShortcutsEnabled, forKey: Key.keyboardShortcuts) } }
     public var showOnLockScreen: Bool { didSet { defaults.set(showOnLockScreen, forKey: Key.showOnLockScreen) } }
     public var callsEnabled: Bool { didSet { defaults.set(callsEnabled, forKey: Key.calls) } }
     public var downloadsEnabled: Bool { didSet { defaults.set(downloadsEnabled, forKey: Key.downloads) } }
@@ -48,7 +64,18 @@ public final class SettingsStore {
     }
 
     public static let lingerChoices: [TimeInterval] = [10, 30, 60, 300]
+    public static let hoverDelayChoices: [Double] = [0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5]
     public static let maximumFavoriteShortcuts = 4
+
+    public static func hoverDelayLabel(_ seconds: Double) -> String {
+        if abs(seconds - 0.4) < 0.001 { return "0.4 seconds (default)" }
+        return String(format: "%.2g seconds", seconds)
+    }
+
+    public var notchOpenMode: NotchOpenMode {
+        get { openOnHover ? .hover : .click }
+        set { openOnHover = newValue == .hover }
+    }
 
     @discardableResult
     public func toggleFavorite(_ name: String) -> Bool {
@@ -117,12 +144,15 @@ public final class SettingsStore {
         ).clamped()
         showMenuBarIcon = defaults.object(forKey: Key.menuBar) as? Bool ?? true
         displayChoice = defaults.string(forKey: Key.display).flatMap(DisplayChoice.init(rawValue:)) ?? .automatic
-        openSettingsOnLaunch = defaults.object(forKey: Key.openSettingsOnLaunch) as? Bool ?? true
+        openSettingsOnLaunch = defaults.object(forKey: Key.openSettingsOnLaunch) as? Bool ?? false
         showWhenIdle = defaults.object(forKey: Key.showWhenIdle) as? Bool ?? false
         openOnHover = defaults.object(forKey: Key.openOnHover) as? Bool ?? true
+        let delay = defaults.object(forKey: Key.hoverDelay) as? Double ?? 0.4
+        hoverDelay = max(0.1, min(0.5, (delay * 100).rounded() / 100))
         collapseOnLeave = defaults.object(forKey: Key.collapseOnLeave) as? Bool ?? true
         liquidAnimations = defaults.object(forKey: Key.liquidAnimations) as? Bool ?? true
         hapticFeedback = defaults.object(forKey: Key.haptic) as? Bool ?? true
+        keyboardShortcutsEnabled = defaults.object(forKey: Key.keyboardShortcuts) as? Bool ?? true
         showOnLockScreen = defaults.object(forKey: Key.showOnLockScreen) as? Bool ?? false
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         downloadsEnabled = defaults.object(forKey: Key.downloads) as? Bool ?? false
@@ -224,9 +254,11 @@ public final class SettingsStore {
         static let openSettingsOnLaunch = "arrowslit.openSettingsOnLaunch"
         static let showWhenIdle = "arrowslit.showWhenIdle"
         static let openOnHover = "arrowslit.openOnHover"
+        static let hoverDelay = "arrowslit.hoverDelay"
         static let collapseOnLeave = "arrowslit.collapseOnLeave"
         static let liquidAnimations = "arrowslit.liquidAnimations"
         static let haptic = "arrowslit.hapticFeedback"
+        static let keyboardShortcuts = "arrowslit.keyboardShortcuts"
         static let showOnLockScreen = "arrowslit.showOnLockScreen"
         static let calls = "arrowslit.callsEnabled"
         static let downloads = "arrowslit.downloadsEnabled"

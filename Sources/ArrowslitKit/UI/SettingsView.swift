@@ -31,6 +31,20 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .about: "info.circle"
         }
     }
+
+    /// Total window height, including the 32 pt titlebar. DynamicLedge resizes the
+    /// preferences window per tab; Arrowslit's custom tab strip needs the same treatment.
+    var windowHeight: CGFloat {
+        switch self {
+        case .general: 704
+        case .appearance: 740
+        case .activities: 740
+        case .home: 740
+        case .about: 520
+        }
+    }
+
+    var contentHeight: CGFloat { windowHeight - 32 }
 }
 
 struct SettingsView: View {
@@ -38,7 +52,7 @@ struct SettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
     @State private var tab: SettingsTab = .general
-    var onTabChange: (String) -> Void = { _ in }
+    var onTabChange: (String, CGFloat) -> Void = { _, _ in }
 
     private let featureTabs: [WorkbenchTab] = [
         .nowPlaying, .timer, .stopwatch, .calendar,
@@ -55,16 +69,16 @@ struct SettingsView: View {
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
         }
-        .frame(width: 520, height: 608)
+        .frame(width: 520, height: tab.contentHeight)
         .background(ArrowTheme.ink)
         .preferredColorScheme(.dark)
         .onAppear {
             syncLogin()
             state.shortcuts.reload()
-            onTabChange(tab.title)
+            onTabChange(tab.title, tab.contentHeight)
         }
         .onChange(of: tab) { _, newTab in
-            onTabChange(newTab.title)
+            onTabChange(newTab.title, newTab.contentHeight)
         }
     }
 
@@ -115,64 +129,24 @@ struct SettingsView: View {
     private var generalTab: some View {
         Group {
             SettingsSection(
-                title: "Behavior",
-                note: "How the notch behaves while you work."
+                note: "Built-in display keeps it on your MacBook's notch. Pick a screen by name to keep it there, or All displays to show it on every screen: music, timers and alerts appear everywhere, and what you open shows on the screen you're using. Screens without a notch get a notch of their own at the top. When the menu bar icon is hidden, open Arrowslit again from Applications to get back here."
             ) {
                 SettingsToggle(
-                    title: "Show when idle",
-                    detail: "Keep a small clock pill visible when nothing is happening. Off means the notch hides until you hover or something happens.",
-                    isOn: Binding(
-                        get: { state.settings.showWhenIdle },
-                        set: { state.settings.showWhenIdle = $0 }
-                    )
+                    title: "Open at login",
+                    isOn: $launchAtLogin
                 )
+                .onChange(of: launchAtLogin) { _, value in
+                    setLaunchAtLogin(value)
+                }
+                if let loginError {
+                    Text(loginError)
+                        .font(ArrowTheme.caption)
+                        .foregroundStyle(ArrowTheme.red)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                }
                 SettingsToggle(
-                    title: "Open notch on hover",
-                    detail: "Hold the pointer over the notch for a moment.",
-                    isOn: Binding(
-                        get: { state.settings.openOnHover },
-                        set: { state.settings.openOnHover = $0 }
-                    )
-                )
-                SettingsToggle(
-                    title: "Collapse when the pointer leaves",
-                    detail: "Close the notch after a short pause.",
-                    isOn: Binding(
-                        get: { state.settings.collapseOnLeave },
-                        set: { state.settings.collapseOnLeave = $0 }
-                    )
-                )
-                SettingsToggle(
-                    title: "Liquid animations",
-                    isOn: Binding(
-                        get: { state.settings.liquidAnimations },
-                        set: { state.setLiquidAnimations($0) }
-                    )
-                )
-                SettingsToggle(
-                    title: "Haptic feedback",
-                    isOn: Binding(
-                        get: { state.settings.hapticFeedback },
-                        set: { state.settings.hapticFeedback = $0 }
-                    )
-                )
-            }
-
-            SettingsSection(
-                title: "Interface",
-                note: "Startup and the menu bar."
-            ) {
-                SettingsToggle(
-                    title: "Open Settings on launch",
-                    detail: "Show this window when Arrowslit starts.",
-                    isOn: Binding(
-                        get: { state.settings.openSettingsOnLaunch },
-                        set: { state.settings.openSettingsOnLaunch = $0 }
-                    )
-                )
-                SettingsToggle(
-                    title: "Show menu bar icon",
-                    detail: "Keep a small slit in the menu bar.",
+                    title: "Show in menu bar",
                     isOn: Binding(
                         get: { state.settings.showMenuBarIcon },
                         set: { state.setMenuBarIconVisible($0) }
@@ -196,24 +170,71 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                SettingsToggle(
-                    title: "Open at login",
-                    detail: "Start Arrowslit when you sign in.",
-                    isOn: $launchAtLogin
-                )
-                .onChange(of: launchAtLogin) { _, value in
-                    setLaunchAtLogin(value)
-                }
-                if let loginError {
-                    Text(loginError)
-                        .font(ArrowTheme.caption)
-                        .foregroundStyle(ArrowTheme.red)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                }
             }
 
             LockScreenSection(state: state)
+
+            SettingsSection(title: "Behavior") {
+                SettingsToggle(
+                    title: "Show when idle",
+                    isOn: Binding(
+                        get: { state.settings.showWhenIdle },
+                        set: { state.settings.showWhenIdle = $0 }
+                    )
+                )
+                Picker("Open notch with", selection: Binding(
+                    get: { state.settings.notchOpenMode },
+                    set: { state.settings.notchOpenMode = $0 }
+                )) {
+                    Text("Click").tag(NotchOpenMode.click)
+                    Text("Hover").tag(NotchOpenMode.hover)
+                }
+                .pickerStyle(.segmented)
+                if state.settings.notchOpenMode == .hover {
+                    Picker("Hover delay", selection: Binding(
+                        get: { state.settings.hoverDelay },
+                        set: { state.settings.hoverDelay = $0 }
+                    )) {
+                        ForEach(SettingsStore.hoverDelayChoices, id: \.self) { delay in
+                            Text(SettingsStore.hoverDelayLabel(delay)).tag(delay)
+                        }
+                    }
+                }
+                Text(state.settings.notchOpenMode == .click
+                     ? "Click the notch to open it."
+                     : "Hold the pointer over the notch briefly to open it. Clicking still opens it immediately.")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+                SettingsToggle(
+                    title: "Collapse when the pointer leaves",
+                    isOn: Binding(
+                        get: { state.settings.collapseOnLeave },
+                        set: { state.settings.collapseOnLeave = $0 }
+                    )
+                )
+                SettingsToggle(
+                    title: "Liquid animations",
+                    isOn: Binding(
+                        get: { state.settings.liquidAnimations },
+                        set: { state.setLiquidAnimations($0) }
+                    )
+                )
+                SettingsToggle(
+                    title: "Haptic feedback",
+                    isOn: Binding(
+                        get: { state.settings.hapticFeedback },
+                        set: { state.settings.hapticFeedback = $0 }
+                    )
+                )
+                SettingsToggle(
+                    title: "Keyboard shortcuts (⌃⌥ + a letter)",
+                    detail: "Open a feature from anywhere. Sports uses ⌃⌥F.",
+                    isOn: Binding(
+                        get: { state.settings.keyboardShortcutsEnabled },
+                        set: { state.setKeyboardShortcuts($0) }
+                    )
+                )
+            }
 
             SettingsSection(title: "Timer") {
                 SettingsToggle(
@@ -257,7 +278,7 @@ struct SettingsView: View {
             ) {
                 HStack(spacing: 12) {
                     Text("Keep paused media for")
-                        .font(ArrowTheme.body)
+                        .font(ArrowTheme.settingsBody)
                         .fontWeight(.medium)
                         .foregroundStyle(ArrowTheme.bone)
                     Spacer(minLength: 8)
@@ -328,7 +349,7 @@ struct SettingsView: View {
                 )
                 AlertToggleRow(
                     symbol: "speaker.wave.2.fill",
-                    tint: Color(red: 0.04, green: 0.52, blue: 1),
+                    tint: ArrowTheme.blue,
                     title: "Volume & Brightness",
                     detail: "Shows the level in the notch when you change it",
                     isOn: Binding(
@@ -414,7 +435,7 @@ struct SettingsView: View {
                             )) {
                                 HStack {
                                     Text(name)
-                                        .font(ArrowTheme.body)
+                                        .font(ArrowTheme.settingsBody)
                                         .foregroundStyle(ArrowTheme.bone)
                                     Spacer(minLength: 8)
                                 }
@@ -659,7 +680,7 @@ private struct CodingAssistantSection: View {
                             .frame(width: 20)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(kind.displayName)
-                                .font(ArrowTheme.body)
+                                .font(ArrowTheme.settingsBody)
                                 .foregroundStyle(ArrowTheme.bone)
                             Text(detail(kind))
                                 .font(ArrowTheme.detail)
@@ -721,7 +742,7 @@ private struct NowPlayingAppsSection: View {
         ) {
             HStack(spacing: 12) {
                 Text("Show music from")
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Spacer(minLength: 8)
@@ -750,7 +771,7 @@ private struct NowPlayingAppsSection: View {
                                     .resizable()
                                     .frame(width: 20, height: 20)
                                 Text(app.name)
-                                    .font(ArrowTheme.body)
+                                    .font(ArrowTheme.settingsBody)
                                     .foregroundStyle(ArrowTheme.bone)
                                     .lineLimit(1)
                                 Spacer(minLength: 8)
@@ -867,102 +888,104 @@ private struct AppearanceSettingsSection: View {
     }
 
     var body: some View {
-        SettingsSection(
-            title: "Appearance",
-            note: "Match the closed shape to your display. The open panel follows the same scale."
-        ) {
-            row("Home layout") {
-                Picker("", selection: binding(\.nookLayout)) {
-                    Text("Standard").tag(NookLayout.standard)
-                    Text("Elongated").tag(NookLayout.elongated)
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .frame(width: 190)
-            }
-
-
-            row("Theme") {
-                Picker("", selection: binding(\.theme)) {
-                    Text("Black").tag(NotchTheme.black)
-                    Text("Glass").tag(NotchTheme.glass)
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .frame(width: 190)
-            }
-
-            if appearance.theme == .glass {
-                row("Glass") {
-                    HStack(spacing: 8) {
-                        Text("Clear").font(ArrowTheme.caption).foregroundStyle(ArrowTheme.faint)
-                        Slider(value: binding(\.glassTint), in: NotchAppearance.glassTintRange)
-                            .frame(width: 120)
-                        Text("Tinted").font(ArrowTheme.caption).foregroundStyle(ArrowTheme.faint)
+        Group {
+            SettingsSection(
+                note: "Elongated stretches Home, Tray and Clipboard across the top of the screen, with your widgets in one long row you can scroll sideways."
+            ) {
+                row("Home layout") {
+                    Picker("", selection: binding(\.nookLayout)) {
+                        Text("Standard").tag(NookLayout.standard)
+                        Text("Elongated").tag(NookLayout.elongated)
                     }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 230)
                 }
-            } else {
-                SettingsToggle(
-                    title: "Pitch black",
-                    detail: "Remove the shadow and outline so the extension blends into the notch.",
-                    isOn: binding(\.pitchBlack)
-                )
             }
 
-
-            row("Size") {
-                Picker("", selection: binding(\.size)) {
-                    Text("Small").tag(NotchSize.small)
-                    Text("Medium").tag(NotchSize.medium)
-                    Text("Large").tag(NotchSize.large)
+            SettingsSection(
+                title: "Look",
+                note: appearance.theme == .glass
+                    ? "Frosted glass that blurs what's behind it, with softer, springier motion. The part around the camera stays black. More tint is easier to read over bright windows."
+                    : "The notch itself grows to show what's happening. Pitch black removes the shadow and outline so the extension is indistinguishable from the notch. On a screen without a notch, it appears in the same spot at the top."
+            ) {
+                row("Theme") {
+                    Picker("", selection: binding(\.theme)) {
+                        Text("Black").tag(NotchTheme.black)
+                        Text("Glass").tag(NotchTheme.glass)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 230)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .frame(width: 190)
+                if appearance.theme == .glass {
+                    row("Glass") {
+                        HStack(spacing: 8) {
+                            Text("Clear").font(ArrowTheme.caption).foregroundStyle(ArrowTheme.faint)
+                            Slider(value: binding(\.glassTint), in: NotchAppearance.glassTintRange)
+                                .frame(width: 170)
+                            Text("Tinted").font(ArrowTheme.caption).foregroundStyle(ArrowTheme.faint)
+                        }
+                    }
+                } else {
+                    SettingsToggle(
+                        title: "Pitch black",
+                        isOn: binding(\.pitchBlack)
+                    )
+                }
             }
 
-
-            sliderRow("Width", value: binding(\.width), range: NotchAppearance.widthRange, step: 2)
-
-
-            sliderRow("Thickness", value: binding(\.height), range: NotchAppearance.heightRange, step: 1)
-
-
-            HStack(spacing: 12) {
-                Text("The shape stays visible while this section is open, so you can see each change.")
-                    .font(ArrowTheme.detail)
-                    .foregroundStyle(ArrowTheme.muted)
-                Spacer(minLength: 8)
-                Button("Restore Defaults") {
-                    state.settings.resetAppearance()
+            SettingsSection(
+                title: "Size",
+                note: "Size scales everything the notch shows. Width and thickness fine-tune the compact shape; thickness never goes below the height of the notch."
+            ) {
+                row("Size") {
+                    Picker("", selection: binding(\.size)) {
+                        Text("Small").tag(NotchSize.small)
+                        Text("Medium").tag(NotchSize.medium)
+                        Text("Large").tag(NotchSize.large)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 230)
                 }
-                .buttonStyle(NookPressStyle())
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(ArrowTheme.bone)
-                .padding(.horizontal, 10)
-                .frame(height: 26)
-                .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                )
-                .disabled(appearance == .standard)
+                sliderRow("Width", value: binding(\.width), range: NotchAppearance.widthRange, step: 2)
+                sliderRow("Thickness", value: binding(\.height), range: NotchAppearance.heightRange, step: 1)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+
+            SettingsSection {
+                HStack(spacing: 12) {
+                    Text("The shape stays visible while this section is open, so you can see each change.")
+                        .font(ArrowTheme.detail)
+                        .foregroundStyle(ArrowTheme.muted)
+                    Spacer(minLength: 8)
+                    Button("Restore Defaults") {
+                        state.settings.resetAppearance()
+                    }
+                    .buttonStyle(NookPressStyle())
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .padding(.horizontal, 10)
+                    .frame(height: 26)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(Color.white.opacity(0.08))
+                    )
+                    .disabled(appearance == .standard)
+                }
+            }
         }
     }
 
     private func row<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         HStack(spacing: 12) {
             Text(title)
-                .font(ArrowTheme.body)
+                .font(ArrowTheme.settingsBody)
                 .fontWeight(.medium)
                 .foregroundStyle(ArrowTheme.bone)
             Spacer(minLength: 8)
             content()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
     }
 
     private func sliderRow(
@@ -978,12 +1001,12 @@ private struct AppearanceSettingsSection: View {
         return row(title) {
             HStack(spacing: 10) {
                 Slider(value: rounded, in: range)
-                    .frame(width: 150)
+                    .frame(width: 210)
                 Text("\(Int(value.wrappedValue.rounded())) pt")
-                    .font(ArrowTheme.caption)
+                    .font(ArrowTheme.settingsBody)
                     .monospacedDigit()
                     .foregroundStyle(ArrowTheme.muted)
-                    .frame(width: 38, alignment: .trailing)
+                    .frame(width: 42, alignment: .trailing)
             }
         }
     }
@@ -1067,7 +1090,7 @@ private struct SportsSettingsSection: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("BigBallsData")
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Text(service.coverageNote ?? service.account.map { "\($0.plan.capitalized) plan" } ?? "Free plan")
@@ -1192,7 +1215,7 @@ private struct SportsSettingsSection: View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Refresh while Sports is open")
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Text("Free tier: one request refreshes all live football.")
@@ -1220,7 +1243,7 @@ private struct SportsSettingsSection: View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
                 Text("Competitions")
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Spacer()
@@ -1327,7 +1350,7 @@ private struct FileTraySettingsRow: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("File Tray")
-                            .font(ArrowTheme.body)
+                            .font(ArrowTheme.settingsBody)
                             .fontWeight(.medium)
                             .foregroundStyle(ArrowTheme.bone)
                         Text("Files you drop on the notch, or saved document windows. Up to 30; clears when the app quits, except pinned ones")
@@ -1379,11 +1402,11 @@ private struct FileTraySettingsRow: View {
 }
 
 private struct SettingsSection<Content: View>: View {
-    let title: String
+    let title: String?
     let note: String?
     @ViewBuilder var content: Content
 
-    init(title: String, note: String? = nil, @ViewBuilder content: () -> Content) {
+    init(title: String? = nil, note: String? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
         self.note = note
         self.content = content()
@@ -1393,11 +1416,9 @@ private struct SettingsSection<Content: View>: View {
         Section {
             content
         } header: {
-            Text(title)
+            if let title { Text(title) }
         } footer: {
-            if let note {
-                Text(note)
-            }
+            if let note { Text(note) }
         }
     }
 }
@@ -1428,7 +1449,7 @@ private struct AccessStatusRow: View {
                 .frame(width: 18)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Text(detail)
@@ -1474,7 +1495,7 @@ private struct SettingsToggle: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(ArrowTheme.body)
+                        .font(ArrowTheme.settingsBody)
                         .fontWeight(.medium)
                         .foregroundStyle(ArrowTheme.bone)
                     if let detail {
@@ -1490,8 +1511,6 @@ private struct SettingsToggle: View {
         .toggleStyle(.switch)
         .controlSize(.small)
         .tint(.accentColor)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
         .accessibilityElement(children: .combine)
     }
 }
@@ -1500,37 +1519,16 @@ private struct LockScreenSection: View {
     @Bindable var state: AppState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Toggle(isOn: Binding(
-                get: { state.settings.showOnLockScreen },
-                set: { state.settings.showOnLockScreen = $0 }
-            )) {
-                Text("Show on Lock Screen")
-                    .font(ArrowTheme.body)
-                    .fontWeight(.medium)
-                    .foregroundStyle(ArrowTheme.bone)
-                Spacer(minLength: 12)
-            }
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            .tint(.accentColor)
-            .accessibilityElement(children: .combine)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.white.opacity(0.045))
+        SettingsSection(
+            note: "While your Mac is locked, the notch shows a running timer, what's playing, or charging, just as it looks when you're logged in. Anyone at your Mac can see it, so it's off until you turn it on."
+        ) {
+            SettingsToggle(
+                title: "Show on Lock Screen",
+                isOn: Binding(
+                    get: { state.settings.showOnLockScreen },
+                    set: { state.settings.showOnLockScreen = $0 }
+                )
             )
-            .overlay {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
-            }
-
-            Text("While your Mac is locked, the notch shows a running timer, what's playing, or charging, just as it looks when you're logged in. Anyone at your Mac can see it, so it's off until you turn it on.")
-                .font(ArrowTheme.detail)
-                .foregroundStyle(ArrowTheme.muted)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 2)
         }
     }
 }
@@ -1556,7 +1554,7 @@ private struct AlertToggleRow: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(ArrowTheme.body)
+                        .font(ArrowTheme.settingsBody)
                         .fontWeight(.medium)
                         .foregroundStyle(ArrowTheme.bone)
                     if let detail {
@@ -1596,7 +1594,7 @@ private struct FeatureSelectionButton: View {
                     .foregroundStyle(isOn ? ArrowTheme.amber : ArrowTheme.faint)
                     .frame(width: 18)
                 Text(tab.title)
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .foregroundStyle(isOn ? ArrowTheme.bone : ArrowTheme.muted)
                     .lineLimit(1)
                 Spacer(minLength: 4)
@@ -1633,7 +1631,7 @@ private struct UpdateStatusRow: View {
                 .frame(width: 18)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(ArrowTheme.body)
+                    .font(ArrowTheme.settingsBody)
                     .fontWeight(.medium)
                     .foregroundStyle(ArrowTheme.bone)
                 Text(detail)

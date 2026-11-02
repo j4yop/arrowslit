@@ -176,7 +176,8 @@ final class PanelController {
 
     private func scheduleHoverOpen() {
         guard hoverOpenTimer == nil else { return }
-        let timer = Timer(timeInterval: 0.4, repeats: false) { [weak self] _ in
+        let delay = state.settings.hoverDelay
+        let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.hoverOpenTimer = nil

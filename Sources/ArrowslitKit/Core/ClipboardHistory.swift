@@ -81,6 +81,10 @@ public struct ClipboardHistory: Equatable, Sendable {
         return true
     }
 
+    public mutating func remove(_ id: UUID) {
+        entries.removeAll { $0.id == id }
+    }
+
     /// Clears the history. Pinned clips stay unless `includingPinned`.
     public mutating func removeAll(includingPinned: Bool = false) {
         entries.removeAll { includingPinned || !$0.isPinned }

@@ -7,6 +7,7 @@ import SwiftUI
 struct HomePane: View {
     @Bindable var state: AppState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.panelScale) private var scale
 
     private enum Section: String, CaseIterable, Identifiable {
         case live
@@ -45,12 +46,14 @@ struct HomePane: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             ForEach(Array(sections.enumerated()), id: \.element) { index, section in
-                if index > 0 {
+                if index > 0, case .live = sections[index - 1] {
+                    Color.clear.frame(width: 14 * scale)
+                } else if index > 0 {
                     Rectangle()
                         .fill(ArrowTheme.hairline)
                         .frame(width: 1)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8 * scale)
+                        .padding(.horizontal, 12 * scale)
                 }
                 view(for: section)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -73,7 +76,7 @@ struct HomePane: View {
         switch section {
         case .live:
             HomeMediaCard(state: state)
-                .frame(width: 196)
+                .frame(width: 196 * scale)
         case .calendar:
             HomeCalendarColumn(state: state)
         case .timer:
@@ -89,6 +92,7 @@ struct HomePane: View {
 private struct HomeMediaCard: View {
     @Bindable var state: AppState
     var width: CGFloat = 196
+    @Environment(\.panelScale) private var scale
     private var service: NowPlayingService { state.nowPlaying }
     @State private var isHovering = false
 
@@ -100,10 +104,10 @@ private struct HomeMediaCard: View {
                 empty
             }
         }
-        .padding(8)
+        .padding(10)
         .frame(width: width, height: 120, alignment: .top)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.white.opacity(0.07))
         )
         .overlay(alignment: .topTrailing) {
@@ -127,17 +131,17 @@ private struct HomeMediaCard: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 9) {
                 artwork
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .frame(width: 40 * scale, height: 40 * scale)
+                    .clipShape(RoundedRectangle(cornerRadius: 9 * scale, style: .continuous))
                     .contentShape(Rectangle())
                     .onTapGesture { state.expand(.nowPlaying) }
                     .help("Open Now Playing")
 
                 VStack(alignment: .leading, spacing: 2) {
-                    MediaTitle(title: track.title, isPlaying: track.isPlaying, fontSize: 15)
+                    MediaTitle(title: track.title, isPlaying: track.isPlaying, fontSize: 12.5 * scale)
                         .foregroundStyle(ArrowTheme.bone)
                     Text(track.artist.isEmpty ? "Unknown artist" : track.artist)
-                        .font(.system(size: 12))
+                        .font(.system(size: 10.5 * scale))
                         .foregroundStyle(ArrowTheme.muted)
                         .lineLimit(1)
                 }
@@ -149,7 +153,7 @@ private struct HomeMediaCard: View {
 
             TimelineView(.animation(minimumInterval: 0.2, paused: !track.isPlaying)) { context in
                 Text(lyric(at: context.date, track: track) ?? (track.album.isEmpty ? " " : track.album))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 11 * scale, weight: .medium))
                     .foregroundStyle(ArrowTheme.bone)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -158,22 +162,23 @@ private struct HomeMediaCard: View {
 
             progress(track)
 
-            HStack(spacing: 14) {
-                PlayerGlyphButton(symbol: "backward.fill", size: 16, label: "Previous Track") {
+            HStack(spacing: 16 * scale) {
+                PlayerGlyphButton(symbol: "backward.fill", size: 12 * scale, label: "Previous Track") {
                     service.previous()
                 }
                 PlayerGlyphButton(
                     symbol: track.isPlaying ? "pause.fill" : "play.fill",
-                    size: 22,
+                    size: 17 * scale,
                     label: track.isPlaying ? "Pause" : "Play"
                 ) {
                     service.toggle()
                 }
-                PlayerGlyphButton(symbol: "forward.fill", size: 16, label: "Next Track") {
+                PlayerGlyphButton(symbol: "forward.fill", size: 12 * scale, label: "Next Track") {
                     service.next()
                 }
             }
             .frame(maxWidth: .infinity)
+            .padding(.top, 4 * scale)
         }
     }
 
@@ -268,15 +273,16 @@ private struct MediaCardExpandButton: View {
 
 private struct HomeShortcutsColumn: View {
     @Bindable var state: AppState
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 8 * scale) {
+            HStack(spacing: 6 * scale) {
                 Image(systemName: "bolt.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .font(.system(size: 11 * scale, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.blue)
                 Text("Shortcuts")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 12 * scale, weight: .semibold))
                     .foregroundStyle(ArrowTheme.bone)
                 Spacer(minLength: 0)
             }
@@ -288,13 +294,13 @@ private struct HomeShortcutsColumn: View {
                             ProgressView().controlSize(.mini)
                         }
                         Text(name)
-                            .font(.system(size: 11.5, weight: .medium))
-                            .foregroundStyle(ArrowTheme.bone)
+                            .font(.system(size: 12 * scale, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.blue)
                             .lineLimit(1)
                         Spacer(minLength: 0)
                     }
-                    .padding(.horizontal, 8)
-                    .frame(height: 26)
+                    .padding(.horizontal, 9 * scale)
+                    .frame(height: 26 * scale)
                     .background(Capsule().fill(Color.white.opacity(0.09)))
                     .contentShape(Capsule())
                 }
@@ -315,20 +321,21 @@ private struct HomeShortcutsColumn: View {
 private struct HomeCalendarColumn: View {
     @Bindable var state: AppState
     private var calendar: CalendarService { state.calendar }
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10 * scale) {
             Button { state.select(.calendar) } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color(red: 1, green: 0.27, blue: 0.23))
+                        .font(.system(size: 11 * scale, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.red)
                     Text("Calendar")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 12 * scale, weight: .semibold))
                         .foregroundStyle(ArrowTheme.bone)
                     Image(systemName: "chevron.forward")
-                        .font(.system(size: 8.5, weight: .bold))
-                        .foregroundStyle(ArrowTheme.faint)
+                        .font(.system(size: 9 * scale, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.3))
                     Spacer(minLength: 0)
                 }
                 .contentShape(Rectangle())
@@ -339,28 +346,31 @@ private struct HomeCalendarColumn: View {
             switch calendar.access {
             case .notAsked:
                 Button("Connect") { calendar.requestAccess() }
-                    .buttonStyle(HomeQuickActionStyle(tint: Color(red: 1, green: 0.27, blue: 0.23)))
+                    .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.red))
             case .denied, .limited:
                 Button("Allow Access") { calendar.openPrivacySettings() }
-                    .buttonStyle(HomeQuickActionStyle(tint: Color(red: 1, green: 0.27, blue: 0.23)))
+                    .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.red))
             case .granted:
                 if let event = calendar.nextEvent {
                     Button { state.select(.calendar) } label: {
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: eventSymbol(event))
-                                .font(.system(size: 17, weight: .semibold))
+                                .font(.system(size: 17 * scale, weight: .semibold))
                                 .foregroundStyle(ArrowTheme.bone)
-                                .frame(width: 18)
-                            VStack(alignment: .leading, spacing: 3) {
+                                .frame(width: 18 * scale)
+                            VStack(alignment: .leading, spacing: 3 * scale) {
                                 Text(event.title)
-                                    .font(.system(size: 14.5, weight: .semibold))
+                                    .font(.system(size: 13 * scale, weight: .semibold))
                                     .foregroundStyle(ArrowTheme.bone)
-                                    .lineLimit(1)
+                                    .lineLimit(2)
                                     .minimumScaleFactor(0.8)
-                                Text(event.start.formatted(date: .omitted, time: .shortened))
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(ArrowTheme.muted)
-                                    .lineLimit(1)
+                                TimelineView(.everyMinute) { context in
+                                    Text(CalendarRules.homeLabel(for: event, at: context.date))
+                                        .font(.system(size: 11 * scale, weight: .medium))
+                                        .monospacedDigit()
+                                        .foregroundStyle(ArrowTheme.muted)
+                                        .lineLimit(1)
+                                }
                             }
                             Spacer(minLength: 0)
                         }
@@ -392,20 +402,21 @@ private struct HomeCalendarColumn: View {
 private struct HomeTimerColumn: View {
     @Bindable var state: AppState
     private var timer: TimerService { state.timer }
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10 * scale) {
             Button { state.select(.timer) } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "timer")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(ArrowTheme.amber)
                     Text("Timer")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(ArrowTheme.bone)
                     Image(systemName: "chevron.forward")
-                        .font(.system(size: 8.5, weight: .bold))
-                        .foregroundStyle(ArrowTheme.faint)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.3))
                     Spacer(minLength: 0)
                 }
                 .contentShape(Rectangle())
@@ -416,13 +427,13 @@ private struct HomeTimerColumn: View {
             HStack(spacing: 6) {
                 ForEach([5, 10, 15], id: \.self) { minutes in
                     Button("\(minutes)m") { state.startTimer(minutes: minutes) }
-                        .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.amber, width: 40))
+                        .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.amber, width: 40 * scale))
                         .accessibilityLabel("Start \(minutes) minute timer")
                 }
             }
 
             Button { state.startFocus() } label: {
-                Label("Focus \(timer.focusMinutes)m", systemImage: "hand.raised.fill")
+                Label("Focus \(timer.focusMinutes)m", systemImage: "brain.head.profile.fill")
                     .labelStyle(.titleAndIcon)
             }
             .buttonStyle(HomeQuickActionStyle(tint: ArrowTheme.amber))
@@ -706,15 +717,16 @@ private struct HomeQuickActionBody: View {
     let width: CGFloat?
     @State private var isHovering = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         configuration.label
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 12 * scale, weight: .semibold))
             .monospacedDigit()
             .lineLimit(1)
             .foregroundStyle(tint)
-            .padding(.horizontal, 9)
-            .frame(minWidth: width, minHeight: 28, maxHeight: 28)
+            .padding(.horizontal, 9 * scale)
+            .frame(minWidth: width, minHeight: 26 * scale, maxHeight: 26 * scale)
             .background(
                 Capsule()
                     .fill(Color.white.opacity(configuration.isPressed ? 0.20 : (isHovering ? 0.14 : 0.09)))
