@@ -71,8 +71,10 @@ public enum ParityLayout {
     }
 
     public static func nookWidth(_ appearance: NotchAppearance, geometry: ScreenGeometry) -> CGFloat {
-        max(
-            (IslandMetrics.Nook.width * appearance.size.scale).rounded(),
+        // The 560 pt body carries a 10 pt concave shoulder on each side, like Notch Shell.
+        let flare = 2 * IslandMetrics.expandedFlare * appearance.size.scale
+        return max(
+            (IslandMetrics.Nook.width * appearance.size.scale + flare).rounded(),
             compactWidth(appearance, geometry: geometry) + 40
         )
     }
@@ -93,13 +95,23 @@ public enum ParityLayout {
     }
 
     /// Content height for a workbench tab, before the notch strip and bottom padding are added.
-    public static func contentHeight(for tab: WorkbenchTab) -> CGFloat {
+    public static func contentHeight(
+        for tab: WorkbenchTab,
+        clipboardSearching: Bool = false,
+        hasLyrics: Bool = false,
+        hasMediaSwitcher: Bool = false
+    ) -> CGFloat {
         switch tab {
         case .call: IslandMetrics.ContentHeight.call
         case .download: IslandMetrics.ContentHeight.download
-        case .nowPlaying: IslandMetrics.ContentHeight.nowPlaying + IslandMetrics.ContentHeight.lyrics
-        case .timer, .stopwatch: IslandMetrics.ContentHeight.timer
-        case .home, .tray, .clipboard, .notes, .mirror, .calendar, .reminders, .stats, .sports, .keepAwake:
+        case .nowPlaying:
+            IslandMetrics.ContentHeight.nowPlaying
+                + (hasLyrics ? IslandMetrics.ContentHeight.lyrics : 0)
+                + (hasMediaSwitcher ? IslandMetrics.ContentHeight.mediaSwitcher : 0)
+        case .clipboard:
+            IslandMetrics.Nook.body + IslandMetrics.Nook.bodyTopInset
+                + (clipboardSearching ? IslandMetrics.Nook.searchBar : 0)
+        case .home, .tray, .notes, .mirror, .calendar, .reminders, .stats, .sports, .keepAwake, .timer, .stopwatch:
             IslandMetrics.Nook.body + IslandMetrics.Nook.bodyTopInset
         case .launcher: IslandMetrics.Nook.launcherBody + IslandMetrics.Nook.bodyTopInset
         }
@@ -111,8 +123,16 @@ public enum ParityLayout {
         return tab == .home || tab == .tray || tab == .clipboard
     }
 
-    public static func expandedSize(for tab: WorkbenchTab, appearance: NotchAppearance, geometry: ScreenGeometry) -> CGSize {
-        let nook = tab == .home || tab == .tray || tab == .clipboard || tab == .notes || tab == .mirror || tab == .launcher
+    public static func expandedSize(
+        for tab: WorkbenchTab,
+        appearance: NotchAppearance,
+        geometry: ScreenGeometry,
+        clipboardSearching: Bool = false,
+        hasLyrics: Bool = false,
+        hasMediaSwitcher: Bool = false
+    ) -> CGSize {
+        // Everything except the three dedicated activity panels lives in the nook width.
+        let nook = tab != .call && tab != .download && tab != .nowPlaying
         let width: CGFloat
         if isElongated(tab, appearance: appearance) {
             width = elongatedWidth(appearance, geometry: geometry)
@@ -123,7 +143,16 @@ public enum ParityLayout {
         }
         return CGSize(
             width: width,
-            height: expandedHeight(content: contentHeight(for: tab), appearance: appearance, geometry: geometry)
+            height: expandedHeight(
+                content: contentHeight(
+                    for: tab,
+                    clipboardSearching: clipboardSearching,
+                    hasLyrics: hasLyrics,
+                    hasMediaSwitcher: hasMediaSwitcher
+                ),
+                appearance: appearance,
+                geometry: geometry
+            )
         )
     }
 

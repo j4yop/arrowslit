@@ -36,14 +36,15 @@ struct ParityLayoutTests {
     }
 
     @Test func expandedWidthsScaleLikeNotch Shell() {
-        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: large, geometry: builtIn) == CGSize(width: 390, height: 218))
-        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: medium, geometry: builtIn) == CGSize(width: 351, height: 200))
-        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: small, geometry: builtIn) == CGSize(width: 312, height: 181))
+        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: large, geometry: builtIn) == CGSize(width: 390, height: 188))
+        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: medium, geometry: builtIn) == CGSize(width: 351, height: 173))
+        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: small, geometry: builtIn) == CGSize(width: 312, height: 157))
+        #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: large, geometry: builtIn, hasLyrics: true).height == 218)
     }
 
     @Test func homeUsesTheShortNook() {
-        #expect(ParityLayout.expandedSize(for: .home, appearance: large, geometry: builtIn) == CGSize(width: 560, height: 178))
-        #expect(ParityLayout.expandedSize(for: .launcher, appearance: large, geometry: builtIn) == CGSize(width: 560, height: 228))
+        #expect(ParityLayout.expandedSize(for: .home, appearance: large, geometry: builtIn) == CGSize(width: 580, height: 178))
+        #expect(ParityLayout.expandedSize(for: .launcher, appearance: large, geometry: builtIn) == CGSize(width: 580, height: 228))
     }
 
     @Test func elongatedStretchesOnlyTheThreeTabs() {
@@ -55,7 +56,7 @@ struct ParityLayoutTests {
         #expect(ParityLayout.expandedSize(for: .home, appearance: elongated, geometry: builtIn) == CGSize(width: 1240, height: 178))
         #expect(ParityLayout.expandedSize(for: .tray, appearance: elongated, geometry: builtIn).width == 1240)
         #expect(ParityLayout.expandedSize(for: .clipboard, appearance: elongated, geometry: builtIn).width == 1240)
-        #expect(ParityLayout.expandedSize(for: .launcher, appearance: elongated, geometry: builtIn).width == 560)
+        #expect(ParityLayout.expandedSize(for: .launcher, appearance: elongated, geometry: builtIn).width == 580)
         #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: elongated, geometry: builtIn).width == 390)
     }
 

@@ -117,8 +117,10 @@ struct NotchAlertView: View {
         .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 16, flare: 6, notchBand: geometry.notch?.height ?? 0))
         .clipShape(SlitShape(radius: 16, flare: 6))
         .overlay {
-            SlitShape(radius: 16, flare: 6)
-                .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            if !state.settings.appearance.pitchBlack {
+                SlitShape(radius: 16, flare: 6)
+                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            }
         }
         .accessibilityElement(children: .contain)
     }
@@ -286,7 +288,7 @@ private struct CompactAlertView: View {
     private var tint: Color {
         switch alert {
         case .upcomingEvent: ArrowTheme.red
-        case .download, .update: Color(red: 0.04, green: 0.52, blue: 1)
+        case .download, .update: ArrowTheme.blue
         case .welcome: ArrowTheme.green
         case .shortcut(_, let succeeded): succeeded ? ArrowTheme.green : ArrowTheme.red
         default: ArrowTheme.muted

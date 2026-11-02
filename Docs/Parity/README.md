@@ -13,14 +13,14 @@ DMG are in `Docs/Images/dl-142-*.png`; Arrowslit's regression goldens are in
 ./Scripts/parity.sh --update   # replace the golden set
 ```
 
-The script builds a debug `0.10.0` app, launches it, drives the debug states with distributed
+The script builds a debug `0.10.1` app, launches it, drives the debug states with distributed
 notifications, verifies the window size against the layout contract, and captures each panel with
 `screencapture -o -l`. It restores the user's defaults when it exits.
 
 ## States
 
-`compact`, `home`, `elongated`, `launcher`, `tray`, `clipboard`, `hud`, `goal`, `nowplaying` and
-`agent`.
+`compact`, `home`, `elongated`, `calendar`, `timer`, `stats`, `notes`, `launcher`, `tray`,
+`clipboard`, `hud`, `goal`, `nowplaying` and `agent`.
 
 ## What the diff proves
 

@@ -55,7 +55,7 @@ struct RemindersPane: View {
                 .frame(height: 28)
                 .background(
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(Color(red: 0.04, green: 0.52, blue: 1))
+                        .fill(ArrowTheme.blue)
                 )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -90,7 +90,7 @@ private struct ReminderRow: View {
             HStack(spacing: 9) {
                 Image(systemName: item.completed ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(item.completed ? ArrowTheme.green : Color(red: 0.30, green: 0.60, blue: 1))
+                    .foregroundStyle(item.completed ? ArrowTheme.green : ArrowTheme.blue)
                 Text(item.title)
                     .font(.system(size: 11.5, weight: .medium))
                     .foregroundStyle(ArrowTheme.bone)

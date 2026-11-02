@@ -138,7 +138,7 @@ struct NookDropOverlay: View {
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(
-                    Color(red: 0.20, green: 0.55, blue: 1).opacity(active ? 1 : 0.55),
+                    ArrowTheme.blue.opacity(active ? 1 : 0.55),
                     style: filled ? StrokeStyle(lineWidth: 1.5) : StrokeStyle(lineWidth: 1.5, dash: [5, 4])
                 )
         }

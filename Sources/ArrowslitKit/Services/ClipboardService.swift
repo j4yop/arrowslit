@@ -14,6 +14,7 @@ public final class ClipboardService {
 
     public var entries: [ClipboardEntry] { history.entries }
     public var pinnedCount: Int { history.pinnedCount }
+    public var canPin: Bool { history.canPin }
 
     @ObservationIgnored private let pasteboard: NSPasteboard
     @ObservationIgnored private let defaults: UserDefaults
@@ -63,6 +64,11 @@ public final class ClipboardService {
 
     public func matching(_ query: String) -> [ClipboardEntry] {
         history.matching(query)
+    }
+
+    public func remove(_ id: UUID) {
+        history.remove(id)
+        savePins()
     }
 
     public func copy(_ entry: ClipboardEntry) {

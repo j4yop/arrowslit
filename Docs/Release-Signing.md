@@ -14,11 +14,11 @@ Arrowslit verifies a base64 Ed25519 signature over the exact manifest bytes befo
 Build the manifest for a local release:
 
 ```bash
-VERSION=0.10.0 BUILD_NUMBER=35 CONFIG=release ./Scripts/make-dmg.sh
-cp build/Arrowslit.dmg build/Arrowslit-0.10.0.dmg
+VERSION=0.10.1 BUILD_NUMBER=36 CONFIG=release ./Scripts/make-dmg.sh
+cp build/Arrowslit.dmg build/Arrowslit-0.10.1.dmg
 swift Scripts/sign-update.swift sign \
   "$HOME/Library/Application Support/Arrowslit/update-signing-key" \
-  build/Arrowslit-0.10.0.dmg 0.10.0 com.j4yop.arrowslit \
+  build/Arrowslit-0.10.1.dmg 0.10.1 com.j4yop.arrowslit \
   build/Arrowslit.app/Contents/Info.plist
 ```
 
@@ -45,7 +45,7 @@ security find-identity -p codesigning "$HOME/Library/Keychains/arrowslit-signing
 Build and release with it:
 
 ```bash
-SIGN_IDENTITY="Arrowslit" VERSION=0.10.0 BUILD_NUMBER=35 \
+SIGN_IDENTITY="Arrowslit" VERSION=0.10.1 BUILD_NUMBER=36 \
   UPDATE_SIGNING_KEY_FILE="$HOME/Library/Application Support/Arrowslit/update-signing-key" \
   ./Scripts/release.sh
 ```
