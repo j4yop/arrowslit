@@ -48,10 +48,10 @@ claimed as finished here:
    AirPlay/AVOutputContext path is stubbed, so the AirPlay sentinel is not offered.
 2. **Audio-reactive equalizer.** Arrowslit still uses its synthetic `MusicBars`.
    Vorssaint's 7-band Core Audio process tap is not ported.
-4. **Full companion rig.** The companion is a small SwiftUI character, not the
+3. **Full companion rig.** The companion is a small SwiftUI character, not the
    〜1,300-line Core Animation rig with visits, 14 reactions, stage preview and
    drag-following.
-5. **Capture editor/recorder.** Screenshot area/screen capture exists; Vorssaint's
+4. **Capture editor/recorder.** Screenshot area/screen capture exists; Vorssaint's
    annotation editor, scrolling capture, screen recorder, GIF/video export and
    temporary links are not ported.
 5. **Watch region selection.** Watch reads the main display; Vorssaint lets you
@@ -65,9 +65,11 @@ claimed as finished here:
 
 - `swift build --build-system native` passes.
 - `swift test --build-system native` passes: 171 tests in 50 suites.
-- A dev bundle was built at `/tmp/ArrowslitVorssaint.app` (bundle id
-  `com.j4yop.arrowslit.dev`) and the Explore grid, page 2, AI page, Timer ruler,
-  Controls, Mixer, Captures and Notifications were checked on screen.
+- The signed app was installed as `/Applications/Arrowslit.app`, version
+  `0.11.0-vorssaint` build 206, and the Explore grid, page 2, AI page, Timer ruler,
+  Controls, real per-app Mixer, Captures and Notifications were checked on screen.
+- Notification mirroring remains **Paused** until Arrowslit is switched on in
+  System Settings › Privacy & Security › Accessibility.
 - Existing Arrowslit behavior is unchanged outside the launcher surface; the old
   `LauncherPane` remains in the tree for reference but is no longer used by
   `NookView`.
