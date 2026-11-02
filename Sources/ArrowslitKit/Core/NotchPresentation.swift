@@ -40,6 +40,7 @@ public enum NotchAlert: Equatable, Sendable {
     case shortcut(name: String, succeeded: Bool)
     case agentRequest(AgentRequest)
     case level(kind: LevelKind, value: Double, muted: Bool)
+    case systemNotification(app: String, title: String, detail: String)
 
     public enum LevelKind: String, Sendable, Equatable {
         case volume
@@ -59,6 +60,7 @@ public enum NotchAlert: Equatable, Sendable {
         case shortcut
         case agent
         case level
+        case systemNotification
     }
 
     public var kind: Kind {
@@ -74,6 +76,7 @@ public enum NotchAlert: Equatable, Sendable {
         case .shortcut: .shortcut
         case .agentRequest: .agent
         case .level: .level
+        case .systemNotification: .systemNotification
         }
     }
 
@@ -91,6 +94,7 @@ public enum NotchAlert: Equatable, Sendable {
         case .shortcut: 2.5
         case .agentRequest: 125
         case .level: 1.6
+        case .systemNotification: 6
         }
     }
 
@@ -113,7 +117,7 @@ public enum NotchAlert: Equatable, Sendable {
         switch self {
         case .charging, .lowBattery, .headphones, .level:
             return true
-        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal, .shortcut, .agentRequest:
+        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal, .shortcut, .agentRequest, .systemNotification:
             return false
         }
     }
@@ -122,7 +126,7 @@ public enum NotchAlert: Equatable, Sendable {
     /// trailing value around the camera. Goal and timer-done cards keep their larger layout.
     public var usesCompactAlert: Bool {
         switch self {
-        case .upcomingEvent, .download, .update, .welcome, .shortcut:
+        case .upcomingEvent, .download, .update, .welcome, .shortcut, .systemNotification:
             return true
         case .timerFinished, .charging, .lowBattery, .headphones, .sportsGoal, .agentRequest, .level:
             return false

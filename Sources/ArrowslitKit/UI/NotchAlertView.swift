@@ -77,6 +77,23 @@ struct NotchAlertView: View {
                 }
             }
 
+            if case .systemNotification = alert {
+                Button("Notifications") {
+                    state.dismissAlert()
+                    state.expand(.launcher)
+                    state.openVorssaint(.notifications)
+                }
+                .buttonStyle(NookPressStyle())
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(ArrowTheme.ink)
+                .padding(.horizontal, 12)
+                .frame(height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(ArrowTheme.amber)
+                )
+            }
+
             if case .update = alert {
                 Button(updateActionTitle) {
                     state.dismissAlert()
@@ -175,6 +192,13 @@ struct NotchAlertView: View {
                 title: "GOAL",
                 detail: "\(goal.teamName) · \(goal.scoreLine)",
                 tint: ArrowTheme.green
+            )
+        case .systemNotification(let app, let title, let detail):
+            return Presentation(
+                symbol: "bell.fill",
+                title: title.isEmpty ? app : title,
+                detail: detail.isEmpty ? app : detail,
+                tint: ArrowTheme.blue
             )
         case .level(let kind, let value, let muted):
             let label = kind == .volume ? "Volume" : "Brightness"

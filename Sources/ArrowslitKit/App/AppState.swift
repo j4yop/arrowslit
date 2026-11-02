@@ -253,6 +253,7 @@ public final class AppState {
             return self.receive(.update(version: release.version.description))
         }
         if settings.checksForUpdates { updater.startAutomaticChecks() }
+        NotchNotificationService.shared.syncWithPreferences()
     }
 
     public func stop() {
@@ -274,6 +275,7 @@ public final class AppState {
         updater.stop()
         system.onAlert = nil
         system.stop()
+        NotchNotificationService.shared.stop()
         session.stop()
         alertTask?.cancel()
         alertTask = nil

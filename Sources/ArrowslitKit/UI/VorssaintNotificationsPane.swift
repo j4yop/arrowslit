@@ -1,45 +1,136 @@
+import AppKit
 import SwiftUI
 
 struct VorssaintNotificationsPane: View {
     @Bindable var state: AppState
+    @StateObject private var system = NotchNotificationService.shared
+
+    private var total: Int { system.items.count + state.alertHistory.count }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             PaneHeader("Notifications") {
                 HStack(spacing: 7) {
-                    Text("\(state.alertHistory.count)")
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    Circle()
+                        .fill(system.monitoring ? ArrowTheme.green : ArrowTheme.muted)
+                        .frame(width: 5, height: 5)
+                    Text(system.monitoring ? "Mirroring" : "Paused")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(system.monitoring ? ArrowTheme.green : .white.opacity(0.4))
+                    Text("\(total)")
+                        .font(.system(size: 9.5, weight: .semibold, design: .rounded))
                         .monospacedDigit()
-                        .foregroundStyle(.white.opacity(0.45))
-                    if !state.alertHistory.isEmpty {
-                        Button("Clear") { state.clearAlertHistory() }
-                            .buttonStyle(.plain)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(ArrowTheme.amber)
+                        .foregroundStyle(.white.opacity(0.4))
+                    if total > 0 {
+                        Button("Clear") {
+                            system.clearAll()
+                            state.clearAlertHistory()
+                        }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber)
                     }
                 }
             }
 
-            if state.alertHistory.isEmpty {
-                VorssaintPageEmpty(
-                    symbol: "bell",
-                    title: "No recent notices",
-                    detail: "Calendar, timers, downloads, power and agent requests appear here as they arrive."
-                )
-            } else {
+            if !system.items.isEmpty {
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(system.items.prefix(20)) { item in
+                            systemRow(item)
+                        }
+                    }
+                }
+            } else if !state.alertHistory.isEmpty {
                 ScrollView {
                     LazyVStack(spacing: 6) {
                         ForEach(state.alertHistory.prefix(20)) { item in
-                            row(item)
+                            alertRow(item)
                         }
+                    }
+                }
+            } else {
+                VStack(spacing: 8) {
+                    VorssaintPageEmpty(
+                        symbol: "bell",
+                        title: system.monitoring ? "No new notifications" : "Notifications are paused",
+                        detail: system.monitoring
+                            ? "New banners appear here and in the closed notch."
+                            : "Allow Accessibility in System Settings, then open this page again."
+                    )
+                    if !system.monitoring {
+                        Button("Open Accessibility Settings") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber)
                     }
                 }
             }
         }
         .padding(.top, 2)
+        .onAppear { system.syncWithPreferences() }
     }
 
-    private func row(_ item: AlertHistoryItem) -> some View {
+    private func systemRow(_ item: NotchSystemNotification) -> some View {
+        HStack(spacing: 9) {
+            Group {
+                if let icon = system.icon(for: item.content.app) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .interpolation(.high)
+                } else {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.blue)
+                }
+            }
+            .frame(width: 24, height: 24)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.content.compactTitle)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(1)
+                Text(item.content.compactDetail.isEmpty ? item.content.app : item.content.compactDetail)
+                    .font(.system(size: 9.5, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.42))
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 8)
+            Text(item.received, style: .relative)
+                .font(.system(size: 8.5, weight: .medium))
+                .foregroundStyle(.white.opacity(0.3))
+            Button {
+                system.dismiss(item.id)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.4))
+                    .frame(width: 18, height: 18)
+            }
+            .buttonStyle(.plain)
+            .help("Dismiss")
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 42)
+        .background(
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .fill(Color.white.opacity(0.055))
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .onTapGesture {
+            system.open(item.id) { _ in }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(item.content.app). \(item.content.compactTitle). \(item.content.compactDetail)")
+    }
+
+    private func alertRow(_ item: AlertHistoryItem) -> some View {
         HStack(spacing: 9) {
             Image(systemName: item.alert.vorssaintSymbol)
                 .font(.system(size: 13, weight: .semibold))
@@ -85,6 +176,7 @@ extension NotchAlert {
         case .shortcut(let name, let succeeded): succeeded ? "\(name) finished" : "\(name) failed"
         case .agentRequest(let request): "\(request.kind.displayName) · \(request.title)"
         case .level(let kind, let value, let muted): "\(kind == .volume ? "Volume" : "Brightness") · \(muted ? "Muted" : "\(Int((value * 100).rounded()))%")"
+        case .systemNotification(let app, let title, _): title.isEmpty ? app : title
         }
     }
 
@@ -103,6 +195,7 @@ extension NotchAlert {
         case .shortcut: "Shortcut result"
         case .agentRequest(let request): "\(request.project) · \(request.detail)"
         case .level: "System level changed"
+        case .systemNotification(let app, _, let detail): detail.isEmpty ? app : detail
         }
     }
 
@@ -119,6 +212,7 @@ extension NotchAlert {
         case .shortcut: "command"
         case .agentRequest: "sparkles"
         case .level(let kind, _, _): kind == .volume ? "speaker.wave.2" : "sun.max"
+        case .systemNotification: "bell.fill"
         }
     }
 
@@ -131,6 +225,7 @@ extension NotchAlert {
         case .sportsGoal: ArrowTheme.green
         case .agentRequest: Color(red: 0.78, green: 0.66, blue: 1)
         case .level(let kind, _, _): kind == .volume ? ArrowTheme.blue : ArrowTheme.yellow
+        case .systemNotification: ArrowTheme.blue
         default: .white.opacity(0.8)
         }
     }

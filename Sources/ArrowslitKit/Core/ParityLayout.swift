@@ -173,7 +173,7 @@ public enum ParityLayout {
         switch alert {
         case .level:
             return notch.width + 2 * max(ear, (IslandMetrics.levelEarWidth * scale).rounded())
-        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut:
+        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut, .systemNotification:
             return notch.width + 2 * max(ear, (IslandMetrics.namedAlertEarWidth * scale).rounded())
         case .agentRequest:
             return 560

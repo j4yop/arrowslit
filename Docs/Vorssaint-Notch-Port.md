@@ -27,10 +27,12 @@ so the port does not create a second app or a second set of stores.
 - **Timer:** native minute ruler with drag, scroll, arrow keys, Home/End, VoiceOver
   adjustment and a haptic on each changed minute.
 - **Settings:** new AI Agents tab with provider switches and a Companion switch.
-- **Mixer:** system output volume, output-device picker and microphone mute.
+- **Per-app mixer:** the Vorssaint Core Audio process-tap mixer, with per-app gain,
+  mute, output routing, system output, output-device picker and mic mute.
 - **Captures:** area/screen capture into `~/Pictures/Arrowslit Captures`, with a
   recent-capture strip and Finder handoff.
-- **Notifications:** a recent-alert inbox fed by the notch's own alert history.
+- **Notifications:** an Accessibility reader for new visible Notification Center
+  banners, a session inbox, open/dismiss, and optional native-banner hiding.
 - **Watch:** local full-display OCR with changes / settles / contains conditions.
 - **Companion:** a lightweight SwiftUI character with blinking, moods, petting
   and trackpad haptics in the Controls page.
@@ -42,13 +44,9 @@ so the port does not create a second app or a second set of stores.
 These Vorssaint subsystems are larger than a UI port and are intentionally not
 claimed as finished here:
 
-1. **Per-app audio mixer.** Arrowslit now has system output, device routing and mic
-   mute. Vorssaint's `AppVolumeMixer` (3,843 lines of Core Audio process taps,
-   aggregate devices, per-app gain and AirPlay routing) is not ported yet.
-2. **System notification mirroring.** The Notifications page is a local alert inbox,
-   not Vorssaint's Accessibility-based Notification Center banner reader. It does
-   not read or hide other apps' banners.
-3. **Audio-reactive equalizer.** Arrowslit still uses its synthetic `MusicBars`.
+1. **AirPlay routing.** The per-app Core Audio mixer is ported; Vorssaint's private
+   AirPlay/AVOutputContext path is stubbed, so the AirPlay sentinel is not offered.
+2. **Audio-reactive equalizer.** Arrowslit still uses its synthetic `MusicBars`.
    Vorssaint's 7-band Core Audio process tap is not ported.
 4. **Full companion rig.** The companion is a small SwiftUI character, not the
    〜1,300-line Core Animation rig with visits, 14 reactions, stage preview and
@@ -56,20 +54,29 @@ claimed as finished here:
 5. **Capture editor/recorder.** Screenshot area/screen capture exists; Vorssaint's
    annotation editor, scrolling capture, screen recorder, GIF/video export and
    temporary links are not ported.
-6. **Watch region selection.** Watch reads the main display; Vorssaint lets you
+5. **Watch region selection.** Watch reads the main display; Vorssaint lets you
    choose an arbitrary window region.
-7. **Silhouette morph.** The panel size animates with Arrowslit's existing spring;
+6. **Silhouette morph.** The panel size animates with Arrowslit's existing spring;
    Vorssaint's per-frame `CAKeyframeAnimation(path)` morph is not copied.
-8. **AI account UI.** The reader and all eight cards are present; Vorssaint's
+7. **AI account UI.** The reader and all eight cards are present; Vorssaint's
    account pickers, card-order editor and per-card visibility editor are not.
 
 ## Validation
 
 - `swift build --build-system native` passes.
-- `swift test --build-system native` passes: 168 tests in 49 suites.
+- `swift test --build-system native` passes: 171 tests in 50 suites.
 - A dev bundle was built at `/tmp/ArrowslitVorssaint.app` (bundle id
   `com.j4yop.arrowslit.dev`) and the Explore grid, page 2, AI page, Timer ruler,
   Controls, Mixer, Captures and Notifications were checked on screen.
 - Existing Arrowslit behavior is unchanged outside the launcher surface; the old
   `LauncherPane` remains in the tree for reference but is no longer used by
   `NookView`.
+
+
+## Notification permission
+
+System notification mirroring uses Accessibility to read the visible
+Notification Center banner hierarchy. Until Arrowslit is switched on in
+System Settings › Privacy & Security › Accessibility, the Notifications page
+shows **Paused** and offers a direct button to that pane. It never reads the
+notification database, message stores or history.

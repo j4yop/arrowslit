@@ -62,6 +62,8 @@ struct SettingsView: View {
     @AppStorage("arrowslit.agents.provider.opencode") private var agentOpenCode = true
     @AppStorage("arrowslit.agents.provider.copilot") private var agentCopilot = true
     @AppStorage("arrowslit.companion.enabled") private var companionEnabled = true
+    @AppStorage("arrowslit.notifications.mirror") private var mirrorNotifications = true
+    @AppStorage("arrowslit.notifications.hideNative") private var hideNativeNotifications = false
     var onTabChange: (String, CGFloat) -> Void = { _, _ in }
 
     private let featureTabs: [WorkbenchTab] = [
@@ -265,6 +267,37 @@ struct SettingsView: View {
 
     private var activitiesTab: some View {
         Group {
+            SettingsSection(
+                title: "System notifications",
+                note: "Reads only new visible banners from Notification Center. It does not read the notification database, message stores or history."
+            ) {
+                SettingsToggle(
+                    title: "Mirror new notifications in the notch",
+                    detail: "Shows a new banner and keeps a session inbox of up to 50 notices. Needs Accessibility.",
+                    isOn: $mirrorNotifications
+                )
+                .onChange(of: mirrorNotifications) { _, _ in
+                    NotchNotificationService.shared.syncWithPreferences()
+                }
+                if mirrorNotifications {
+                    SettingsToggle(
+                        title: "Hide the original banner",
+                        detail: "On macOS 27 the native banner window is moved aside and restored later; older systems close transient banners after 1.2 seconds. Persistent alerts are never closed.",
+                        isOn: $hideNativeNotifications
+                    )
+                    .onChange(of: hideNativeNotifications) { _, _ in
+                        NotchNotificationService.shared.syncWithPreferences()
+                    }
+                    if !AXIsProcessTrusted() {
+                        Text("Accessibility is not granted yet. Open System Settings › Privacy & Security › Accessibility and switch on Arrowslit.")
+                            .font(ArrowTheme.detail)
+                            .foregroundStyle(ArrowTheme.amber)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                    }
+                }
+            }
+
             SettingsSection(
                 title: "Live Activities",
                 note: "What the notch watches while you work."
