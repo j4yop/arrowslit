@@ -72,7 +72,7 @@ struct DisplayTests {
         let builtInCompact = state.panelSize(for: .idle, geometry: notch)
         let externalCompact = state.panelSize(for: .idle, geometry: external)
         #expect(builtInCompact.width != externalCompact.width)
-        #expect(state.panelSize(for: .expanded(.home), geometry: notch).width == 580)
+        #expect(state.panelSize(for: .expanded(.home), geometry: notch).width == 596)
         #expect(state.panelSize(for: .expanded(.home), geometry: notch).height == 178)
         #expect(ScreenReader.screen(for: .all) != nil)
     }

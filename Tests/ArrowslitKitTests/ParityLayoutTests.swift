@@ -43,8 +43,8 @@ struct ParityLayoutTests {
     }
 
     @Test func homeUsesTheShortNook() {
-        #expect(ParityLayout.expandedSize(for: .home, appearance: large, geometry: builtIn) == CGSize(width: 580, height: 178))
-        #expect(ParityLayout.expandedSize(for: .launcher, appearance: large, geometry: builtIn) == CGSize(width: 580, height: 228))
+        #expect(ParityLayout.expandedSize(for: .home, appearance: large, geometry: builtIn) == CGSize(width: 596, height: 178))
+        #expect(ParityLayout.expandedSize(for: .launcher, appearance: large, geometry: builtIn) == CGSize(width: 596, height: 256))
     }
 
     @Test func elongatedStretchesOnlyTheThreeTabs() {
@@ -56,7 +56,7 @@ struct ParityLayoutTests {
         #expect(ParityLayout.expandedSize(for: .home, appearance: elongated, geometry: builtIn) == CGSize(width: 1240, height: 178))
         #expect(ParityLayout.expandedSize(for: .tray, appearance: elongated, geometry: builtIn).width == 1240)
         #expect(ParityLayout.expandedSize(for: .clipboard, appearance: elongated, geometry: builtIn).width == 1240)
-        #expect(ParityLayout.expandedSize(for: .launcher, appearance: elongated, geometry: builtIn).width == 580)
+        #expect(ParityLayout.expandedSize(for: .launcher, appearance: elongated, geometry: builtIn).width == 596)
         #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: elongated, geometry: builtIn).width == 390)
     }
 

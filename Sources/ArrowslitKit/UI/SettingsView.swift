@@ -8,6 +8,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case appearance
     case activities
     case home
+    case agents
     case about
 
     var id: String { rawValue }
@@ -18,6 +19,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .appearance: "Appearance"
         case .activities: "Activities"
         case .home: "Home"
+        case .agents: "AI Agents"
         case .about: "About"
         }
     }
@@ -28,6 +30,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .appearance: "capsule"
         case .activities: "square.stack.3d.up"
         case .home: "house"
+        case .agents: "sparkles"
         case .about: "info.circle"
         }
     }
@@ -40,6 +43,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .appearance: 740
         case .activities: 740
         case .home: 740
+        case .agents: 720
         case .about: 520
         }
     }
@@ -52,6 +56,12 @@ struct SettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
     @State private var tab: SettingsTab = .general
+    @AppStorage("arrowslit.agents.enabled") private var agentsEnabled = true
+    @AppStorage("arrowslit.agents.provider.claude") private var agentClaude = true
+    @AppStorage("arrowslit.agents.provider.codex") private var agentCodex = true
+    @AppStorage("arrowslit.agents.provider.opencode") private var agentOpenCode = true
+    @AppStorage("arrowslit.agents.provider.copilot") private var agentCopilot = true
+    @AppStorage("arrowslit.companion.enabled") private var companionEnabled = true
     var onTabChange: (String, CGFloat) -> Void = { _, _ in }
 
     private let featureTabs: [WorkbenchTab] = [
@@ -122,6 +132,7 @@ struct SettingsView: View {
         case .appearance: appearanceTab
         case .activities: activitiesTab
         case .home: homeTab
+        case .agents: agentsTab
         case .about: aboutTab
         }
     }
@@ -482,6 +493,47 @@ struct SettingsView: View {
                     actionTitle: cameraActionTitle,
                     action: cameraAction
                 )
+            }
+        }
+    }
+
+    private var agentsTab: some View {
+        Group {
+            SettingsSection(
+                title: "AI Agents",
+                note: "Reads the usage Claude Code, Codex, OpenCode and GitHub Copilot record on this Mac. Prompts, replies, tool output and files are never kept. Nothing leaves the Mac."
+            ) {
+                SettingsToggle(
+                    title: "Show AI agent usage in the notch",
+                    detail: "Reads local session logs so the Explore page can show tokens, API value, plan limits and live work.",
+                    isOn: $agentsEnabled
+                )
+                SettingsToggle(title: "Claude Code", detail: "Reads ~/.claude/projects and Claude Code's own limits.", isOn: $agentClaude)
+                SettingsToggle(title: "Codex", detail: "Reads ~/.codex sessions and banked reset credits.", isOn: $agentCodex)
+                SettingsToggle(title: "OpenCode", detail: "Reads its local SQLite database read-only.", isOn: $agentOpenCode)
+                SettingsToggle(title: "GitHub Copilot", detail: "Reads local CLI session state; token totals arrive when a session shuts down.", isOn: $agentCopilot)
+            }
+
+            SettingsSection(
+                title: "Companion",
+                note: "A small character that lives in the Explore surface. Click it to pet it."
+            ) {
+                SettingsToggle(
+                    title: "Show the companion",
+                    detail: "A lightweight animated friend in the Controls page. It blinks, changes expression and purrs through the trackpad.",
+                    isOn: $companionEnabled
+                )
+            }
+
+            SettingsSection(
+                title: "Explore",
+                note: "The wide Vorssaint-style surface opens from the grid button in the notch header. It has three pages: the sixteen Dynamic Island pages, plus Arrowslit's own sports, reminders, stopwatch, keep-awake, call and home pages."
+            ) {
+                Text("Open the notch, click the grid button, then choose a tile. The back button returns to the grid; the house button returns to Home.")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
             }
         }
     }

@@ -17,14 +17,14 @@ struct TimerPane: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(status)
                         .font(ArrowTheme.label)
                         .foregroundStyle(timer.isActive ? ArrowTheme.amber : ArrowTheme.muted)
                     Text(ClockFormat.clock(shownSeconds, roundingUp: true))
-                        .font(.system(size: 62, weight: .light))
+                        .font(.system(size: 52, weight: .light))
                         .monospacedDigit()
                         .foregroundStyle(timer.justFinished ? ArrowTheme.amber : ArrowTheme.bone)
                         .contentTransition(.numericText())
@@ -37,12 +37,23 @@ struct TimerPane: View {
                     Text("Session")
                         .font(ArrowTheme.detail)
                         .foregroundStyle(ArrowTheme.muted)
-                    Text("\(timer.lastMinutes) min")
+                    Text("\(timer.isActive ? timer.lastMinutes : timer.panelMinutes) min")
                         .font(.system(size: 13, weight: .medium))
                         .monospacedDigit()
                         .foregroundStyle(ArrowTheme.bone)
                 }
             }
+
+            VorssaintTimerRuler(
+                minutes: Binding(
+                    get: { timer.panelMinutes },
+                    set: { timer.panelMinutes = $0 }
+                )
+            ) {
+                NookHaptics.perform(enabled: state.settings.hapticFeedback)
+            }
+            .disabled(timer.isActive)
+            .opacity(timer.isActive ? 0.35 : 1)
 
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -53,18 +64,6 @@ struct TimerPane: View {
                 }
             }
             .frame(height: 4)
-
-            HStack(spacing: 8) {
-                ForEach([5, 10, 25, 50], id: \.self) { minutes in
-                    PresetButton(
-                        label: ClockFormat.presetLabel(minutes: minutes),
-                        isSelected: timer.lastMinutes == minutes && !timer.isActive
-                    ) {
-                        state.startTimer(minutes: minutes)
-                    }
-                }
-                Spacer(minLength: 0)
-            }
 
             HStack(spacing: 10) {
                 if timer.isActive {
@@ -79,8 +78,8 @@ struct TimerPane: View {
                         state.resetTimer()
                     }
                 } else {
-                    ActionButton(title: "Start \(timer.lastMinutes)m", symbol: "play.fill", filled: true) {
-                        state.startTimer(minutes: timer.lastMinutes)
+                    ActionButton(title: "Start \(timer.panelMinutes)m", symbol: "play.fill", filled: true) {
+                        state.startTimer(minutes: timer.panelMinutes)
                     }
                     if timer.justFinished {
                         ActionButton(title: "Clear", symbol: "xmark", filled: false) {

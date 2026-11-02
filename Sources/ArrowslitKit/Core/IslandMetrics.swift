@@ -46,7 +46,7 @@ public enum IslandMetrics {
     /// The Home, Tray and Mirror tabs share one fixed-size "nook": wide and short, with widgets
     /// side by side rather than stacked.
     public enum Nook {
-        public static let width: CGFloat = 560
+        public static let width: CGFloat = 576
         /// Area below the tab header, which sits in the strip beside the camera.
         public static let body: CGFloat = 120
         /// Extra room between the strip and the body.
@@ -55,11 +55,11 @@ public enum IslandMetrics {
         public static let rowGap: CGFloat = 8
         public static let mediaCardWidth: CGFloat = 210
         /// The grid of features gets more height than the other views.
-        public static let launcherBody: CGFloat = 170
+        public static let launcherBody: CGFloat = 198
         /// Clipboard's search bar, added below the clips while it is open.
         public static let searchBar: CGFloat = 40
-        public static let launcherTile: CGFloat = 76
-        public static let launcherGap: CGFloat = 10
+        public static let launcherTile: CGFloat = 88
+        public static let launcherGap: CGFloat = 8
         /// Elongated layout: Home, Tray, Clipboard and the grid stretch across the top.
         public static let elongatedMaxWidth: CGFloat = 1240
         public static let elongatedEdge: CGFloat = 40

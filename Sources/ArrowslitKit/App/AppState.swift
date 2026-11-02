@@ -98,6 +98,18 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// One alert the notch has shown, kept for the Notifications page.
+public struct AlertHistoryItem: Identifiable, Sendable {
+    public let id = UUID()
+    public let alert: NotchAlert
+    public let date: Date
+
+    public init(alert: NotchAlert, date: Date = Date()) {
+        self.alert = alert
+        self.date = date
+    }
+}
+
 @MainActor
 @Observable
 public final class AppState {
@@ -139,6 +151,10 @@ public final class AppState {
     public private(set) var suppressHoverUntilLeave = false
     public private(set) var alerts = AlertQueue()
     public var isEditingShortcuts = false
+    /// The Vorssaint-style page currently open inside the launcher surface.
+    public private(set) var vorssaintPage: VorssaintPage?
+    /// Recent notch alerts for the Notifications page.
+    public private(set) var alertHistory: [AlertHistoryItem] = []
 
     @ObservationIgnored public var onOpenSettings: (() -> Void)?
     @ObservationIgnored private var alertTask: Task<Void, Never>?
@@ -202,6 +218,7 @@ public final class AppState {
         }
         agents.onChange = { [weak self] in self?.syncAgentAlert() }
         hotKeys.onPress = { [weak self] tab in self?.openShortcut(tab) }
+        hotKeys.onVorssaintPress = { [weak self] page in self?.openVorssaint(page) }
     }
 
     public func start() {
@@ -430,7 +447,26 @@ public final class AppState {
         select(mode == .stopwatch ? .stopwatch : .timer)
     }
 
+    /// Opens one of the sixteen Vorssaint pages inside the wide Explore surface.
+    public func openVorssaint(_ page: VorssaintPage) {
+        vorssaintPage = page
+        if !isExpanded {
+            expand(.launcher)
+        } else if activeTab != .launcher {
+            select(.launcher)
+        }
+    }
+
+    public func closeVorssaintPage() {
+        vorssaintPage = nil
+    }
+
+    public func clearAlertHistory() {
+        alertHistory.removeAll()
+    }
+
     public func select(_ tab: WorkbenchTab) {
+        if tab != .launcher { vorssaintPage = nil }
         activeTab = tab
         if tab != .launcher { isEditingShortcuts = false }
         if tab == .stats, isExpanded {
@@ -665,6 +701,8 @@ public final class AppState {
             NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
         }
         alerts.enqueue(alert, now: Date())
+        alertHistory.insert(AlertHistoryItem(alert: alert), at: 0)
+        if alertHistory.count > 50 { alertHistory.removeLast(alertHistory.count - 50) }
         if alerts.current != nil {
             scheduleAlertExpiry()
         }

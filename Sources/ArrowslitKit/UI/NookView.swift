@@ -36,7 +36,12 @@ struct NookView: View {
                 case .sports: SportsPane(state: state)
                 case .reminders: CompactReminders(state: state)
                 case .keepAwake: CompactKeepAwake(state: state)
-                case .launcher: LauncherPane(state: state)
+                case .launcher:
+                    if let page = state.vorssaintPage {
+                        VorssaintPageView(state: state, page: page)
+                    } else {
+                        VorssaintExplorePane(state: state)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -51,11 +56,17 @@ struct NookView: View {
             }
         }
         .frame(width: size.width, height: size.height)
-        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 30, flare: 10, notchBand: geometry.notch?.height ?? 0))
-        .clipShape(SlitShape(radius: 30, flare: 10))
+        .background(NotchSurfaceBackground(
+            appearance: state.settings.appearance,
+            radius: state.activeTab == .launcher ? 22 : 30,
+            flare: 10,
+            notchBand: geometry.notch?.height ?? 0
+        ))
+        .clipShape(SlitShape(radius: state.activeTab == .launcher ? 22 : 30, flare: 10))
         .overlay {
             if !state.settings.appearance.pitchBlack {
-                SlitShape(radius: 30, flare: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5)
+                SlitShape(radius: state.activeTab == .launcher ? 22 : 30, flare: 10)
+                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
             }
         }
         .shadow(
@@ -99,8 +110,23 @@ private struct NookHeader: View {
 
     private var usesShortcutBar: Bool {
         switch state.activeTab {
-        case .home, .tray, .clipboard, .launcher: true
+        case .home, .tray, .clipboard: true
         default: false
+        }
+    }
+
+    private var headerTitle: String {
+        if state.activeTab == .launcher {
+            return state.vorssaintPage?.title ?? "Explore"
+        }
+        return state.activeTab.title
+    }
+
+    private func goBack() {
+        if state.activeTab == .launcher, state.vorssaintPage != nil {
+            state.closeVorssaintPage()
+        } else {
+            state.select(.home)
         }
     }
 
@@ -135,7 +161,11 @@ private struct NookHeader: View {
                         .background(Capsule().fill(ArrowTheme.blue))
                         .accessibilityLabel("Done editing shortcuts")
                 } else {
-                    NookIconButton(symbol: "square.grid.2x2", title: "All features", selected: state.activeTab == .launcher) {
+                    NookIconButton(
+                        symbol: state.activeTab == .launcher ? "house" : "square.grid.2x2",
+                        title: state.activeTab == .launcher ? "Home" : "Explore",
+                        selected: state.activeTab == .launcher
+                    ) {
                         if state.activeTab == .launcher { state.select(.home) } else { state.select(.launcher) }
                     }
                     NookIconButton(symbol: "gearshape.fill", title: "Settings") {
@@ -147,7 +177,7 @@ private struct NookHeader: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal, 30 * scale)
-        .frame(height: 32 * scale)
+        .frame(height: (state.activeTab == .launcher ? 40 : 32) * scale)
     }
 
     private var shortcutBar: some View {
@@ -193,7 +223,7 @@ private struct NookHeader: View {
 
     private var panelTitle: some View {
         HStack(spacing: 3 * scale) {
-            Button { state.select(.home) } label: {
+            Button(action: goBack) {
                 Image(systemName: "chevron.backward")
                     .font(.system(size: 13 * scale, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.85))
@@ -202,12 +232,14 @@ private struct NookHeader: View {
                     .contentShape(Circle())
             }
             .buttonStyle(NookPressStyle())
-            .help("Home")
-            .accessibilityLabel("Back to Home")
-            Text(state.activeTab.title)
-                .font(.system(size: 13 * scale, weight: .semibold))
-                .foregroundStyle(ArrowTheme.bone)
-                .lineLimit(1)
+            .help(headerTitle == "Explore" ? "Home" : "Back to Explore")
+            .accessibilityLabel(headerTitle == "Explore" ? "Back to Home" : "Back to Explore")
+            if state.activeTab != .launcher || state.vorssaintPage == nil {
+                Text(headerTitle)
+                    .font(.system(size: 13 * scale, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+            }
         }
     }
 }

@@ -7,9 +7,10 @@ enum AudioHW {
 
     static func address(
         _ selector: AudioObjectPropertySelector,
-        scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal
+        scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal,
+        element: UInt32 = kAudioObjectPropertyElementMain
     ) -> AudioObjectPropertyAddress {
-        AudioObjectPropertyAddress(mSelector: selector, mScope: scope, mElement: kAudioObjectPropertyElementMain)
+        AudioObjectPropertyAddress(mSelector: selector, mScope: scope, mElement: element)
     }
 
     static func value<T>(_ object: AudioObjectID, _ address: AudioObjectPropertyAddress, default fallback: T) -> T {
@@ -174,4 +175,68 @@ private func audioListenerProc(
     guard let context else { return noErr }
     Unmanaged<ListenerContext>.fromOpaque(context).takeUnretainedValue().fire()
     return noErr
+}
+
+extension AudioHW {
+    /// The default output's volume, 0...1, when the device exposes a settable
+    /// scalar. Falls back to the first two channels for devices without a
+    /// main-element volume.
+    static func outputVolume() -> Float? {
+        let device = defaultOutputDevice()
+        guard device != 0 else { return nil }
+        let main = address(kAudioDevicePropertyVolumeScalar, scope: kAudioDevicePropertyScopeOutput)
+        if isSettable(device, main) {
+            return value(device, main, default: Float(0.5))
+        }
+        let channels = [address(kAudioDevicePropertyVolumeScalar, scope: kAudioDevicePropertyScopeOutput, element: 1),
+                        address(kAudioDevicePropertyVolumeScalar, scope: kAudioDevicePropertyScopeOutput, element: 2)]
+        let values = channels.filter { isSettable(device, $0) }.map { value(device, $0, default: Float(0.5)) }
+        return values.isEmpty ? nil : values.reduce(0, +) / Float(values.count)
+    }
+
+    static func setOutputVolume(_ volume: Float) {
+        let device = defaultOutputDevice()
+        guard device != 0 else { return }
+        let clamped = min(max(volume, 0), 1)
+        let main = address(kAudioDevicePropertyVolumeScalar, scope: kAudioDevicePropertyScopeOutput)
+        if isSettable(device, main) {
+            var value = clamped
+            var address = main
+            AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<Float>.size), &value)
+            return
+        }
+        for element in [1, 2] {
+            let channel = address(kAudioDevicePropertyVolumeScalar, scope: kAudioDevicePropertyScopeOutput, element: UInt32(element))
+            guard isSettable(device, channel) else { continue }
+            var value = clamped
+            var address = channel
+            AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<Float>.size), &value)
+        }
+    }
+
+    static func outputMuted() -> Bool {
+        let device = defaultOutputDevice()
+        guard device != 0 else { return false }
+        let mute = address(kAudioDevicePropertyMute, scope: kAudioDevicePropertyScopeOutput)
+        guard isSettable(device, mute) else { return false }
+        return value(device, mute, default: UInt32(0)) != 0
+    }
+
+    static func setOutputMuted(_ muted: Bool) {
+        let device = defaultOutputDevice()
+        guard device != 0 else { return }
+        let mute = address(kAudioDevicePropertyMute, scope: kAudioDevicePropertyScopeOutput)
+        guard isSettable(device, mute) else { return }
+        var value: UInt32 = muted ? 1 : 0
+        var address = mute
+        AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<UInt32>.size), &value)
+    }
+
+    static func isSettable(_ device: AudioDeviceID, _ address: AudioObjectPropertyAddress) -> Bool {
+        var address = address
+        var settable: DarwinBoolean = false
+        return AudioObjectHasProperty(device, &address)
+            && AudioObjectIsPropertySettable(device, &address, &settable) == noErr
+            && settable.boolValue
+    }
 }

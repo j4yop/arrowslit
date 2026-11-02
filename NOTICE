@@ -17,3 +17,16 @@ integration, local-only clipboard and notes stores, agent approval adapters,
 signed update pipeline and the self-signed release identity.
 
 See LICENSE for the full GPL text.
+
+The Vorssaint-style Dynamic Island surface, its sixteen-page Explore grid,
+the native timer ruler, the Vorssaint AI usage reader and the rebuilt AI
+Agents page include code and behaviour ported from Vorssaint:
+
+    Vorssaint
+    Copyright (C) 2026 Vorssaint
+    https://github.com/vorssaint/vorssaint-utils
+
+Vorssaint is free software distributed under the GNU General Public License,
+version 3 or (at your option) any later version. The port was made from the
+v3.4.3 source at commit a5da763. Arrowslit as a whole remains distributed under
+the GNU General Public License, version 3 or (at your option) any later version.
