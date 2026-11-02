@@ -43,7 +43,8 @@ swift Scripts/sign-update.swift sign "$UPDATE_SIGNING_KEY_FILE" "$DMG" "$VERSION
 [[ -s "$UPDATE" ]] || { echo "✗ Update manifest was not created" >&2; exit 1; }
 
 git tag -a "$TAG" -m "Arrowslit $VERSION"
-git push origin main "$TAG"
+BRANCH="$(git branch --show-current)"
+git push origin "$BRANCH" "$TAG"
 gh release create "$TAG" "$DMG" "$DMG.sha256" "$UPDATE" \
   --title "Arrowslit $VERSION" \
   --notes "Arrowslit $VERSION. Download the DMG or update from Settings › About."
