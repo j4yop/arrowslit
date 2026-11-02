@@ -64,7 +64,8 @@ A Developer ID certificate plus notarization is still required for a fully trust
 - [x] Create the stable `Arrowslit` code-signing identity.
 - [x] Sign a release build with it and verify `codesign --verify --deep --strict`.
 - [x] Confirm the designated requirement is pinned to the certificate.
-- [ ] Run a real 0.9.2 → 0.10.0 upgrade with granted Accessibility/Calendar/Camera/Keychain access and confirm they survive.
+- [x] Run a real 0.9.2 → 0.10.0 upgrade and a second same-certificate upgrade; Accessibility, Camera and Calendar survived.
+- [ ] Grant the existing Sports Keychain item its one-time “Always Allow” after the ad-hoc → stable-certificate migration.
 - [ ] Publish the DMG, `.sha256` and `.update.json` together.
 - [ ] Update the Homebrew cask to the same signed build.
 - [ ] Test a failed signature, wrong bundle ID and oversized manifest before release.

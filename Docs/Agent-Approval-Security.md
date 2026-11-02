@@ -27,9 +27,10 @@
 
 ## OpenCode adapter
 
-- Listens for both `permission.asked` and `permission.v2.asked`.
-- Sends action, resources, metadata and command/path to Arrowslit.
-- Replies through `client.permission.reply` (or the session-scoped fallback) with `once` or `reject`.
+- Supports the **2.2+ `permission.ask` hook** and the older `permission.asked` / `permission.v2.asked` events.
+- Sends action/permission, resources/patterns, metadata and command/path to Arrowslit.
+- The `permission.ask` hook sets `output.status` to `allow`, `deny` or `ask`.
+- The older event path replies through `client.permission.reply` (or the session-scoped fallback) with `once` or `reject`.
 - Any error, missing client method or timeout leaves the request unanswered so OpenCode's own prompt remains.
 
 ## Residual risks

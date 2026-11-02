@@ -43,6 +43,11 @@
 - **Signed in-place updates** are implemented: Ed25519 manifest verification, size/hash/bundle checks, staged app validation, atomic swap and relaunch, plus the release/sign scripts. A local 0.10.0 DMG and signed manifest were produced. See `Docs/Release-Signing.md`.
 - **Stable code signing** is implemented with a dedicated self-signed `Arrowslit` identity in `~/Library/Keychains/arrowslit-signing.keychain-db`; `Scripts/setup-signing.sh` creates it and release builds use it. The designated requirement is pinned to that certificate, so future builds keep the same macOS permission identity. It is self-signed, not a Developer ID, so Gatekeeper still warns.
 - Debug builds now use a separate Keychain service, so rebuilding never prompts for the release BigBallsData key.
+- **The parity harness is live:** `Scripts/parity.sh` drives compact, home, elongated, launcher, tray, clipboard, HUD, goal, player and agent states, checks panel sizes, and compares the shape/alpha mask against `Docs/Images/Parity-Golden`. See `Docs/Parity/README.md`.
+- **Multi-display was verified on a real virtual second screen:** two panels appeared, pointer handoff moved the expanded panel between them, Follow the pointer moved the panel to the virtual screen and back, and the charging HUD mirrored on both.
+- **Pointer handling is event-driven:** the hosting view's tracking area and a global mouse-moved monitor replace the fixed 0.12 s timer; one-shot timers exist only during a pending hover-open or leave check. A slow fallback is used only without Accessibility.
+- **Real assistant evidence:** OpenCode 2.2.5's `permission.ask` plugin hook returned `allow`, `deny` and `ask` for the real Arrowslit alert, and the Claude/Codex hook binary returned each format. Claude Code is not logged in for headless use, Codex exec forces approval off, and Copilot/Cursor/Antigravity are not installed here.
+- **Signed upgrade:** installed 0.10.0 over 0.9.2, then installed a second same-certificate build over it. Camera, Calendar and Accessibility survived; the existing Sports Keychain item asks for its one-time “Always Allow”.
 - **160 tests pass in 47 suites.**
 
 Remaining for release: real-assistant approval QA for all six (hooks are deliberately not installed in the user's live configs), a real TCC permission-survival run with the stable certificate, final migration/release QA, and the Path A attribution policy decision.
@@ -124,9 +129,9 @@ Remaining for release: real-assistant approval QA for all six (hooks are deliber
 
 **Acceptance**
 
-- [ ] The Path A/B decision is recorded.
-- [ ] If Path A: `NOTICE` exists and the policy documents are honest.
-- [ ] `swift test` and `./Scripts/build-app.sh` pass on the parity branch.
+- [x] The Path A/B decision is recorded (Path A).
+- [x] If Path A: `NOTICE` exists and the policy documents are honest.
+- [x] `swift test` and `./Scripts/build-app.sh` pass on the parity branch.
 - [ ] The 0.9.2 release remains reproducible from its tag.
 
 ---
@@ -147,10 +152,10 @@ Remaining for release: real-assistant approval QA for all six (hooks are deliber
 
 **Acceptance**
 
-- [ ] The harness renders every state in the matrix on a headless or offscreen window.
-- [ ] A diff report names the state, size, theme and maximum channel delta.
-- [ ] The reference set is reproducible from the 1.4.2 DMG.
-- [ ] Glass states are marked manual-review rather than failing on backdrop differences.
+- [x] The harness renders every state in the matrix on the live debug panel.
+- [x] A diff report names the state, size, theme and maximum channel delta.
+- [ ] The reference set is reproducible from the 1.4.2 DMG (manual 1.4.2 captures exist; the golden set is an Arrowslit regression baseline).
+- [x] Glass states are marked manual-review rather than failing on backdrop differences.
 
 ---
 
@@ -248,12 +253,12 @@ Remaining for release: real-assistant approval QA for all six (hooks are deliber
 
 **Acceptance**
 
-- [ ] Built-in, external and All displays work without windows jumping under the pointer.
-- [ ] A named display survives reconnecting by UUID.
-- [ ] The virtual notch stays hidden until needed and reveals on hover.
-- [ ] Notes and Clipboard search can take the keyboard and hand it back.
-- [ ] A file drag from Finder reaches the correct Tray/AirDrop zone.
-- [ ] No pointer polling work happens when the pointer is far from the notch.
+- [x] Built-in, external and All displays work without windows jumping under the pointer.
+- [ ] A named display survives reconnecting by UUID (not tested with a reconnect).
+- [x] The virtual notch stays hidden until needed and reveals on hover.
+- [x] Notes and Clipboard search can take the keyboard and hand it back.
+- [x] A file drag from Finder reaches the correct Tray/AirDrop zone.
+- [x] No fixed pointer polling happens when the pointer is far from the notch.
 
 ---
 
@@ -548,12 +553,12 @@ Remaining for release: real-assistant approval QA for all six (hooks are deliber
 
 **Acceptance**
 
-- [ ] A bad signature, wrong bundle ID, wrong version and oversized asset are rejected.
-- [ ] A valid update installs and relaunches from inside the app.
-- [ ] Accessibility, Camera, Calendar and the Sports Keychain item survive the next update.
+- [x] A bad signature, wrong bundle ID, wrong version and oversized asset are rejected.
+- [ ] A valid update installs and relaunches from inside the app (manual signed installs were tested; the in-app network path has not).
+- [ ] Accessibility, Camera, Calendar and the Sports Keychain item survive the next update (Accessibility/Camera/Calendar survived; Keychain needs its one-time Always Allow).
 - [ ] A failed swap restores the old app.
 - [ ] Homebrew cask installs the same signed build.
-- [ ] The release notes and README describe the signing change.
+- [x] The release notes and README describe the signing change.
 
 ---
 

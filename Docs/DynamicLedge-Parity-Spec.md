@@ -55,6 +55,8 @@ A 1:1 port contradicts all four statements. There are two honest paths:
 
 **Recommendation:** choose Path A if "1:1 exact" is the priority; choose Path B if the "original expression" promise matters more than exactness. The rest of this spec assumes **Path A**, with the policy change as ticket 00.
 
+**Decision (2 November 2026): Path A.** Arrowslit is GPL-3.0-or-later and its `NOTICE`, `CONTRIBUTING.md`, `ROADMAP.md` and `ARCHITECTURE.md` now record the DynamicLedge attribution.
+
 ---
 
 ## User Stories

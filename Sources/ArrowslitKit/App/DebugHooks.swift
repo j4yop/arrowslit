@@ -27,6 +27,69 @@ final class DebugHooks {
 
     private func run(_ command: String) {
         switch command {
+        case "parity-compact":
+            state.settings.appearance = .standard
+            state.settings.showWhenIdle = true
+            state.collapse()
+        case "parity-home":
+            state.settings.appearance = .standard
+            state.settings.showWhenIdle = false
+            state.expand(.home)
+        case "parity-elongated":
+            var appearance = NotchAppearance.standard
+            appearance.nookLayout = .elongated
+            state.settings.appearance = appearance
+            state.settings.showWhenIdle = false
+            state.expand(.home)
+        case "parity-launcher":
+            state.settings.appearance = .standard
+            state.expand(.launcher)
+        case "parity-tray":
+            state.settings.appearance = .standard
+            state.expand(.tray)
+        case "parity-clipboard":
+            state.settings.appearance = .standard
+            state.expand(.clipboard)
+        case "parity-hud":
+            state.settings.appearance = .standard
+            state.dismissAlert()
+            state.collapse()
+            state.receive(.level(kind: .volume, value: 0.62, muted: false))
+        case "parity-goal":
+            state.settings.appearance = .standard
+            state.settings.setTabEnabled(.sports, true)
+            state.dismissAlert()
+            state.collapse()
+            state.receive(.sportsGoal(SportsGoalEvent(
+                matchID: "parity-football-1",
+                teamName: "Real Madrid",
+                teamShortName: "RMA",
+                homeShortName: "RMA",
+                awayShortName: "BAR",
+                homeScore: 2,
+                awayScore: 1,
+                minute: "67'"
+            )))
+        case "parity-nowplaying":
+            state.settings.appearance = .standard
+            showDemoTrack()
+            state.expand(.nowPlaying)
+        case "parity-agent":
+            state.settings.appearance = .standard
+            state.dismissAlert()
+            state.collapse()
+            state.receive(.agentRequest(AgentRequest(
+                kind: .opencode,
+                project: "arrowslit",
+                toolName: "Bash",
+                title: "Run a command",
+                detail: "swift test --build-system native"
+            )))
+        case "parity-reset":
+            state.settings.appearance = .standard
+            state.settings.showWhenIdle = false
+            state.dismissAlert()
+            state.collapse()
         case "expand": state.expand(.timer)
         case "home": state.expand(.home)
         case "elongated":
@@ -151,6 +214,10 @@ final class DebugHooks {
         case "download-end":
             state.downloadProgress.endDemo()
             state.collapse()
+        case "agent-ready":
+            state.agents.enabledKinds = Set(AgentKind.allCases)
+            state.agents.start()
+            FileHandle.standardError.write(Data("ARROWSLIT_AGENT_READY \(state.agents.socketPath) running=\(state.agents.isRunning)\n".utf8))
         case "agent-demo":
             state.agents.enabledKinds = Set(AgentKind.allCases)
             state.agents.start()
@@ -170,6 +237,10 @@ final class DebugHooks {
             state.expand(.launcher)
             state.isEditingShortcuts = true
         case "focus": state.startFocus()
+        case "presentation-state":
+            FileHandle.standardError.write(Data("ARROWSLIT_PRESENT active=\(state.presentation) mirror=\(state.mirrorPresentation) alert=\(String(describing: state.currentAlert))\n".utf8))
+        case "ax-state":
+            FileHandle.standardError.write(Data("ARROWSLIT_AX trusted=\(AXIsProcessTrusted())\n".utf8))
         case "window-state":
             let key = NSApp.keyWindow
             let responder = key?.firstResponder.map { String(describing: type(of: $0)) } ?? "none"

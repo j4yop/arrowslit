@@ -11,7 +11,7 @@ final class PanelController {
     private let fixedScreen: NSScreen?
     private let role: PanelRole
     private var screen: NSScreen?
-    private let hostingView: NSHostingView<ArrowslitRootView>
+    private let hostingView: TrackingHostingView<ArrowslitRootView>
     /// Called when the pointer reaches a mirror panel, so the manager can make it active.
     var onActivate: (() -> Void)?
 
@@ -23,8 +23,11 @@ final class PanelController {
     }
     private var screenObserver: NSObjectProtocol?
     private var mouseMonitor: Any?
+    private var pointerMonitor: Any?
     private var keyMonitor: Any?
-    private var hoverTimer: Timer?
+    private var hoverOpenTimer: Timer?
+    private var leaveTimer: Timer?
+    private var fallbackTimer: Timer?
     private var hoverStartedAt: Date?
     private var leaveStartedAt: Date?
     /// After a deliberate close (Escape or auto-collapse), do not immediately reopen just
@@ -51,8 +54,9 @@ final class PanelController {
         role = PanelRole(isActive: isActive)
         screen = fixedScreen ?? ScreenReader.screen(for: state.settings.displayChoice)
         ScreenReader.activeScreen = screen
-        hostingView = NSHostingView(rootView: ArrowslitRootView(state: state, screen: screen, role: role))
+        hostingView = TrackingHostingView(rootView: ArrowslitRootView(state: state, screen: screen, role: role))
         hostingView.sizingOptions = []
+        hostingView.onPointerChanged = { [weak self] in self?.pollPointer() }
         panel.contentView = hostingView
         panel.setAccessibilityLabel("Arrowslit")
         panel.orderFrontRegardless()
@@ -66,15 +70,20 @@ final class PanelController {
         observe()
         observeScreens()
         installMonitors()
-        startHoverPolling()
+        startPointerWatching()
     }
 
     func tearDown() {
         if let screenObserver { NotificationCenter.default.removeObserver(screenObserver) }
         if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
+        if let pointerMonitor { NSEvent.removeMonitor(pointerMonitor) }
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
-        hoverTimer?.invalidate()
-        hoverTimer = nil
+        hoverOpenTimer?.invalidate()
+        hoverOpenTimer = nil
+        leaveTimer?.invalidate()
+        leaveTimer = nil
+        fallbackTimer?.invalidate()
+        fallbackTimer = nil
         panel.orderOut(nil)
     }
 
@@ -86,6 +95,7 @@ final class PanelController {
             _ = state.presentation
             _ = state.session.isLocked
             _ = state.settings.showOnLockScreen
+            _ = state.settings.appearance
             _ = state.settings.displayChoice
             _ = state.isSearchingClipboard
             _ = state.isTypingInNook
@@ -146,13 +156,58 @@ final class PanelController {
         keyboardFocus()
     }
 
-    private func startHoverPolling() {
-        let timer = Timer(timeInterval: 0.12, repeats: true) { [weak self] _ in
+    /// Hover is driven by pointer events, not a repeating timer. The tracking area covers the
+    /// panel itself; the global monitor catches the pointer moving toward a mirror on another
+    /// screen. A slow fallback exists only when macOS has not granted Accessibility, because
+    /// global mouse events are unavailable there.
+    private func startPointerWatching() {
+        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             MainActor.assumeIsolated { self?.pollPointer() }
         }
-        timer.tolerance = 0.04
+        if pointerMonitor == nil || !AXIsProcessTrusted() {
+            let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.pollPointer() }
+            }
+            timer.tolerance = 0.2
+            RunLoop.main.add(timer, forMode: .common)
+            fallbackTimer = timer
+        }
+    }
+
+    private func scheduleHoverOpen() {
+        guard hoverOpenTimer == nil else { return }
+        let timer = Timer(timeInterval: 0.4, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.hoverOpenTimer = nil
+                guard self.role.isActive, !self.state.isExpanded,
+                      self.panel.frame.insetBy(dx: -8, dy: -8).contains(NSEvent.mouseLocation) else { return }
+                self.state.expandDefault()
+            }
+        }
         RunLoop.main.add(timer, forMode: .common)
-        hoverTimer = timer
+        hoverOpenTimer = timer
+    }
+
+    private func scheduleLeaveCheck() {
+        guard leaveTimer == nil else { return }
+        let timer = Timer(timeInterval: 0.45, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.leaveTimer = nil
+                guard self.role.isActive, self.state.isExpanded,
+                      self.state.settings.collapseOnLeave,
+                      NSEvent.pressedMouseButtons == 0,
+                      !NSApp.isActive,
+                      !self.panel.frame.insetBy(dx: -8, dy: -8).contains(NSEvent.mouseLocation) else { return }
+                // The pointer is already away, so this is not a deliberate close: do not
+                // leave the notch suppressed until a second leave happens.
+                self.state.collapse()
+                self.state.clearHoverSuppression()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        leaveTimer = timer
     }
 
     private func pollPointer() {
@@ -177,34 +232,39 @@ final class PanelController {
         if displayPresentation.isAlert {
             hoverStartedAt = nil
             leaveStartedAt = nil
+            hoverOpenTimer?.invalidate()
+            hoverOpenTimer = nil
+            leaveTimer?.invalidate()
+            leaveTimer = nil
             state.setHoveringNotch(false)
             return
         }
 
         if state.isExpanded {
             hoverStartedAt = nil
+            hoverOpenTimer?.invalidate()
+            hoverOpenTimer = nil
             state.setHoveringNotch(false)
             guard state.settings.collapseOnLeave,
                   NSEvent.pressedMouseButtons == 0,
                   !NSApp.isActive else {
                 leaveStartedAt = nil
+                leaveTimer?.invalidate()
+                leaveTimer = nil
                 return
             }
             if frame.insetBy(dx: -8, dy: -8).contains(mouse) {
                 leaveStartedAt = nil
-            } else if let started = leaveStartedAt {
-                if Date().timeIntervalSince(started) > 0.45 {
-                    leaveStartedAt = nil
-                    suppressHover = true
-                    DispatchQueue.main.async { [weak self] in
-                        self?.state.collapse()
-                    }
-                }
+                leaveTimer?.invalidate()
+                leaveTimer = nil
             } else {
-                leaveStartedAt = Date()
+                if leaveStartedAt == nil { leaveStartedAt = Date() }
+                scheduleLeaveCheck()
             }
         } else {
             leaveStartedAt = nil
+            leaveTimer?.invalidate()
+            leaveTimer = nil
             // The pointer resting exactly on the top edge has y == screen.maxY, which
             // CGRect.contains excludes; inset by -1 so the notch edge still counts.
             let onScreen = screen.frame.insetBy(dx: -1, dy: -1).contains(mouse)
@@ -214,6 +274,8 @@ final class PanelController {
                 state.setHoveringNotch(false)
                 if !hovering { state.clearHoverSuppression() }
                 hoverStartedAt = nil
+                hoverOpenTimer?.invalidate()
+                hoverOpenTimer = nil
                 return
             }
 
@@ -222,26 +284,26 @@ final class PanelController {
             if suppressHover {
                 if !hovering { suppressHover = false }
                 hoverStartedAt = nil
+                hoverOpenTimer?.invalidate()
+                hoverOpenTimer = nil
                 return
             }
 
             guard state.settings.openOnHover else {
                 hoverStartedAt = nil
+                hoverOpenTimer?.invalidate()
+                hoverOpenTimer = nil
                 return
             }
             if hovering {
-                if let started = hoverStartedAt {
-                    if Date().timeIntervalSince(started) >= 0.4 {
-                        hoverStartedAt = nil
-                        DispatchQueue.main.async { [weak self] in
-                            self?.state.expandDefault()
-                        }
-                    }
-                } else {
+                if hoverOpenTimer == nil, hoverStartedAt == nil {
                     hoverStartedAt = Date()
+                    scheduleHoverOpen()
                 }
             } else {
                 hoverStartedAt = nil
+                hoverOpenTimer?.invalidate()
+                hoverOpenTimer = nil
             }
         }
     }
@@ -354,6 +416,50 @@ final class PanelController {
             if panel.isKeyWindow { panel.resignKey() }
             panel.acceptsKeyboard = false
         }
+    }
+}
+
+/// NSHostingView that reports pointer movement and enter/exit even while the app is inactive.
+private final class TrackingHostingView<Content: View>: NSHostingView<Content> {
+    var onPointerChanged: (() -> Void)?
+    private var trackingArea: NSTrackingArea?
+
+    required init(rootView: Content) {
+        super.init(rootView: rootView)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let trackingArea { removeTrackingArea(trackingArea) }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self
+        )
+        addTrackingArea(area)
+        trackingArea = area
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        super.mouseMoved(with: event)
+        onPointerChanged?()
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        onPointerChanged?()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        onPointerChanged?()
     }
 }
 

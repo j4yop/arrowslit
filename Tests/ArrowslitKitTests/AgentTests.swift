@@ -105,6 +105,8 @@ struct AgentTests {
         try AgentHookSettings.installOpenCode(socket: "/tmp/arrowslit-agent.sock", at: plugin)
         let script = try String(contentsOf: plugin, encoding: .utf8)
         #expect(script.contains("permission.asked"))
+        #expect(script.contains("permission.ask"))
+        #expect(script.contains("output.status"))
         #expect(script.contains("/tmp/arrowslit-agent.sock"))
         #expect(AgentHookSettings.isInstalled(.opencode, at: plugin))
         try AgentHookSettings.uninstall(.opencode, at: plugin)
