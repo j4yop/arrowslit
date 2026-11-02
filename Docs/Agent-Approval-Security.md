@@ -27,11 +27,11 @@
 
 ## OpenCode adapter
 
-- Supports the **2.2+ `permission.ask` hook** and the older `permission.asked` / `permission.v2.asked` events.
-- Sends action/permission, resources/patterns, metadata and command/path to Arrowslit.
-- The `permission.ask` hook sets `output.status` to `allow`, `deny` or `ask`.
-- The older event path replies through `client.permission.reply` (or the session-scoped fallback) with `once` or `reject`.
-- Any error, missing client method or timeout leaves the request unanswered so OpenCode's own prompt remains.
+- Requires OpenCode 2.2+ and its V2 plugin API.
+- Registers `ctx.permission.hook("evaluate")` during the plugin's `setup`.
+- Sends action, resources, metadata and command/path to Arrowslit.
+- Sets `event.effect` to `allow` or `deny`; any other reply, error or timeout leaves OpenCode's own decision untouched.
+- A configured `deny` rule is final and is not overridden by the hook.
 
 ## Residual risks
 
