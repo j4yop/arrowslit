@@ -29,26 +29,48 @@ final class DebugHooks {
         switch command {
         case "parity-compact":
             state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
             state.settings.showWhenIdle = true
             state.collapse()
         case "parity-home":
             state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
             state.settings.showWhenIdle = false
             state.expand(.home)
         case "parity-elongated":
             var appearance = NotchAppearance.standard
             appearance.nookLayout = .elongated
             state.settings.appearance = appearance
+            state.settings.collapseOnLeave = false
             state.settings.showWhenIdle = false
             state.expand(.home)
+        case "parity-calendar":
+            state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
+            state.expand(.calendar)
+        case "parity-timer":
+            state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
+            state.expand(.timer)
+        case "parity-stats":
+            state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
+            state.expand(.stats)
+        case "parity-notes":
+            state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
+            state.expand(.notes)
         case "parity-launcher":
             state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
             state.expand(.launcher)
         case "parity-tray":
             state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
             state.expand(.tray)
         case "parity-clipboard":
             state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
             state.expand(.clipboard)
         case "parity-hud":
             state.settings.appearance = .standard
@@ -87,6 +109,7 @@ final class DebugHooks {
             )))
         case "parity-reset":
             state.settings.appearance = .standard
+            state.settings.collapseOnLeave = false
             state.settings.showWhenIdle = false
             state.dismissAlert()
             state.collapse()
@@ -237,6 +260,10 @@ final class DebugHooks {
             state.expand(.launcher)
             state.isEditingShortcuts = true
         case "focus": state.startFocus()
+        case "layout-state":
+            let a = state.settings.appearance
+            let size = state.panelSize(for: state.presentation, geometry: ScreenReader.current)
+            FileHandle.standardError.write(Data("ARROWSLIT_LAYOUT size=\(a.size) scale=\(a.size.scale) width=\(a.width) height=\(a.height) tab=\(state.activeTab) panel=\(size) presentation=\(state.presentation)\n".utf8))
         case "presentation-state":
             FileHandle.standardError.write(Data("ARROWSLIT_PRESENT active=\(state.presentation) mirror=\(state.mirrorPresentation) alert=\(String(describing: state.currentAlert))\n".utf8))
         case "ax-state":

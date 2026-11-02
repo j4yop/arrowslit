@@ -8,12 +8,13 @@ struct NookView: View {
     @State private var dropPoint: CGPoint = .zero
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.panelGeometry) private var geometry
+    @Environment(\.panelScale) private var scale
 
     private var size: CGSize { state.panelSize(for: .expanded(state.activeTab), geometry: geometry) }
 
     var body: some View {
         VStack(spacing: 0) {
-            NookHeader(state: state, notchWidth: ParityLayout.notch(in: geometry).width, width: size.width)
+            NookHeader(state: state, notchWidth: ParityLayout.notch(in: geometry).width)
             Group {
                 switch state.activeTab {
                 case .home:
@@ -39,9 +40,9 @@ struct NookView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding(.horizontal, 14)
-            .padding(.top, 10)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 24 * scale)
+            .padding(.top, 10 * scale)
+            .padding(.bottom, 16 * scale)
             .overlay {
                 if isDropTargeted {
                     NookDropOverlay(tray: state.tray, point: dropPoint, split: 336)
@@ -53,9 +54,15 @@ struct NookView: View {
         .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 30, flare: 10, notchBand: geometry.notch?.height ?? 0))
         .clipShape(SlitShape(radius: 30, flare: 10))
         .overlay {
-            SlitShape(radius: 30, flare: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            if !state.settings.appearance.pitchBlack {
+                SlitShape(radius: 30, flare: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            }
         }
-        .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
+        .shadow(
+            color: state.settings.appearance.pitchBlack ? .clear : .black.opacity(0.4),
+            radius: 18,
+            y: 8
+        )
         .onDrop(
             of: [.fileURL, .url],
             delegate: NookDropDelegate(
@@ -82,13 +89,7 @@ struct NookView: View {
 private struct NookHeader: View {
     @Bindable var state: AppState
     let notchWidth: CGFloat
-    let width: CGFloat
-
-    private var sideWidth: CGFloat {
-        // Keep a small buffer around the camera housing so no control touches it.
-        let gap = min(260, notchWidth + 12)
-        return max(120, (width - gap) / 2)
-    }
+    @Environment(\.panelScale) private var scale
 
     private var shortcuts: [WorkbenchTab] {
         state.settings.shortcutTabs
@@ -96,127 +97,180 @@ private struct NookHeader: View {
             .filter { state.settings.isTabEnabled($0) }
     }
 
-    private var showsShortcutRow: Bool {
-        state.activeTab == .home || shortcuts.contains(state.activeTab)
+    private var usesShortcutBar: Bool {
+        switch state.activeTab {
+        case .home, .tray, .clipboard, .launcher: true
+        default: false
+        }
     }
 
     var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 3) {
-                if showsShortcutRow {
-                    NookTabButton(symbol: "house", title: "Home", isSelected: state.activeTab == .home) { state.select(.home) }
-                    ForEach(shortcuts) { tab in
-                        NookTabButton(
-                            symbol: tab.symbol,
-                            title: tab.title,
-                            isSelected: state.activeTab == tab,
-                            badge: tab == .tray ? state.tray.items.count : 0
-                        ) {
-                            state.select(tab)
-                        }
-                    }
+            Group {
+                if usesShortcutBar {
+                    shortcutBar
                 } else {
-                    Button { state.select(.home) } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.backward").font(.system(size: 9, weight: .semibold))
-                            Text(state.activeTab.title).font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
-                        }
-                        .foregroundStyle(ArrowTheme.bone)
-                    }
-                    .buttonStyle(NookPressStyle())
+                    panelTitle
                 }
             }
-            .padding(.leading, 10)
-            .frame(width: sideWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Color.clear.frame(width: width - sideWidth * 2)
+            Color.clear
+                .frame(width: notchWidth + 12)
 
             HStack(spacing: 4) {
-                if state.activeTab == .launcher, state.isEditingShortcuts {
+                if state.isEditingShortcuts {
                     Text("\(state.settings.shortcutTabs.count) of \(SettingsStore.shortcutLimit)")
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(.system(size: 11, weight: .medium))
+                        .monospacedDigit()
                         .foregroundStyle(ArrowTheme.muted)
+                        .padding(.trailing, 4)
+                        .help("Click features to add them beside Home, or a ticked one to remove it")
                     Button("Done") { state.isEditingShortcuts = false }
                         .buttonStyle(NookPressStyle())
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(ArrowTheme.ink)
-                        .padding(.horizontal, 10)
-                        .frame(height: 22)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(ArrowTheme.amber)
-                        )
+                        .font(.system(size: 11 * scale, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10 * scale)
+                        .frame(height: 22 * scale)
+                        .background(Capsule().fill(ArrowTheme.blue))
+                        .accessibilityLabel("Done editing shortcuts")
                 } else {
-                    if state.activeTab == .launcher {
-                        NookIconButton(symbol: "pencil", title: "Edit shortcuts") {
-                            state.isEditingShortcuts = true
-                        }
-                    }
                     NookIconButton(symbol: "square.grid.2x2", title: "All features", selected: state.activeTab == .launcher) {
                         if state.activeTab == .launcher { state.select(.home) } else { state.select(.launcher) }
                     }
-                    NookIconButton(symbol: "gearshape", title: "Settings") {
+                    NookIconButton(symbol: "gearshape.fill", title: "Settings") {
                         state.collapse()
                         state.onOpenSettings?()
                     }
                 }
             }
-            .padding(.trailing, 10)
-            .frame(width: sideWidth, alignment: .trailing)
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .frame(height: 32)
+        .padding(.horizontal, 30 * scale)
+        .frame(height: 32 * scale)
+    }
+
+    private var shortcutBar: some View {
+        HStack(spacing: 3 * scale) {
+            NookShortcutButton(
+                symbol: "house.fill",
+                title: "Home",
+                isSelected: state.activeTab == .home,
+                badge: 0,
+                isEditing: false,
+                onTap: { state.select(.home) },
+                onRemove: nil
+            )
+            ForEach(shortcuts) { tab in
+                NookShortcutButton(
+                    symbol: tab == .keepAwake && state.keepAwake.isOn ? "cup.and.heat.waves.fill" : tab.symbol,
+                    title: tab.title,
+                    isSelected: state.activeTab == tab,
+                    badge: tab == .tray ? state.tray.items.count : 0,
+                    isEditing: state.isEditingShortcuts,
+                    onTap: {
+                        if state.isEditingShortcuts {
+                            if state.toggleShortcut(tab) {
+                                NookHaptics.perform(enabled: state.settings.hapticFeedback)
+                            }
+                        } else {
+                            state.select(tab)
+                        }
+                    },
+                    onRemove: {
+                        state.toggleShortcut(tab)
+                        state.isEditingShortcuts = false
+                    }
+                )
+            }
+        }
+        .padding(2 * scale)
+        .background(Capsule().fill(Color.white.opacity(0.055)))
+        .contentShape(Capsule())
+        .animation(.spring(duration: 0.3, bounce: 0.2), value: shortcuts)
+        .accessibilityIdentifier("feature-shortcuts")
+    }
+
+    private var panelTitle: some View {
+        HStack(spacing: 3 * scale) {
+            Button { state.select(.home) } label: {
+                Image(systemName: "chevron.backward")
+                    .font(.system(size: 13 * scale, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .frame(width: 24 * scale, height: 24 * scale)
+                    .background(Circle().fill(Color.white.opacity(0)))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(NookPressStyle())
+            .help("Home")
+            .accessibilityLabel("Back to Home")
+            Text(state.activeTab.title)
+                .font(.system(size: 13 * scale, weight: .semibold))
+                .foregroundStyle(ArrowTheme.bone)
+                .lineLimit(1)
+        }
     }
 }
 
-private struct NookTabButton: View {
+private struct NookShortcutButton: View {
     let symbol: String
     let title: String
     let isSelected: Bool
-    var badge = 0
-    let action: () -> Void
+    let badge: Int
+    let isEditing: Bool
+    let onTap: () -> Void
+    let onRemove: (() -> Void)?
     @State private var isHovering = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
+        ZStack(alignment: .topTrailing) {
+            Button(action: onTap) {
                 Image(systemName: symbol)
-                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                if isSelected {
-                    Text(title)
-                        .font(.system(size: 9.5, weight: .semibold))
-                        .lineLimit(1)
-                        .fixedSize()
-                }
+                    .font(.system(size: 11 * scale, weight: .semibold))
+                    .foregroundStyle(isSelected ? .white : ArrowTheme.muted)
+                    .frame(width: 24 * scale, height: 22 * scale)
+                    .background(
+                        Circle().fill(
+                            isSelected ? Color.white.opacity(0.18)
+                                : (isHovering ? Color.white.opacity(0.08) : .clear)
+                        )
+                    )
+                    .contentShape(Circle())
             }
-            .foregroundStyle(isSelected ? ArrowTheme.bone : ArrowTheme.muted)
-            .padding(.horizontal, isSelected ? 7 : 5)
-            .frame(height: 24)
-            .background(
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(isSelected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.07) : .clear))
-            )
-            .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isSelected)
-            .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isHovering)
-            .overlay(alignment: .topTrailing) {
-                if badge > 0 {
-                    Text("\(min(badge, 99))")
-                        .font(.system(size: 7, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 3)
-                        .frame(minWidth: 12, minHeight: 12)
-                        .background(Capsule().fill(Color(red: 0.04, green: 0.52, blue: 1)))
-                        .offset(x: 5, y: -4)
+            .buttonStyle(NookPressStyle())
+            .onHover { isHovering = $0 }
+            .help(isEditing ? "Remove \(title)" : title)
+            .accessibilityLabel(title)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+
+            if isEditing, let onRemove {
+                Button(action: onRemove) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 10 * scale, weight: .bold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, ArrowTheme.red)
+                        .frame(width: 14 * scale, height: 14 * scale)
+                        .background(Circle().fill(Color.black.opacity(0.8)))
                 }
+                .buttonStyle(.plain)
+                .offset(x: 3 * scale, y: -3 * scale)
+                .accessibilityLabel("Remove \(title)")
+            } else if badge > 0 {
+                Text("\(min(badge, 99))")
+                    .font(.system(size: 8 * scale, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 3 * scale)
+                    .frame(minWidth: 12 * scale, minHeight: 12 * scale)
+                    .background(Capsule().fill(ArrowTheme.blue))
+                    .offset(x: 3 * scale, y: -2 * scale)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(NookPressStyle())
-        .nookHitSlop()
-        .onHover { isHovering = $0 }
-        .help(title)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isHovering)
     }
 }
 
@@ -227,16 +281,17 @@ private struct NookIconButton: View {
     let action: () -> Void
     @State private var isHovering = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(selected ? ArrowTheme.bone : ArrowTheme.muted)
-                .frame(width: 24, height: 26)
+                .font(.system(size: 12 * scale, weight: .semibold))
+                .foregroundStyle(selected ? .white : ArrowTheme.muted)
+                .frame(width: (selected ? 26 : 22) * scale, height: 22 * scale)
                 .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(selected ? Color.white.opacity(0.1) : (isHovering ? Color.white.opacity(0.06) : .clear))
+                    RoundedRectangle(cornerRadius: 6 * scale, style: .continuous)
+                        .fill(selected ? Color.white.opacity(0.18) : (isHovering ? Color.white.opacity(0.08) : .clear))
                 )
                 .contentShape(Rectangle())
         }
@@ -245,6 +300,7 @@ private struct NookIconButton: View {
         .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isHovering)
         .help(title)
         .accessibilityLabel(title)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -498,6 +554,7 @@ private struct CompactCalendar: View {
 private struct CompactTray: View {
     @Bindable var state: AppState
     @State private var isTargeted = false
+    @Environment(\.panelScale) private var scale
 
     private var isWide: Bool { state.settings.appearance.nookLayout == .elongated }
 
@@ -506,34 +563,34 @@ private struct CompactTray: View {
             if state.tray.items.isEmpty {
                 Group {
                     if isWide {
-                        HStack(spacing: 18) {
+                        HStack(spacing: 18 * scale) {
                             Image(systemName: "tray.and.arrow.down.fill")
-                                .font(.system(size: 34, weight: .semibold))
+                                .font(.system(size: 34 * scale, weight: .semibold))
                                 .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
-                                .frame(width: 58, height: 58)
+                                .frame(width: 58 * scale, height: 58 * scale)
                                 .background(Circle().fill(Color.white.opacity(0.05)))
-                            VStack(alignment: .leading, spacing: 5) {
+                            VStack(alignment: .leading, spacing: 5 * scale) {
                                 Text("Drag files onto the notch to keep them here")
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .font(.system(size: 16 * scale, weight: .semibold))
                                     .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.bone.opacity(0.92))
                                 Text("They stay until you quit, or pin one to keep it. Your originals aren't touched.")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 12 * scale))
                                     .foregroundStyle(ArrowTheme.muted)
                             }
                             Spacer(minLength: 0)
                             AddFilesButton(state: state)
                         }
-                        .padding(.horizontal, 18)
+                        .padding(.horizontal, 18 * scale)
                     } else {
-                        VStack(spacing: 7) {
+                        VStack(spacing: 7 * scale) {
                             Image(systemName: "tray.and.arrow.down.fill")
-                                .font(.system(size: 28, weight: .semibold))
+                                .font(.system(size: 22 * scale, weight: .semibold))
                                 .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
                             Text("Drag files onto the notch to keep them here")
-                                .font(.system(size: 15, weight: .medium))
+                                .font(.system(size: 13 * scale, weight: .medium))
                                 .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.bone.opacity(0.9))
                             Text("They stay until you quit, or pin one to keep it. Your originals aren't touched.")
-                                .font(.system(size: 12, weight: .regular))
+                                .font(.system(size: 10 * scale))
                                 .foregroundStyle(ArrowTheme.muted)
                                 .multilineTextAlignment(.center)
                         }
@@ -553,9 +610,9 @@ private struct CompactTray: View {
                 )
                 .animation(.easeOut(duration: 0.15), value: isTargeted)
             } else {
-                HStack(spacing: 8) {
+                HStack(spacing: 8 * scale) {
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 8 * scale) {
                             ForEach(state.tray.items) { item in
                                 CompactTrayItem(state: state, item: item)
                             }
@@ -567,7 +624,7 @@ private struct CompactTray: View {
                         Image(systemName: "wifi")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(Color(red: 0.35, green: 0.68, blue: 1))
-                            .frame(width: 26, height: 26)
+                            .frame(width: 26 * scale, height: 26 * scale)
                             .background(Circle().fill(Color(red: 0.06, green: 0.22, blue: 0.36)))
                     }
                     .buttonStyle(NookPressStyle())
@@ -577,7 +634,7 @@ private struct CompactTray: View {
                         Image(systemName: "xmark.bin.fill")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(ArrowTheme.muted)
-                            .frame(width: 26, height: 26)
+                            .frame(width: 26 * scale, height: 26 * scale)
                             .background(Circle().fill(Color.white.opacity(0.07)))
                     }
                     .buttonStyle(NookPressStyle())
@@ -601,6 +658,7 @@ private struct CompactTray: View {
 
 private struct AddFilesButton: View {
     @Bindable var state: AppState
+    @Environment(\.panelScale) private var scale
 
     var body: some View {
         Button {
@@ -611,10 +669,10 @@ private struct AddFilesButton: View {
             if panel.runModal() == .OK { state.tray.add(panel.urls) }
         } label: {
             Label("Add files", systemImage: "plus")
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: 10 * scale, weight: .semibold))
                 .foregroundStyle(ArrowTheme.ink)
-                .padding(.horizontal, 10)
-                .frame(height: 26)
+                .padding(.horizontal, 10 * scale)
+                .frame(height: 26 * scale)
                 .background(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(ArrowTheme.amber)
@@ -628,47 +686,70 @@ private struct CompactTrayItem: View {
     @Bindable var state: AppState
     let item: TrayItem
     @State private var isHovering = false
+    @Environment(\.panelScale) private var scale
 
     private var isWide: Bool { state.settings.appearance.nookLayout == .elongated }
-    private var iconSize: CGFloat { isWide ? 54 : 42 }
-    private var nameWidth: CGFloat { isWide ? 84 : 62 }
+    private var iconSize: CGFloat { (isWide ? 54 : 48) * scale }
+    private var nameWidth: CGFloat { (isWide ? 84 : 72) * scale }
 
     var body: some View {
-        VStack(spacing: isWide ? 5 : 3) {
+        VStack(spacing: 5) {
             Image(nsImage: state.tray.icon(for: item))
                 .resizable().interpolation(.high).aspectRatio(contentMode: .fit)
                 .frame(width: iconSize, height: iconSize)
             Text(item.name)
-                .font(.system(size: isWide ? 10 : 8.5, weight: .medium))
-                .foregroundStyle(ArrowTheme.bone.opacity(0.85))
+                .font(.system(size: 10 * scale, weight: .medium))
+                .foregroundStyle(.white.opacity(0.85))
                 .lineLimit(1).truncationMode(.middle)
                 .frame(width: nameWidth)
         }
-        .padding(.vertical, isWide ? 8 : 5)
-        .padding(.horizontal, isWide ? 8 : 5)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(isHovering ? 0.07 : 0.035)))
+        .padding(.horizontal, 8 * scale)
+        .padding(.vertical, 8 * scale)
+        .background(
+            RoundedRectangle(cornerRadius: 12 * scale, style: .continuous)
+                .fill(Color.white.opacity(isHovering ? 0.12 : (item.isPinned ? 0.06 : 0)))
+        )
         .overlay(alignment: .topLeading) {
-            if item.isPinned {
-                Image(systemName: "pin.fill")
-                    .font(.system(size: 7, weight: .bold))
-                    .foregroundStyle(ArrowTheme.amber)
-                    .padding(3)
+            if item.isPinned || isHovering {
+                Button { state.tray.togglePin(item.id) } label: {
+                    Image(systemName: item.isPinned ? "pin.fill" : "pin")
+                        .font(.system(size: 9.5 * scale, weight: .bold))
+                        .foregroundStyle(item.isPinned ? ArrowTheme.amber : .white.opacity(0.85))
+                        .frame(width: 18 * scale, height: 18 * scale)
+                        .background(Circle().fill(Color.black.opacity(0.75)))
+                        .frame(width: 22 * scale, height: 22 * scale)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(NookPressStyle())
+                .padding([.top, .leading], 3 * scale)
+                .help(item.isPinned ? "Unpin" : "Pin, so it stays after you quit")
+                .accessibilityLabel(item.isPinned ? "Unpin \(item.name)" : "Pin \(item.name)")
             }
         }
         .overlay(alignment: .topTrailing) {
             if isHovering {
                 Button { state.tray.remove(item.id) } label: {
-                    Image(systemName: "xmark").font(.system(size: 6.5, weight: .bold))
-                        .foregroundStyle(ArrowTheme.bone)
-                        .frame(width: 14, height: 14)
-                        .background(Circle().fill(Color.black.opacity(0.75)))
+                    ZStack {
+                        Circle().fill(Color.black.opacity(0.75)).frame(width: 18 * scale, height: 18 * scale)
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 15 * scale))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, Color(white: 0.35))
+                    }
+                    .frame(width: 22 * scale, height: 22 * scale)
+                    .contentShape(Circle())
                 }
                 .buttonStyle(NookPressStyle())
-                .padding(2)
+                .padding([.top, .trailing], 3 * scale)
+                .accessibilityLabel("Remove \(item.name)")
             }
         }
+        .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .onTapGesture(count: 2) { state.tray.open(item) }
+        .onDrag {
+            NSItemProvider(contentsOf: item.url) ?? NSItemProvider()
+        }
         .contextMenu {
             Button("Open") { state.tray.open(item) }
             Button("Show in Finder") { state.tray.reveal(item) }
@@ -730,88 +811,170 @@ private struct CompactClipboard: View {
     @Bindable var state: AppState
     @State private var query = ""
     @FocusState private var searchFocused: Bool
+    @Environment(\.panelScale) private var scale
 
     private var isWide: Bool { state.settings.appearance.nookLayout == .elongated }
-    private var filtered: [ClipboardEntry] { state.clipboard.matching(query) }
+    private var isSearching: Bool { state.isSearchingClipboard }
+    private var filtered: [ClipboardEntry] {
+        state.clipboard.matching(isSearching ? query : "")
+    }
 
     var body: some View {
         if state.clipboard.entries.isEmpty {
             CompactEmpty(symbol: "doc.on.clipboard", title: "Copy something", detail: "Text you copy appears here; passwords are skipped. Pin a clip to keep it after quitting.")
         } else {
-            VStack(spacing: 6) {
-                HStack(spacing: 6) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(searchFocused ? ArrowTheme.bone : ArrowTheme.muted)
-                        TextField("Search clips", text: $query)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(ArrowTheme.bone)
-                            .focused($searchFocused)
-                            .onSubmit {
-                                if let first = filtered.first { state.clipboard.copy(first) }
+            VStack(spacing: 0) {
+                HStack(alignment: .center, spacing: 8 * scale) {
+                    ZStack {
+                        if filtered.isEmpty {
+                            VStack(spacing: 4) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("No clips match “\(query)”")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .lineLimit(1)
                             }
-                        if !query.isEmpty {
-                            Text("\(filtered.count)")
-                                .font(.system(size: 9.5, weight: .semibold))
-                                .monospacedDigit()
-                                .foregroundStyle(ArrowTheme.muted)
-                                .accessibilityLabel("\(filtered.count) matches")
-                            Button { query = "" } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(ArrowTheme.muted)
+                            .foregroundStyle(ArrowTheme.muted)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8 * scale) {
+                                    ForEach(filtered) { entry in
+                                        CompactClipCard(state: state, entry: entry, wide: isWide)
+                                            .transition(.scale(scale: 0.9).combined(with: .opacity))
+                                    }
+                                }
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Clear search")
+                            .frame(maxHeight: .infinity)
+                            .nookScrollEdgeFade()
+                            .nookScrollBounce()
                         }
                     }
-                    .padding(.horizontal, 8)
-                    .frame(height: 26)
-                    .background(Capsule().fill(Color.white.opacity(searchFocused ? 0.11 : 0.06)))
+                    .frame(maxHeight: .infinity)
 
-                    Button { state.clipboard.clear() } label: {
-                        Image(systemName: "xmark.bin.fill")
-                            .font(.system(size: 10.5, weight: .semibold))
-                            .foregroundStyle(ArrowTheme.muted)
-                            .frame(width: 26, height: 26)
-                            .background(Circle().fill(Color.white.opacity(0.07)))
-                    }
-                    .buttonStyle(NookPressStyle())
-                    .help("Clear unpinned clips")
-                    .accessibilityLabel("Clear unpinned clips")
-                    .disabled(state.clipboard.entries.allSatisfy(\.isPinned))
-                }
-
-                if filtered.isEmpty {
-                    VStack(spacing: 4) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(ArrowTheme.faint)
-                        Text("No clips match “\(query)”")
-                            .font(.system(size: 10.5, weight: .medium))
-                            .foregroundStyle(ArrowTheme.muted)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(filtered) { entry in
-                                CompactClipCard(state: state, entry: entry, wide: isWide)
-                            }
+                    VStack(spacing: 6 * scale) {
+                        ClipboardSideButton(
+                            symbol: "magnifyingglass",
+                            label: isSearching ? "Close search" : "Search clips",
+                            isOn: isSearching
+                        ) {
+                            if isSearching { closeSearch() } else { openSearch() }
                         }
+                        ClipboardSideButton(
+                            symbol: "xmark.bin.fill",
+                            label: state.clipboard.pinnedCount > 0 ? "Clear the history (pinned clips stay)" : "Clear the history"
+                        ) {
+                            withAnimation(.snappy(duration: 0.25)) { state.clipboard.clear() }
+                        }
+                        .disabled(state.clipboard.entries.allSatisfy(\.isPinned))
+                        .opacity(state.clipboard.entries.allSatisfy(\.isPinned) ? 0.4 : 1)
                     }
-                    .nookScrollEdgeFade()
-                    .nookScrollBounce()
+                }
+                .frame(maxHeight: .infinity)
+
+                if isSearching {
+                    searchField
+                        .padding(.top, 10 * scale)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .onAppear {
-                state.isSearchingClipboard = true
-                DispatchQueue.main.async { searchFocused = true }
+            .animation(.snappy(duration: 0.25), value: isSearching)
+            .animation(.snappy(duration: 0.25), value: filtered.map(\.id))
+            .onDisappear {
+                state.isSearchingClipboard = false
+                state.isTypingInNook = false
             }
-            .onDisappear { state.isSearchingClipboard = false }
         }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 7) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 11 * scale, weight: .semibold))
+                .foregroundStyle(searchFocused ? .white : ArrowTheme.muted)
+            TextField("Search clips", text: $query)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12.5 * scale, weight: .medium))
+                .foregroundStyle(.white)
+                .focused($searchFocused)
+                .onSubmit {
+                    if let first = filtered.first { state.clipboard.copy(first) }
+                }
+                .onKeyPress(.escape) {
+                    closeSearch()
+                    return .handled
+                }
+            if !query.isEmpty {
+                Text("\(state.clipboard.matching(query).count)")
+                    .font(.system(size: 11, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.muted)
+                    .contentTransition(.numericText())
+                    .accessibilityLabel("\(state.clipboard.matching(query).count) matches")
+            }
+            Button { closeSearch() } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(ArrowTheme.muted)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(NookPressStyle())
+            .help("Close search")
+            .accessibilityLabel("Close search")
+        }
+        .padding(.horizontal, 12 * scale)
+        .frame(height: 28 * scale)
+        .background(Capsule().fill(Color.white.opacity(searchFocused ? 0.12 : 0.07)))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(searchFocused ? 0.16 : 0), lineWidth: 1))
+        .animation(.easeOut(duration: 0.15), value: searchFocused)
+        .task {
+            try? await Task.sleep(for: .milliseconds(80))
+            searchFocused = true
+        }
+        .onChange(of: searchFocused) { _, focused in state.isTypingInNook = focused }
+    }
+
+    private func openSearch() {
+        withAnimation(.snappy(duration: 0.25)) { state.isSearchingClipboard = true }
+    }
+
+    private func closeSearch() {
+        searchFocused = false
+        withAnimation(.snappy(duration: 0.25)) {
+            query = ""
+            state.isSearchingClipboard = false
+        }
+    }
+}
+
+private struct ClipboardSideButton: View {
+    let symbol: String
+    let label: String
+    var isOn = false
+    let action: () -> Void
+    @State private var isHovering = false
+    @Environment(\.panelScale) private var scale
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 12 * scale, weight: .semibold))
+                .foregroundStyle(isOn ? .black : (isHovering ? .white : ArrowTheme.muted))
+                .frame(width: 28 * scale, height: 28 * scale)
+                .background(
+                    Circle().fill(
+                        isOn ? .white
+                            : (isHovering ? Color.white.opacity(0.18) : Color.white.opacity(0.18))
+                    )
+                )
+                .contentShape(Circle())
+        }
+        .buttonStyle(NookPressStyle())
+        .onHover { isHovering = $0 }
+        .animation(.easeOut(duration: 0.15), value: isOn)
+        .animation(.easeOut(duration: 0.12), value: isHovering)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 
@@ -820,53 +983,108 @@ private struct CompactClipCard: View {
     let entry: ClipboardEntry
     var wide = false
     @State private var isHovering = false
+    @Environment(\.panelScale) private var scale
+
+    private var copied: Bool { state.clipboard.lastCopiedID == entry.id }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Button { state.clipboard.copy(entry) } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(ClipboardRules.preview(entry.text, limit: wide ? 220 : 110))
-                        .font(.system(size: wide ? 12 : 10.5, weight: .medium))
-                        .foregroundStyle(ArrowTheme.bone)
-                        .lineLimit(wide ? 5 : 4)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    HStack(spacing: 4) {
-                        if let app = entry.appName { Text(app).lineLimit(1); Text("·") }
+        Button { state.clipboard.copy(entry) } label: {
+            VStack(alignment: .leading, spacing: 6 * scale) {
+                Text(ClipboardRules.preview(entry.text, limit: wide ? 220 : 110))
+                    .font(.system(size: 12 * scale, weight: .medium))
+                    .foregroundStyle(.white)
+                    .lineLimit(4)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                HStack(spacing: 4) {
+                    if copied {
+                        Image(systemName: "checkmark")
+                        Text("Copied")
+                    } else {
+                        if entry.isPinned {
+                            Image(systemName: "pin.fill")
+                                .foregroundStyle(ArrowTheme.amber)
+                                .accessibilityLabel("Pinned")
+                        }
+                        if let app = entry.appName {
+                            Text(app).lineLimit(1)
+                            Text("·")
+                        }
                         Text(ClockFormat.age(entry.copiedAt))
+                            .lineLimit(1)
                     }
-                    .font(.system(size: wide ? 9.5 : 8.5))
-                    .foregroundStyle(ArrowTheme.faint)
                 }
-                .padding(wide ? 10 : 8)
-                .padding(.trailing, 12)
-                .frame(width: wide ? 220 : 150, height: wide ? 96 : 88)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.white.opacity(entry.isPinned ? 0.075 : (isHovering ? 0.1 : 0.05)))
-                )
-                .overlay {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(entry.isPinned ? ArrowTheme.amber.opacity(0.2) : .clear, lineWidth: 0.5)
+                .font(.system(size: 10 * scale, weight: .medium))
+                .foregroundStyle(copied ? ArrowTheme.green : ArrowTheme.muted)
+                .padding(.trailing, isHovering ? 42 * scale : 0)
+            }
+            .padding(10 * scale)
+            .frame(width: (wide ? 220 : 150) * scale)
+            .frame(maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 14 * scale, style: .continuous)
+                    .fill(Color.white.opacity(isHovering ? 0.13 : 0.07))
+            )
+            .overlay {
+                if entry.isPinned {
+                    RoundedRectangle(cornerRadius: 14 * scale, style: .continuous)
+                        .strokeBorder(ArrowTheme.amber.opacity(0.35), lineWidth: 1)
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(NookPressStyle())
-            .onHover { isHovering = $0 }
-            .help("Copy again")
-
-            Button { state.clipboard.togglePin(entry) } label: {
-                Image(systemName: entry.isPinned ? "pin.fill" : "pin")
-                    .font(.system(size: 8.5, weight: .semibold))
-                    .foregroundStyle(entry.isPinned ? ArrowTheme.amber : ArrowTheme.muted)
-                    .frame(width: 18, height: 18)
-                    .background(Circle().fill(Color.black.opacity(0.35)))
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .padding(5)
-            .help(entry.isPinned ? "Unpin clip" : "Pin clip")
-            .accessibilityLabel(entry.isPinned ? "Unpin clip" : "Pin clip")
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
+        .buttonStyle(NookPressStyle())
+        .overlay(alignment: .bottomTrailing) {
+            if isHovering {
+                HStack(spacing: 4 * scale) {
+                    ClipboardCardButton(
+                        symbol: entry.isPinned ? "pin.slash" : "pin",
+                        label: entry.isPinned ? "Unpin" : "Pin, so it stays after you quit",
+                        isEnabled: entry.isPinned || state.clipboard.canPin
+                    ) {
+                        withAnimation(.snappy(duration: 0.25)) { state.clipboard.togglePin(entry) }
+                    }
+                    ClipboardCardButton(symbol: "trash", label: "Remove from history") {
+                        withAnimation(.snappy(duration: 0.25)) { state.clipboard.remove(entry.id) }
+                    }
+                }
+                .padding(.trailing, 7 * scale)
+                .padding(.bottom, 7 * scale)
+            }
+        }
+        .onHover { isHovering = $0 }
+        .contextMenu {
+            Button("Copy") { state.clipboard.copy(entry) }
+            Button(entry.isPinned ? "Unpin" : "Pin") { state.clipboard.togglePin(entry) }
+                .disabled(!entry.isPinned && !state.clipboard.canPin)
+            Divider()
+            Button("Remove from History") { state.clipboard.remove(entry.id) }
+        }
+        .help("Click to copy")
+        .accessibilityLabel("Copy \(ClipboardRules.preview(entry.text, limit: 60))")
+    }
+}
+
+private struct ClipboardCardButton: View {
+    let symbol: String
+    let label: String
+    var isEnabled = true
+    let action: () -> Void
+    @Environment(\.panelScale) private var scale
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10 * scale, weight: .semibold))
+                .foregroundStyle(ArrowTheme.muted)
+                .frame(width: 18 * scale, height: 18 * scale)
+                .background(Circle().fill(Color.white.opacity(0.1)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(NookPressStyle())
+        .disabled(!isEnabled)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 
@@ -937,7 +1155,7 @@ private struct CompactReminders: View {
                             HStack(spacing: 8) {
                                 Image(systemName: item.completed ? "checkmark.circle.fill" : "circle")
                                     .font(.system(size: 12, weight: .regular))
-                                    .foregroundStyle(item.completed ? ArrowTheme.green : Color(red: 0.30, green: 0.60, blue: 1))
+                                    .foregroundStyle(item.completed ? ArrowTheme.green : ArrowTheme.blue)
                                 Text(item.title)
                                     .font(.system(size: 11.5, weight: .medium))
                                     .foregroundStyle(ArrowTheme.bone)

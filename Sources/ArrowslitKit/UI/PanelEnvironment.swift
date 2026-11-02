@@ -11,10 +11,20 @@ private struct PanelGeometryKey: EnvironmentKey {
     )
 }
 
+private struct PanelScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
 extension EnvironmentValues {
     var panelGeometry: ScreenGeometry {
         get { self[PanelGeometryKey.self] }
         set { self[PanelGeometryKey.self] = newValue }
+    }
+
+    /// Small / Medium / Large multiplier for the content inside the notch.
+    var panelScale: CGFloat {
+        get { self[PanelScaleKey.self] }
+        set { self[PanelScaleKey.self] = newValue }
     }
 }
 

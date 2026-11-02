@@ -42,6 +42,21 @@ public enum CalendarRules {
         return event.start.formatted(.dateTime.weekday(.abbreviated).hour().minute())
     }
 
+    /// "Today 1:30 AM", "Tomorrow 1:30 AM" or "Mon 1:30 AM" for Home.
+    public static func homeLabel(
+        for event: CalendarEvent,
+        at date: Date,
+        calendar: Calendar = .current
+    ) -> String {
+        let time = event.start.formatted(date: .omitted, time: .shortened)
+        if calendar.isDate(event.start, inSameDayAs: date) { return "Today \(time)" }
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: date),
+           calendar.isDate(event.start, inSameDayAs: tomorrow) {
+            return "Tomorrow \(time)"
+        }
+        return event.start.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+    }
+
     /// The short line shown in a calendar alert.
     public static func alertDetail(for event: CalendarEvent, at date: Date) -> String {
         alertDetail(startsAt: event.start, at: date)
