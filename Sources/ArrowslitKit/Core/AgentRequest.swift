@@ -447,22 +447,38 @@ public enum AgentHookSettings {
           })
         }
 
+        function payloadFor(input, directory) {
+          const action = input?.action || input?.permission || "tool"
+          const metadata = input?.metadata || {}
+          const resources = input?.resources || input?.patterns || []
+          const command = metadata.command || metadata.filePath || resources.join("\n")
+          return {
+            hook_event_name: "PermissionRequest",
+            tool_name: action,
+            tool_input: { command },
+            cwd: directory || ""
+          }
+        }
+
+        function decisionFor(reply) {
+          if (!reply) return "ask"
+          if (reply.decision === "once") return "allow"
+          if (reply.decision === "reject") return "deny"
+          return "ask"
+        }
+
         export const ArrowslitApproval = async ({ client, directory }) => ({
+          // OpenCode 2.2+ calls this hook before showing its own permission prompt.
+          "permission.ask": async (input, output) => {
+            const reply = await ask(payloadFor(input, directory))
+            output.status = decisionFor(reply)
+          },
+          // Older OpenCode builds emit a permission event instead of calling the hook.
           event: async ({ event }) => {
             if (event.type !== "permission.asked" && event.type !== "permission.v2.asked") return
             const data = event.data || event.properties || {}
             if (!data.id || !data.sessionID) return
-            const metadata = data.metadata || {}
-            const resources = data.resources || []
-            const action = data.action || "tool"
-            const command = metadata.command || metadata.filePath || resources.join("\n")
-            const payload = {
-              hook_event_name: "PermissionRequest",
-              tool_name: action,
-              tool_input: { command },
-              cwd: directory || ""
-            }
-            const reply = await ask(payload)
+            const reply = await ask(payloadFor(data, directory))
             if (!reply) return
             const decision = reply.decision
             if (decision !== "once" && decision !== "reject") return

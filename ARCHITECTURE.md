@@ -1,30 +1,64 @@
 # Architecture
 
-Arrowslit is a SwiftPM macOS app with a small AppKit shell and SwiftUI content.
+Arrowslit is a SwiftPM macOS app with a small AppKit shell and SwiftUI content. The shell, layout
+engine and several surfaces are a GPL-compatible port of Notch Shell; see `NOTICE`.
 
 ```
 Sources/
-├── Arrowslit/main.swift          NSApplication entry point
+├── Arrowslit/main.swift              NSApplication entry point
 ├── ArrowslitKit/
-│   ├── App/                      AppDelegate, AppState, status item, debug hooks
-│   ├── Core/                     Pure value types and maths
-│   │   ├── Countdown.swift
-│   │   ├── ClockFormat.swift
-│   │   ├── ClipboardRules.swift
-│   │   ├── ScreenGeometry.swift
-│   │   ├── StatsMath.swift
-│   │   └── Theme.swift
-│   ├── Services/                 System integrations
-│   │   ├── TimerService
-│   │   ├── ClipboardService
-│   │   ├── NotesStore
-│   │   ├── StatsService
-│   │   ├── CalendarService
-│   │   ├── TrayStore
-│   │   └── NowPlayingService
-│   └── UI/                       SwiftUI views and the borderless panel
-└── ArrowslitMedia/               Optional ObjC media helper, loaded by Perl
+│   ├── App/                          AppDelegate, AppState, status item, debug hooks
+│   ├── Core/                         Pure value types and maths
+│   │   ├── NotchAppearance.swift     size, theme, glass and layout controls
+│   │   ├── IslandMetrics.swift       Notch Shell size and content constants
+│   │   ├── ParityLayout.swift        compact, expanded, elongated and alert sizes
+│   │   ├── IslandShape.swift         concave shoulders and slit geometry
+│   │   ├── DisplayChoice.swift       built-in, main, pointer, named and all displays
+│   │   ├── ScreenGeometry.swift      physical/virtual notch and per-screen geometry
+│   │   ├── NotchPresentation.swift   the single “what is showing” resolver
+│   │   ├── AgentRequest.swift        six hook formats and OpenCode plugin generator
+│   │   ├── UpdateVerification.swift  Ed25519 manifest and image checks
+│   │   └── Countdown, ClockFormat, ClipboardHistory, DownloadProgress, LauncherPaging,
+│   │       MediaAppFilter, StatsMath, Theme
+│   ├── Services/                     System integrations
+│   │   ├── TimerService, StopwatchService, CalendarService, RemindersService
+│   │   ├── NowPlayingService, LyricsService, AudioHardware
+│   │   ├── CallMonitor, MicrophoneMute, CameraAccess
+│   │   ├── DownloadsWatcher, DownloadProgressMonitor
+│   │   ├── ClipboardService, NotesStore, TodoStore, ShortcutsService, TrayStore
+│   │   ├── SportsService and the BigBallsData adapter
+│   │   ├── AgentBridge, AgentHookClient
+│   │   ├── UpdateService, SettingsStore, SessionLockService
+│   │   └── StatsService, SystemMonitorService, KeepAwakeService
+│   └── UI/                           SwiftUI views and the borderless panels
+│       ├── PanelManager, PanelController, PanelEnvironment
+│       ├── ArrowslitRootView         compact, HUD, alert and expanded shell
+│       ├── NookView, HomePane, LauncherPane, TrayPane, ClipboardPane
+│       ├── SettingsView, SettingsWindowController
+│       └── AgentRequestView, CallPane, DownloadPane, NotesPane, NowPlayingPlayerView
+└── ArrowslitMedia/                   Optional ObjC media helper, loaded by Perl
 ```
+
+## Panels and displays
+
+`PanelManager` owns the windows. For a single-display choice it creates one `PanelController`; for
+**All displays** it creates one per connected `NSScreen`. Only the active panel accepts the pointer,
+keyboard and opened content. The others mirror the compact state and still show alerts.
+
+Each panel carries its own `ScreenGeometry` through the `panelGeometry` environment. A screen with
+a camera housing uses the physical notch; a screen without one gets a virtual 160 pt housing at
+the top centre. This keeps window frames and SwiftUI surfaces on the same geometry.
+
+`PanelController` owns a borderless, non-activating `NSPanel` above the menu bar. The panel is
+hidden at rest, peeks on hover and expands after a short delay. Pointer handling is event-driven:
+the hosting view has an `NSTrackingArea`, a global mouse-moved monitor catches approaches to mirror
+panels, and one-shot timers exist only while a hover-open or leave-check is pending. A slow
+fallback timer is used only when macOS has not granted Accessibility.
+
+`PanelRole` tells a panel whether it is the active one. `ArrowslitRootView` renders
+`state.presentation` on the active panel and `state.mirrorPresentation` on mirrors. The active
+panel is the only one that can become key; a click in the elongated Home calls `makeKey()` without
+activating the whole app, so inline text fields work in the background.
 
 ## Alerts and presentations
 
@@ -51,134 +85,112 @@ CalendarService  ──5 min before──▶  AppState.receive(.upcomingEvent)
 Alerts wait while the workbench is open unless they are urgent; outside-click and Escape dismiss
 the current alert before closing the workbench.
 
-## Now Playing compact strip
+## Layout and Home
 
-The compact strip shows album art on the left and four animated bars on the right. Clicking it
-opens `NowPlayingPlayerView`, the 390 × 218 expanded player: 56 pt artwork, title/artist,
-waveform, optional lyric line, white scrubber and back/pause/forward controls.
+`ParityLayout` owns the size contract:
 
-Home uses the same visual language in a fixed **306 × 146** compact card on the left. The Home
-panel is **560 × 204** only on the Home tab so that card keeps the compact strip geometry; every other
-tab stays 560 × 178. Home uses the blue compact strip scrubber and times, while the tall player uses the
-inline white scrubber.
+- compact strip: 274 × 32 at Large, 256 × 32 at Small, with the camera housing as the centre gap
+- standard nook: 560 × 178
+- elongated Home/Tray/Clipboard: up to 1240 × 178, clamped to the screen
+- Now Playing: 390 × 218
+- call and download panels: 390 × 120
+- running timer/stopwatch compact strip: 360 × 124
+- compact alerts: 491 × 38; named alerts grow from their ears
 
-`NotchPanelMetrics` owns the compact, Home, player and alert sizes. `PanelController` uses the
-same value for the window frame, so the visible surface and window cannot disagree. Album
-artwork is tinted on the media reader's background queue and the bars animate with Core
-Animation, keeping both off the main render path.
+Home is adaptive. It shows a 196 pt media card only while something is playing; calendar, timer
+and shortcuts share the remaining width with hairline splits. The elongated layout is a horizontal
+row of wider widgets: media, calendar, timer, to-dos, Notes and Sports. Tray and Clipboard use
+larger cards in the same elongated mode.
 
-Lyrics are optional and off by default. When enabled, `LyricsService` sends only the song's
-title, artist, album and length to lrclib.net. If lrclib is unavailable or has no timed result,
-it asks music.163.com for a timed fallback and requires the title, artist and length to match.
-The answer stays in memory. A failed lookup is retried on a widening schedule (5s, 15s, 60s,
-then every 5 minutes) while the same song keeps playing.
+`ArrowTheme` owns the warm palette, typography and hairlines. `NotchSurfaceBackground` applies the
+Glass/Black surface and the physical notch band; `SlitShape` draws the concave shoulders.
 
-## Home, stats and files
+## Now Playing and media
 
-Home is a three-column row: the compact media card, the next calendar event and the quick timer
-actions. The media card shows the current lyric line and opens the tall player; the timer capsules
-use the same hover/press spring as the reference. The Calendar panel loads the whole month plus
-the coming week, draws a month grid with busy-day dots, and switches the right column between
-"Up Next" and the selected day's event list.
+`NowPlayingService` talks to the isolated `ArrowslitMedia` helper and remembers the last useful
+source. The compact strip shows artwork and animated bars. Clicking opens the 390 × 218 player with
+artwork, title/artist, lyrics, scrubber and transport controls.
 
-Stats reads memory, CPU, disk and network every two seconds while visible, with a slow disk check.
-`StatsGrid` draws four Activity Monitor-style tiles with animated bars; network uses blue/orange
-down/up rates. Files supports the full-width dashed drop zone and pinned items stored in
-UserDefaults so they survive a quit. Settings exposes the timer-end sound and the File Tray
-Accessibility prompt.
+Lyrics are optional and off by default. When enabled, only the current song's title, artist, album
+and length are sent to lrclib.net; music.163.com is a timed fallback. Answers stay in memory, and a
+failed lookup retries on a widening schedule while the song keeps playing.
 
 ## Sports
 
-Sports is football-only: a 560×178 shelf with a quiet “Football” label, followed competition
-chips, and a sideways row of 166×92 match cards. Tapping a card swaps the shelf for an inline
-key-events view with goals and cards; the detail view has follow stars for either team and a
-pin button. The layout follows the Apple Design foundations: one obvious hierarchy, controls
-close to what they change, immediate press feedback, critically damped motion, and reduced-
-motion fallbacks.
+Sports is football-only: a shelf with competition chips and 166 × 92 match cards, an inline
+key-events view, follow stars, a pin button and a compact score. `SportsService` owns the snapshot,
+detail cache, polling task and daily quota. `SportsRanking` sorts pinned matches first, then
+followed teams, followed competitions, live matches and upcoming fixtures.
 
-`SportsService` owns the snapshot, detail cache, polling task and daily quota. `SportsCatalog`
-maps provider league names onto the six football competitions. `SportsRanking` sorts pinned
-matches first, then followed teams, followed competitions, live matches and upcoming fixtures.
-`BigBallsDataProvider` is the only network adapter: it sends one football
-`/v1/matches?sport=football&status=live` request and caches fixtures for 30 minutes. A free key
-is stored in the macOS Keychain; without one, `SportsDemoData` supplies local preview matches.
+`BigBallsDataProvider` is the only network adapter. It sends one football
+`/v1/matches?sport=football&status=live` request, caches fixtures, and uses a Keychain-stored free
+key. Without a key, local `SportsDemoData` supplies preview matches. Goal alerts compare scores
+and emit a `SportsGoalEvent`; the same alert shell and haptic are used for the goal card.
 
-The free tier is 250 requests/day. Refresh is 30/60/120 seconds while the Sports pane is open,
-slows to 180 seconds when fewer than 40 requests remain, and stops at zero. The compact strip
-shows the pinned or first live match in the 32px notch as home abbreviation + score on one
-side and away abbreviation + score on the other. It does not show a `LIVE` word or animate the
-digits; the green dot is the only live cue.
+## Calls, downloads and system signals
 
-Goal alerts compare the previous and current score for the notch match. A score increase emits a
-`SportsGoalEvent`, `AppState.receive` plays the level-change haptic, and `NotchAlertView` shows a
-seven-second goal card with a spring-in ball, the scoring team, the new score and the minute. The
-service polls at 60 seconds while the pane is closed if the pinned/followed match is live; it stops
-when Arrowslit quits or the quota runs out.
+`CallMonitor` uses Core Audio process detection for calls and microphone activity. `CallHangup`
+keeps app-specific AppleScript routes for Teams, Zoom, Webex and WhatsApp, with a Show App fallback.
+The call panel offers mute and hang-up; it collapses when the call ends.
 
-## Clock panel
+`DownloadsWatcher` watches the Downloads folder and emits a finished alert. `DownloadProgressMonitor`
+listens to Finder's `Progress` reports and also polls Chrome/Firefox partial files
+(`.crdownload`, `.part`, `.download`) with a size and rate summary. Reported downloads win over the
+same partial filename, so one download never appears twice.
 
-`ClockPane` is one shared Timer / Pomodoro / Stopwatch surface. `SlidingRuler` draws a
-minute tape at 14 pt per minute with 3.5 x 34 pt ticks, labels every fifth minute, faded
-viewport edges and a fixed triangle pointer. Dragging follows the pointer as a fractional
-minute and settles on a whole minute with a spring; a click jumps to the tapped tick.
-`RulerMath` owns the clamp, drag, click and visible-range maths. `ClockPane` fires one
-alignment haptic per minute when Haptics are enabled.
+`SystemMonitorService` polls battery, audio and brightness and emits charging, low-battery,
+headphone and level HUDs. `SessionLockService` raises the panel above the lock shield when Show on
+Lock Screen is enabled. Pure `PowerAlertRules` prevent duplicate low-battery warnings.
 
-While a timer or stopwatch runs, `NotchPresentation.clockRunning` replaces the 560 x 178 setup
-panel with the 360 x 124 running compact strip: back, pause/resume, close, and the label/time. The
-compact strip also shows the running timer or stopwatch and opens that compact strip on click.
+## Agent approvals
 
-## System signals
+`AgentBridge` listens on a Unix socket in Application Support with mode `0600` and checks the peer
+UID. CLI hooks run Arrowslit's own executable with `--agent-hook`; the client pins the app's
+`cdhash` through the peer audit token. OpenCode uses a user-owned JavaScript plugin that listens to
+`permission.asked` and `permission.v2.asked` and replies through `client.permission.reply`.
 
-`SystemMonitorService` polls the internal battery through IOKit, the default audio device and
-volume through CoreAudio (main element, then channel 1/2 for Bluetooth devices), and display brightness through the DisplayServices symbol. It emits
-the existing `NotchAlert` cases for charging, low battery, Bluetooth headphones and the
-volume/brightness HUD. The first reading is a baseline, so launching the app does not replay an
-old alert. Pure `PowerAlertRules` keep the 20% and 10% warnings from firing twice.
+Allow is one-time, Deny is a denial, and Ask returns the request to the assistant. If Arrowslit is
+not running or no answer arrives, the hook fails open to the assistant's own prompt. The full
+request, command, path or patch is shown with control characters escaped. See
+`Docs/Agent-Approval-Security.md`.
 
-System alerts use a compact `NotchPresentation.hud` instead of the larger alert panel. The
-compact strip keeps its 32 pt frame and swaps its content for an icon on the left and a live
-level bar or short status on the right. Volume/brightness fills animate; charging and low-battery
-icons pulse unless Liquid animations or Reduce Motion is off. Calendar and timer alerts keep the
-560 x 86 panel.
+## Updates and signing
 
-`SessionLockService` listens for the screen lock/unlock and screen-saver notifications. When the
-user enables Show on Lock Screen, `PanelController` raises the panel above the shielding window
-and keeps it in the compact presentation; otherwise the panel is ordered out while locked. The
-panel ignores mouse events while locked.
+`UpdateService` asks GitHub's latest-release feed on launch and at most once a day. A release is
+accepted only when its page and assets are on approved GitHub hosts.
 
-## Updates
+Signed installs use an Ed25519 envelope over the exact manifest bytes. The manifest pins the
+version, bundle identifier, file name, byte size and SHA-256. The updater verifies the signature,
+downloads within the size cap, checks the image hash, mounts it, validates the staged bundle's
+identifier/version and code signature, then swaps the app atomically and relaunches. If anything
+fails, it falls back to opening the DMG.
 
-`UpdateService` asks GitHub's latest-release feed on launch and at most once a day after that (and
-on demand) for a newer semantic version. A new version is announced once in the notch with an
-Update available alert and a Download & Open action; the Settings row remains the manual path.
-A release is accepted only when its page and assets are on approved GitHub hosts. The Settings ›
-Updates row shows the version, a **Download & Open** button, download progress and errors.
-
-The button downloads the DMG to Downloads, verifies the published SHA-256 when available, then
-opens the image. Installing remains deliberate: the user drags Arrowslit into Applications. The
-app never replaces itself, and the update check can be disabled in Settings.
+The app is signed with a stable self-signed `Arrowslit` identity so macOS keeps the same TCC and
+Keychain identity across builds. This is not a Developer ID and does not remove Gatekeeper's
+warning. See `Docs/Release-Signing.md`.
 
 ## Data flow
 
 1. Services publish state with `@Observable`.
-2. `AppState` owns the services and the small amount of UI state (`isExpanded`, `activeTab`).
-3. `ArrowslitRootView` renders either the compact strip or the workbench.
-4. `PanelController` owns a non-activating `NSPanel`, resizes it between the compact and
-   expanded shapes, and keeps it above the menu bar.
-5. `StatusItemController` provides a menu-bar fallback; it observes the menu-bar setting.
-6. `ArrowslitMedia` is a separate process loaded by `/usr/bin/perl`. It talks JSON over pipes,
-   so a media failure cannot take down the app.
+2. `AppState` owns the services and the UI state (`isExpanded`, `activeTab`, alerts).
+3. `PanelManager` owns one or more `PanelController`s.
+4. `ArrowslitRootView` renders the compact strip, HUD, alert, player or workbench.
+5. `StatusItemController` provides a menu-bar fallback.
+6. `ArrowslitMedia` is a separate process loaded by `/usr/bin/perl`; a media failure cannot take
+   down the app.
 
 ## Design principles
 
-- **Local first**: no account, analytics or telemetry. Update checks contact GitHub once a day and can be turned off; lyrics lookup is optional and off by default.
-- **Quiet**: idle CPU near zero; stats only sample while visible.
-- **Small surface**: one vertical rail; no infinite widget grid.
-- **Original expression**: no third-party source, assets, strings or icons are copied. Visual
-  behavior is researched and independently implemented in Arrowslit.
-- **Failure tolerant**: the media helper can disappear; the rest of the app keeps working.
-- **Testable core**: timers, formatting and maths are value types with injected clocks.
+- **Local first**: no account, analytics or telemetry. Update checks contact GitHub once a day and
+  can be turned off; lyrics lookup is optional and off by default.
+- **Quiet**: idle CPU near zero; stats only sample while visible; hover is event-driven.
+- **Small surface**: one notch, one workbench, no infinite widget grid.
+- **Copyleft and attributed**: Notch Shell-derived code stays GPL-3.0-or-later and is credited in
+  `NOTICE`. New surfaces should not copy another app's chrome without a compatible license.
+- **Failure tolerant**: the media helper can disappear, hooks fail closed, updates never install an
+  unverified image.
+- **Testable core**: timers, formatting, layout and presentation rules are value types with
+  injected clocks.
 
 ## Adding a feature
 
