@@ -66,7 +66,7 @@ A Developer ID certificate plus notarization is still required for a fully trust
 - [x] Confirm the designated requirement is pinned to the certificate.
 - [x] Run a real 0.9.2 → 0.10.0 upgrade and a second same-certificate upgrade; Accessibility, Camera and Calendar survived.
 - [ ] Grant the existing Sports Keychain item its one-time “Always Allow” after the ad-hoc → stable-certificate migration.
-- [ ] Publish the DMG, `.sha256` and `.update.json` together.
-- [ ] Update the Homebrew cask to the same signed build.
+- [x] Publish the DMG, `.sha256` and `.update.json` together.
+- [x] Update the Homebrew cask to the same signed build and verify `brew fetch`.
 - [ ] Test a failed signature, wrong bundle ID and oversized manifest before release.
 - [ ] Decide whether to obtain a Developer ID certificate and notarize.

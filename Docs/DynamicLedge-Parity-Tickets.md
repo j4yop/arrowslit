@@ -48,7 +48,7 @@
 - **Pointer handling is event-driven:** the hosting view's tracking area and a global mouse-moved monitor replace the fixed 0.12 s timer; one-shot timers exist only during a pending hover-open or leave check. A slow fallback is used only without Accessibility.
 - **Real assistant evidence:** OpenCode 2.2.5's `permission.ask` plugin hook returned `allow`, `deny` and `ask` for the real Arrowslit alert, and the Claude/Codex hook binary returned each format. Claude Code is not logged in for headless use, Codex exec forces approval off, and Copilot/Cursor/Antigravity are not installed here.
 - **Signed upgrade:** installed 0.10.0 over 0.9.2, then installed a second same-certificate build over it. Camera, Calendar and Accessibility survived; the existing Sports Keychain item asks for its one-time “Always Allow”.
-- **Release prepared:** the signed `0.10.0` app is installed, and a **draft** GitHub release `v0.10.0` has the DMG, `.sha256` and `.update.json`. Publishing the draft and updating the Homebrew cask are the remaining release actions; the in-app network-update path can only be tested after a public release exists.
+- **Released:** PR #26 was merged into `main` at `1aaaaf0`. The signed `0.10.0` app is installed, the public `v0.10.0` release is tagged at the merged commit and marked Latest, and the Homebrew cask PR was merged. `brew info` resolves 0.10.0 and `brew fetch` verifies the cask. The in-app network-update path remains untested until a newer release exists.
 - **160 tests pass in 47 suites.**
 
 Remaining for release: real-assistant approval QA for all six (hooks are deliberately not installed in the user's live configs), a real TCC permission-survival run with the stable certificate, final migration/release QA, and the Path A attribution policy decision.
@@ -558,7 +558,7 @@ Remaining for release: real-assistant approval QA for all six (hooks are deliber
 - [ ] A valid update installs and relaunches from inside the app (manual signed installs were tested; the in-app network path has not).
 - [ ] Accessibility, Camera, Calendar and the Sports Keychain item survive the next update (Accessibility/Camera/Calendar survived; Keychain needs its one-time Always Allow).
 - [ ] A failed swap restores the old app.
-- [ ] Homebrew cask installs the same signed build.
+- [x] Homebrew cask points at the same signed build and `brew fetch` verifies it.
 - [x] The release notes and README describe the signing change.
 
 ---
@@ -584,5 +584,5 @@ Remaining for release: real-assistant approval QA for all six (hooks are deliber
 - [ ] The screenshot diff is clean or manually signed off for every state.
 - [ ] VoiceOver can name and operate every Settings control and every notch action.
 - [ ] No P0 regression in Sports, timer, calendar, clipboard, tray, notes or updates.
-- [ ] The release is signed, checksummed, published and installable via Homebrew.
-- [ ] The GPL source and NOTICE are present in the release.
+- [x] The release is signed, checksummed, published and installable via Homebrew.
+- [x] The GPL source and NOTICE are present in the release.
