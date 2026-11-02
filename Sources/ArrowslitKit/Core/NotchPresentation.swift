@@ -7,6 +7,7 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
     case stopwatch
     case sports
     case nowPlaying
+    case download
     case charging
     case stats
 
@@ -18,8 +19,9 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
         case .stopwatch: 2
         case .sports: 3
         case .nowPlaying: 4
-        case .charging: 5
-        case .stats: 6
+        case .download: 5
+        case .charging: 6
+        case .stats: 7
         }
     }
 }
@@ -35,6 +37,8 @@ public enum NotchAlert: Equatable, Sendable {
     case update(version: String)
     case welcome(name: String)
     case sportsGoal(SportsGoalEvent)
+    case shortcut(name: String, succeeded: Bool)
+    case agentRequest(AgentRequest)
     case level(kind: LevelKind, value: Double, muted: Bool)
 
     public enum LevelKind: String, Sendable, Equatable {
@@ -52,6 +56,8 @@ public enum NotchAlert: Equatable, Sendable {
         case update
         case welcome
         case sports
+        case shortcut
+        case agent
         case level
     }
 
@@ -65,6 +71,8 @@ public enum NotchAlert: Equatable, Sendable {
         case .update: .update
         case .welcome: .welcome
         case .sportsGoal: .sports
+        case .shortcut: .shortcut
+        case .agentRequest: .agent
         case .level: .level
         }
     }
@@ -80,13 +88,18 @@ public enum NotchAlert: Equatable, Sendable {
         case .update: 10
         case .welcome: 4
         case .sportsGoal: 7
+        case .shortcut: 2.5
+        case .agentRequest: 125
         case .level: 1.6
         }
     }
 
     /// Urgent alerts may interrupt an expanded view.
     public var isUrgent: Bool {
-        self == .timerFinished
+        switch self {
+        case .timerFinished, .agentRequest: true
+        default: false
+        }
     }
 
     /// Instant feedback is dropped, never replayed, when an urgent alert takes over.
@@ -100,7 +113,18 @@ public enum NotchAlert: Equatable, Sendable {
         switch self {
         case .charging, .lowBattery, .headphones, .level:
             return true
-        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal:
+        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal, .shortcut, .agentRequest:
+            return false
+        }
+    }
+
+    /// These alerts use Notch Shell's short, content-adaptive alert row: a leading label and a
+    /// trailing value around the camera. Goal and timer-done cards keep their larger layout.
+    public var usesCompactAlert: Bool {
+        switch self {
+        case .upcomingEvent, .download, .update, .welcome, .shortcut:
+            return true
+        case .timerFinished, .charging, .lowBattery, .headphones, .sportsGoal, .agentRequest, .level:
             return false
         }
     }
@@ -108,6 +132,10 @@ public enum NotchAlert: Equatable, Sendable {
 
 /// What the notch is showing right now.
 public enum NotchPresentation: Equatable, Sendable {
+    /// Retracted into the physical notch. `peek` swells it slightly under the pointer.
+    case hidden(peek: Bool)
+    /// An empty pill, shown when "Show when idle" is on.
+    case idle
     /// The closed strip: optional live activity plus the clock.
     case compact(primary: NotchActivity?, secondary: NotchActivity?)
     /// A transient system HUD drawn inside the compact strip.
@@ -133,6 +161,11 @@ public enum NotchPresentation: Equatable, Sendable {
         }
     }
 
+    public var isHidden: Bool {
+        if case .hidden = self { return true }
+        return false
+    }
+
     public var hudAlert: NotchAlert? {
         if case .hud(let alert) = self { return alert }
         return nil
@@ -145,19 +178,25 @@ public struct PresentationInput: Equatable, Sendable {
     public var activeActivities: Set<NotchActivity>
     public var preferredPrimary: NotchActivity?
     public var alert: NotchAlert?
+    public var showWhenIdle: Bool
+    public var isHoveringNotch: Bool
 
     public init(
         isExpanded: Bool = false,
         activeTab: WorkbenchTab = .home,
         activeActivities: Set<NotchActivity> = [],
         preferredPrimary: NotchActivity? = nil,
-        alert: NotchAlert? = nil
+        alert: NotchAlert? = nil,
+        showWhenIdle: Bool = false,
+        isHoveringNotch: Bool = false
     ) {
         self.isExpanded = isExpanded
         self.activeTab = activeTab
         self.activeActivities = activeActivities
         self.preferredPrimary = preferredPrimary
         self.alert = alert
+        self.showWhenIdle = showWhenIdle
+        self.isHoveringNotch = isHoveringNotch
     }
 }
 
@@ -188,6 +227,12 @@ public enum PresentationResolver {
         }
 
         let ordered = ordered(input.activeActivities, preferred: input.preferredPrimary)
-        return .compact(primary: ordered.first, secondary: ordered.dropFirst().first)
+        if let primary = ordered.first {
+            return .compact(primary: primary, secondary: ordered.dropFirst().first)
+        }
+        if input.showWhenIdle {
+            return .idle
+        }
+        return .hidden(peek: input.isHoveringNotch)
     }
 }

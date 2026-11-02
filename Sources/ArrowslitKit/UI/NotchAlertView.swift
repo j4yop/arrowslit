@@ -6,10 +6,15 @@ import SwiftUI
 struct NotchAlertView: View {
     @Bindable var state: AppState
     let alert: NotchAlert
+    @Environment(\.panelGeometry) private var geometry
 
     var body: some View {
-        if case .sportsGoal(let goal) = alert {
+        if case .agentRequest(let request) = alert {
+            AgentRequestView(state: state, request: request)
+        } else if case .sportsGoal(let goal) = alert {
             SportsGoalAlertView(state: state, goal: goal)
+        } else if alert.usesCompactAlert {
+            CompactAlertView(state: state, alert: alert)
         } else {
             standardAlert
         }
@@ -73,10 +78,10 @@ struct NotchAlertView: View {
             }
 
             if case .update = alert {
-                Button("Download & Open") {
+                Button(updateActionTitle) {
                     state.dismissAlert()
                     if let release = state.updater.availableRelease {
-                        state.updater.downloadAndOpen(release)
+                        state.updater.install(release)
                     } else {
                         state.onOpenSettings?()
                     }
@@ -103,18 +108,24 @@ struct NotchAlertView: View {
                     .background(Circle().fill(Color.white.opacity(0.06)))
             }
             .buttonStyle(NookPressStyle())
+            .nookHitSlop()
             .help("Dismiss")
             .accessibilityLabel("Dismiss alert")
         }
         .padding(.horizontal, 18)
         .frame(width: NotchPanelMetrics.alertSize.width, height: NotchPanelMetrics.alertSize.height)
-        .background(ArrowTheme.ink)
-        .clipShape(SlitShape(radius: 18))
+        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 16, flare: 6, notchBand: geometry.notch?.height ?? 0))
+        .clipShape(SlitShape(radius: 16, flare: 6))
         .overlay {
-            SlitShape(radius: 18)
+            SlitShape(radius: 16, flare: 6)
                 .stroke(ArrowTheme.hairline, lineWidth: 0.5)
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private var updateActionTitle: String {
+        guard let release = state.updater.availableRelease else { return "Open Settings" }
+        return state.updater.canInstallInPlace(release) ? "Install Update" : "Download & Open"
     }
 
     private var presentation: Presentation {
@@ -138,6 +149,20 @@ struct NotchAlertView: View {
             return Presentation(symbol: "headphones", title: "Connected", detail: name, tint: ArrowTheme.green)
         case .download(let name):
             return Presentation(symbol: "arrow.down.circle", title: "Download finished", detail: name, tint: ArrowTheme.green)
+        case .shortcut(let name, let succeeded):
+            return Presentation(
+                symbol: "bolt.fill",
+                title: name,
+                detail: succeeded ? "Done" : "Failed",
+                tint: succeeded ? ArrowTheme.green : ArrowTheme.red
+            )
+        case .agentRequest(let request):
+            return Presentation(
+                symbol: "terminal.fill",
+                title: request.agent,
+                detail: request.title,
+                tint: ArrowTheme.amber
+            )
         case .update(let version):
             return Presentation(symbol: "arrow.down.circle", title: "Update available", detail: "Version \(version)", tint: ArrowTheme.amber)
         case .welcome(let name):
@@ -170,11 +195,151 @@ struct NotchAlertView: View {
 }
 
 
+/// Notch Shell's short alert: a leading label and a trailing value on either side of the
+/// camera, 38 pt high at the default size. The whole row is the action.
+private struct CompactAlertView: View {
+    @Bindable var state: AppState
+    let alert: NotchAlert
+    @Environment(\.panelGeometry) private var geometry
+
+    private var size: CGSize { state.panelSize(for: .alert(alert), geometry: geometry) }
+    private var notchWidth: CGFloat { ParityLayout.notch(in: geometry).width }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint)
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(width: max(0, (size.width - notchWidth) / 2 - 20), alignment: .leading)
+
+            Color.clear
+                .frame(width: notchWidth)
+
+            Text(detail)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: max(0, (size.width - notchWidth) / 2 - 20), alignment: .trailing)
+        }
+        .padding(.horizontal, 20)
+        .frame(width: size.width, height: size.height)
+        .background(NotchSurfaceBackground(
+            appearance: state.settings.appearance,
+            radius: 16,
+            flare: 6,
+            notchBand: geometry.notch?.height ?? 0
+        ))
+        .clipShape(SlitShape(radius: 16, flare: 6))
+        .overlay {
+            SlitShape(radius: 16, flare: 6)
+                .stroke(tint.opacity(0.22), lineWidth: 0.5)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: act)
+        .help(help)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title). \(detail)")
+    }
+
+    private var title: String {
+        switch alert {
+        case .upcomingEvent(let title, _, _, _): title
+        case .download(let name): name
+        case .update: "Update"
+        case .welcome(let name): "Welcome\(name.isEmpty ? "" : ", \(name)")"
+        case .shortcut(let name, _): name
+        default: ""
+        }
+    }
+
+    private var detail: String {
+        switch alert {
+        case .upcomingEvent(_, let startsAt, _, _):
+            let minutes = max(0, Int((startsAt.timeIntervalSinceNow / 60).rounded()))
+            return minutes <= 0 ? "Now" : "In \(minutes) min"
+        case .download: return "Downloaded"
+        case .update(let version): return "Version \(version)"
+        case .welcome: return "Hello"
+        default: return ""
+        }
+    }
+
+    private var icon: String {
+        switch alert {
+        case .upcomingEvent: "calendar"
+        case .download: "arrow.down.circle.fill"
+        case .update: "arrow.down.circle.fill"
+        case .welcome: "hand.wave.fill"
+        case .shortcut: "bolt.fill"
+        default: "bell.fill"
+        }
+    }
+
+    private var tint: Color {
+        switch alert {
+        case .upcomingEvent: ArrowTheme.red
+        case .download, .update: Color(red: 0.04, green: 0.52, blue: 1)
+        case .welcome: ArrowTheme.green
+        case .shortcut(_, let succeeded): succeeded ? ArrowTheme.green : ArrowTheme.red
+        default: ArrowTheme.muted
+        }
+    }
+
+    private var help: String {
+        switch alert {
+        case .upcomingEvent(_, _, let joinURL, _):
+            joinURL == nil ? "Open Calendar" : "Join the meeting"
+        case .download: "Show in Finder"
+        case .update: "Install the update"
+        case .welcome: "Dismiss"
+        case .shortcut: "Dismiss"
+        default: "Dismiss"
+        }
+    }
+
+    private func act() {
+        switch alert {
+        case .upcomingEvent(_, _, let joinURL, _):
+            state.dismissAlert()
+            if let joinURL {
+                NSWorkspace.shared.open(joinURL)
+            } else {
+                state.expand(.calendar)
+            }
+        case .download:
+            state.dismissAlert()
+            if let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first {
+                NSWorkspace.shared.open(downloads)
+            }
+        case .update:
+            state.dismissAlert()
+            if let release = state.updater.availableRelease {
+                state.updater.downloadAndOpen(release)
+            } else {
+                state.onOpenSettings?()
+            }
+        case .welcome, .shortcut:
+            state.dismissAlert()
+        default:
+            state.dismissAlert()
+        }
+    }
+}
+
 /// A goal gets a little more room than the other alerts: a ball, the scoring
 /// team, the new score and a one-shot ring. The haptic fires from AppState.receive.
 private struct SportsGoalAlertView: View {
     @Bindable var state: AppState
     let goal: SportsGoalEvent
+    @Environment(\.panelGeometry) private var geometry
     @State private var entered = false
     @State private var ring = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -248,15 +413,16 @@ private struct SportsGoalAlertView: View {
                     .background(Circle().fill(Color.white.opacity(0.06)))
             }
             .buttonStyle(NookPressStyle())
+            .nookHitSlop()
             .help("Dismiss")
             .accessibilityLabel("Dismiss goal alert")
         }
         .padding(.horizontal, 18)
         .frame(width: NotchPanelMetrics.alertSize.width, height: NotchPanelMetrics.alertSize.height)
-        .background(ArrowTheme.ink)
-        .clipShape(SlitShape(radius: 18))
+        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 16, flare: 6, notchBand: geometry.notch?.height ?? 0))
+        .clipShape(SlitShape(radius: 16, flare: 6))
         .overlay {
-            SlitShape(radius: 18)
+            SlitShape(radius: 16, flare: 6)
                 .stroke(ArrowTheme.green.opacity(0.25), lineWidth: 0.5)
         }
         .onAppear {

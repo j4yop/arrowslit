@@ -1,0 +1,19 @@
+Arrowslit
+Copyright (C) 2026 Jay Gopal and contributors
+
+This program includes code, layout and visual behaviour ported from Notch Shell:
+
+    Notch Shell
+    Copyright (C) 2026 Swagat Shandilya and contributors
+    https://github.com/shandilyaswagat/arrowslit
+
+Notch Shell is free software distributed under the GNU General Public License,
+version 3 or (at your option) any later version. The port was made from the
+1.4.2 source at commit 10a1dfa. Arrowslit as a whole is distributed under the
+GNU General Public License, version 3 or (at your option) any later version.
+
+Arrowslit's own additions include the football/Sports feature, BigBallsData
+integration, local-only clipboard and notes stores, agent approval adapters,
+signed update pipeline and the self-signed release identity.
+
+See LICENSE for the full GPL text.

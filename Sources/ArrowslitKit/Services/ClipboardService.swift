@@ -2,35 +2,32 @@ import AppKit
 import Foundation
 import Observation
 
-public struct ClipboardEntry: Identifiable, Equatable, Sendable {
-    public let id: UUID
-    public let text: String
-    public let appName: String?
-    public let copiedAt: Date
-
-    public init(id: UUID = UUID(), text: String, appName: String?, copiedAt: Date = Date()) {
-        self.id = id
-        self.text = text
-        self.appName = appName
-        self.copiedAt = copiedAt
-    }
-}
+/// The history entry type used by the views. Pinned entries are the only ones written to disk.
+public typealias ClipboardEntry = ClipboardHistory.Entry
 
 @MainActor
 @Observable
 public final class ClipboardService {
-    public private(set) var entries: [ClipboardEntry] = []
+    public private(set) var history = ClipboardHistory()
     public private(set) var lastCopiedID: UUID?
     public private(set) var isWatching = false
 
+    public var entries: [ClipboardEntry] { history.entries }
+    public var pinnedCount: Int { history.pinnedCount }
+
     @ObservationIgnored private let pasteboard: NSPasteboard
+    @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var lastChangeCount: Int
     @ObservationIgnored private var pollTimer: Timer?
     @ObservationIgnored private var feedbackTask: Task<Void, Never>?
 
-    public init(pasteboard: NSPasteboard = .general) {
+    private static let pinsKey = "arrowslit.clipboard.pins"
+
+    public init(pasteboard: NSPasteboard = .general, defaults: UserDefaults = .standard) {
         self.pasteboard = pasteboard
+        self.defaults = defaults
         lastChangeCount = pasteboard.changeCount
+        loadPins()
     }
 
     public func start() {
@@ -49,11 +46,23 @@ public final class ClipboardService {
         pollTimer?.invalidate()
         pollTimer = nil
         isWatching = false
-        entries.removeAll()
+        history.removeAll(includingPinned: true)
     }
 
+    /// Clears the history. Pinned clips stay.
     public func clear() {
-        entries.removeAll()
+        history.removeAll()
+        savePins()
+    }
+
+    public func togglePin(_ entry: ClipboardEntry) {
+        if history.togglePin(entry.id) {
+            savePins()
+        }
+    }
+
+    public func matching(_ query: String) -> [ClipboardEntry] {
+        history.matching(query)
     }
 
     public func copy(_ entry: ClipboardEntry) {
@@ -61,7 +70,7 @@ public final class ClipboardService {
         pasteboard.setString(entry.text, forType: .string)
         lastChangeCount = pasteboard.changeCount
         promote(entry.text, appName: entry.appName)
-        lastCopiedID = entries.first?.id
+        lastCopiedID = entries.first(where: { $0.text == entry.text })?.id
         feedbackTask?.cancel()
         feedbackTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(1.2))
@@ -80,15 +89,23 @@ public final class ClipboardService {
         promote(text, appName: NSWorkspace.shared.frontmostApplication?.localizedName)
     }
 
-    private func promote(_ text: String, appName: String?) {
-        let kept = text.count > ClipboardRules.maximumCharacters
-            ? String(text.prefix(ClipboardRules.maximumCharacters))
-            : text
-        guard !kept.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        entries.removeAll { $0.text == kept }
-        entries.insert(ClipboardEntry(text: kept, appName: appName), at: 0)
-        if entries.count > ClipboardRules.capacity {
-            entries.removeLast(entries.count - ClipboardRules.capacity)
+    /// Internal so the history/pin rules can be tested without a real pasteboard.
+    func promote(_ text: String, appName: String?) {
+        if history.add(text, appName: appName) {
+            savePins()
         }
+    }
+
+    private func loadPins() {
+        guard let data = defaults.data(forKey: Self.pinsKey),
+              let pinned = try? JSONDecoder().decode([ClipboardEntry].self, from: data) else {
+            return
+        }
+        history = ClipboardHistory(pinned: pinned)
+    }
+
+    private func savePins() {
+        guard let data = try? JSONEncoder().encode(history.pinned) else { return }
+        defaults.set(data, forKey: Self.pinsKey)
     }
 }

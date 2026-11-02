@@ -16,7 +16,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         NSApp.setActivationPolicy(.regular)
         let window = window ?? makeWindow()
         if !window.isVisible, let screen = NSScreen.main {
-            let size = NSSize(width: 540, height: 652)
+            let size = NSSize(width: 520, height: 640)
             let origin = NSPoint(
                 x: screen.visibleFrame.minX + (screen.visibleFrame.width - size.width) / 2,
                 y: screen.visibleFrame.minY + (screen.visibleFrame.height - size.height) / 2
@@ -30,14 +30,17 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private func makeWindow() -> NSWindow {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 540, height: 620),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 608),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
-        window.title = "Arrowslit Settings"
-        window.titleVisibility = .hidden
-        window.contentViewController = NSHostingController(rootView: SettingsView(state: state))
+        window.title = "General"
+        window.titleVisibility = .visible
+        let root = SettingsView(state: state) { [weak self] title in
+            self?.window?.title = title
+        }
+        window.contentViewController = NSHostingController(rootView: root)
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.titlebarAppearsTransparent = true

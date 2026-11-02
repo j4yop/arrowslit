@@ -1,10 +1,11 @@
 # Arrowslit roadmap
 
-The goal is a quiet, fast, local-only notch utility — not a clone of any existing app. The
-feature set is inspired by the best free notch projects, but the interaction model, visual
-language and code are our own.
+Arrowslit is a quiet, fast, local-only notch utility built on a GPL-compatible port of
+Notch Shell. The shell, layout engine, presentation rules and several surfaces come from
+Notch Shell; Arrowslit adds its own football, local-data and release work. See `NOTICE` for the
+attribution and `LICENSE` for the GPL terms.
 
-## What exists today (0.9.2)
+## What shipped in 0.9.2
 
 - Menu-bar accessory, no Dock icon
 - Notch-fused compact strip with timer status
@@ -42,9 +43,18 @@ language and code are our own.
 - App icon, ad-hoc signed app bundle and DMG
 - Swift Testing coverage for pure logic
 
+## What changed in 0.10.0
+
+- Notch Shell shell, appearance engine, presentation rules, Home, launcher, alerts and elongated layout
+- Multi-display: Built-in, Main, Follow the pointer, named display and All displays, plus the virtual notch
+- Calls/microphone, downloads, media depth, clipboard search/pins, Rich Notes, inline to-dos and Shortcuts
+- Six coding-assistant approval adapters, including OpenCode
+- Signed in-place updates with an Ed25519 manifest and a stable self-signed permission identity
+- Browser partial-download fallback, wide Tray/Clipboard layouts and event-driven hover
+
 ## Phase 1 — daily driver polish
 
-- **Multiple displays**: virtual notch on external screens, display picker, follow pointer.
+- ~~**Multiple displays**: virtual notch on external screens, display picker, follow pointer.~~
 - **Keyboard**: global hotkey to open, Escape/arrow navigation, quick timer shortcuts.
 - **Timer polish**: notifications, sound choice, repeat, custom minutes.
 - **Clipboard polish**: search, pin, source app icons.

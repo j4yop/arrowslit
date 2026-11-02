@@ -4,7 +4,9 @@ import Observation
 
 public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case home
+    case call
     case nowPlaying
+    case download
     case timer
     case calendar
     case tray
@@ -23,7 +25,9 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     public var title: String {
         switch self {
         case .home: "Home"
+        case .call: "Call"
         case .nowPlaying: "Now Playing"
+        case .download: "Downloads"
         case .timer: "Timer"
         case .calendar: "Calendar"
         case .tray: "Files"
@@ -42,7 +46,9 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     public var symbol: String {
         switch self {
         case .home: "house"
+        case .call: "phone"
         case .nowPlaying: "music.note"
+        case .download: "arrow.down.circle"
         case .timer: "timer"
         case .calendar: "calendar"
         case .tray: "tray.full"
@@ -72,6 +78,13 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
 @Observable
 public final class AppState {
     public let settings: SettingsStore
+    public let calls = CallMonitor()
+    public let microphone = MicrophoneMute()
+    public let downloads = DownloadsWatcher()
+    public let downloadProgress = DownloadProgressMonitor()
+    public let todos = TodoStore()
+    public let shortcuts = ShortcutsService()
+    public let agents = AgentBridge()
     public let nowPlaying: NowPlayingService
     public let timer: TimerService
     public let calendar: CalendarService
@@ -92,6 +105,13 @@ public final class AppState {
     public private(set) var activeTab: WorkbenchTab = .home
     public var clockMode: ClockMode = .timer
     public private(set) var isExpanded = false
+    public private(set) var isHoveringNotch = false
+    /// Clipboard's search field is open, so the notch takes the keyboard.
+    public var isSearchingClipboard = false
+    /// A text field in Notes or the elongated Home has the keyboard.
+    public var isTypingInNook = false
+    /// After a deliberate close, do not reopen from hover until the pointer leaves the notch.
+    public private(set) var suppressHoverUntilLeave = false
     public private(set) var alerts = AlertQueue()
     public var isEditingShortcuts = false
 
@@ -123,6 +143,11 @@ public final class AppState {
         self.system = SystemMonitorService(settings: settings)
         self.timer.playsSound = settings.timerSound
         NookMotion.liquidAnimations = settings.liquidAnimations
+        nowPlaying.appFilter = settings.mediaAppFilter
+        nowPlaying.lingerDuration = settings.pausedMediaLinger
+        nowPlaying.onAppSeen = { [weak settings] identifier in
+            settings?.noteMediaApp(identifier)
+        }
 
         calendar.onReminder = { [weak self] event in
             guard let self, self.settings.isTabEnabled(.calendar) else { return }
@@ -137,6 +162,20 @@ public final class AppState {
             guard let self, self.settings.sportsGoalAlerts else { return }
             self.receive(.sportsGoal(goal))
         }
+        calls.onChange = { [weak self] in
+            guard let self else { return }
+            if self.calls.session == nil, self.isExpanded, self.activeTab == .call {
+                self.collapse()
+            }
+        }
+        downloads.onFinished = { [weak self] url in
+            guard let self, self.settings.downloadsEnabled else { return }
+            self.receive(.download(name: url.lastPathComponent))
+        }
+        shortcuts.onFinish = { [weak self] name, succeeded in
+            self?.receive(.shortcut(name: name, succeeded: succeeded))
+        }
+        agents.onChange = { [weak self] in self?.syncAgentAlert() }
     }
 
     public func start() {
@@ -148,7 +187,20 @@ public final class AppState {
             self.receive(alert)
         }
         system.start()
+        if settings.statsEnabled { stats.start() }
         nowPlaying.start()
+        if settings.callsEnabled {
+            calls.start()
+            microphone.start()
+        }
+        if settings.downloadsEnabled {
+            downloads.start()
+            downloadProgress.start()
+        }
+        agents.enabledKinds = settings.agentApprovals
+        if !settings.agentApprovals.isEmpty {
+            agents.start()
+        }
         calendar.start()
         sports.startAppAlerts()
         if settings.clipboardEnabled { clipboard.start() }
@@ -163,6 +215,11 @@ public final class AppState {
         notes.save()
         tray.clearUnpinned()
         nowPlaying.stop()
+        calls.stop()
+        microphone.stop()
+        downloads.stop()
+        downloadProgress.stop()
+        agents.stop()
         calendar.stop()
         clipboard.stop()
         stats.stop()
@@ -185,6 +242,7 @@ public final class AppState {
         alerts.dismissCurrent()
         let wasCollapsed = !isExpanded
         isExpanded = true
+        suppressHoverUntilLeave = false
         select(tab)
         if wasCollapsed, settings.hapticFeedback {
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
@@ -194,8 +252,9 @@ public final class AppState {
     public func collapse() {
         guard isExpanded else { return }
         isExpanded = false
+        suppressHoverUntilLeave = true
         isEditingShortcuts = false
-        stats.stop()
+        if !settings.statsEnabled { stats.stop() }
         sports.closePane()
         notes.save()
         pumpAlerts()
@@ -217,16 +276,107 @@ public final class AppState {
     /// What opening the notch should show when the user hasn't picked a tab.
     /// Media takes precedence; everything else falls back to Home.
     public var defaultTab: WorkbenchTab {
+        if calls.session != nil { return .call }
         if timer.isActive { return .timer }
         if stopwatch.isActive { return .stopwatch }
         if settings.isTabEnabled(.nowPlaying), nowPlaying.isVisible {
             return .nowPlaying
+        }
+        if !downloadProgress.items.isEmpty {
+            return .download
         }
         return .home
     }
 
     public func expandDefault() {
         expand(defaultTab)
+    }
+
+    /// Installs or removes an assistant's hook, then updates the live bridge. Returns an error
+    /// message for the Settings row, or nil on success.
+    public func setAgentApproval(_ kind: AgentKind, enabled: Bool) -> String? {
+        do {
+            if enabled {
+                if kind == .opencode {
+                    try AgentHookSettings.installOpenCode(socket: agents.socketPath)
+                } else {
+                    guard let command = AgentHookSettings.currentCommand(socket: agents.socketPath, kind: kind) else {
+                        return "Couldn't locate this copy of Arrowslit."
+                    }
+                    try AgentHookSettings.install(kind, command: command)
+                }
+                settings.agentApprovals.insert(kind)
+                agents.enabledKinds = settings.agentApprovals
+                agents.start()
+            } else {
+                try AgentHookSettings.uninstall(kind)
+                settings.agentApprovals.remove(kind)
+                agents.enabledKinds = settings.agentApprovals
+                if settings.agentApprovals.isEmpty { agents.stop() }
+            }
+            return nil
+        } catch AgentHookSettings.Failure.unreadable {
+            return "Couldn't read \(AgentHookSettings.displayPath(for: kind)). Check that it's valid JSON."
+        } catch {
+            return "Couldn't save \(AgentHookSettings.displayPath(for: kind))."
+        }
+    }
+
+    public func answerAgent(_ decision: AgentDecision) {
+        guard case .agentRequest(let request) = currentAlert else { return }
+        agents.answer(request.id, decision)
+        syncAgentAlert()
+    }
+
+    private func syncAgentAlert() {
+        if let request = agents.pending.first {
+            if case .agentRequest(let current) = currentAlert, current.id == request.id { return }
+            receive(.agentRequest(request))
+        } else if case .agentRequest = currentAlert {
+            dismissAlert()
+        }
+    }
+
+    public func setMediaAppMode(_ mode: MediaAppFilter.Mode) {
+        settings.nowPlayingAppMode = mode
+        nowPlaying.appFilter = settings.mediaAppFilter
+    }
+
+    public func setMediaApp(_ identifier: String, allowed: Bool) {
+        settings.setNowPlaying(identifier, allowed: allowed)
+        nowPlaying.appFilter = settings.mediaAppFilter
+    }
+
+    public func forgetMediaApp(_ identifier: String) {
+        settings.forgetMediaApp(identifier)
+        nowPlaying.appFilter = settings.mediaAppFilter
+    }
+
+    public func setPausedMediaLinger(_ seconds: TimeInterval) {
+        settings.pausedMediaLinger = seconds
+        nowPlaying.lingerDuration = seconds
+    }
+
+    public func setDownloadsEnabled(_ enabled: Bool) {
+        settings.downloadsEnabled = enabled
+        if enabled {
+            downloads.start()
+            downloadProgress.start()
+        } else {
+            downloads.stop()
+            downloadProgress.stop()
+        }
+    }
+
+    public func setCallsEnabled(_ enabled: Bool) {
+        settings.callsEnabled = enabled
+        if enabled {
+            calls.start()
+            microphone.start()
+        } else {
+            calls.stop()
+            microphone.stop()
+        }
     }
 
     public func setClockMode(_ mode: ClockMode) {
@@ -239,7 +389,7 @@ public final class AppState {
         if tab != .launcher { isEditingShortcuts = false }
         if tab == .stats, isExpanded {
             stats.start()
-        } else {
+        } else if !settings.statsEnabled {
             stats.stop()
         }
         if tab == .sports, isExpanded {
@@ -325,7 +475,7 @@ public final class AppState {
             settings.notesEnabled = enabled
         case .stats:
             settings.statsEnabled = enabled
-            if !enabled { stats.stop() }
+            if enabled { stats.start() } else { stats.stop() }
         case .sports:
             if !enabled { sports.stop() }
             if enabled { sports.startAppAlerts() }
@@ -343,8 +493,79 @@ public final class AppState {
             activeTab: activeTab,
             activeActivities: activeActivities,
             preferredPrimary: nil,
-            alert: alerts.current
+            alert: alerts.current,
+            showWhenIdle: settings.showWhenIdle,
+            isHoveringNotch: isHoveringNotch
         ))
+    }
+
+    /// What a mirror panel shows while content is open elsewhere. Alerts still appear on every
+    /// screen; only opened content stays on the active one.
+    public var mirrorPresentation: NotchPresentation {
+        // Mirror exactly what the active panel is showing when it is an alert or HUD, so the
+        // same alert appears on every screen. Opened content stays on the active screen.
+        if case .alert = presentation { return presentation }
+        if case .hud = presentation { return presentation }
+        let ordered = PresentationResolver.ordered(activeActivities, preferred: nil)
+        if let primary = ordered.first {
+            return .compact(primary: primary, secondary: ordered.dropFirst().first)
+        }
+        return settings.showWhenIdle ? .idle : .hidden(peek: false)
+    }
+
+    /// Set by the panel's pointer poller. Only changes on a real transition, so the hidden
+    /// notch does not redraw on every mouse move.
+    public func setHoveringNotch(_ hovering: Bool) {
+        guard isHoveringNotch != hovering else { return }
+        isHoveringNotch = hovering
+    }
+
+    public func clearHoverSuppression() {
+        guard suppressHoverUntilLeave else { return }
+        suppressHoverUntilLeave = false
+    }
+
+    /// The window size for a presentation. The compact strip, the player and the launcher
+    /// already use the Notch Shell size contract; the remaining panels keep their
+    /// Arrowslit sizes until their views are ported in the Home/alert tickets.
+    public func panelSize(for presentation: NotchPresentation) -> CGSize {
+        panelSize(for: presentation, geometry: ScreenReader.current)
+    }
+
+    public func panelSize(for presentation: NotchPresentation, geometry: ScreenGeometry) -> CGSize {
+        switch presentation {
+        case .hidden:
+            return ParityLayout.hiddenSize(settings.appearance, geometry: geometry)
+        case .idle:
+            return ParityLayout.compactSize(settings.appearance, geometry: geometry)
+        case .compact(_, let secondary):
+            return ParityLayout.compactSize(settings.appearance, geometry: geometry, hasSecondary: secondary != nil)
+        case .expanded(let tab) where tab == .call || tab == .nowPlaying || tab == .download || tab == .launcher || tab == .home || tab == .tray || tab == .clipboard:
+            return ParityLayout.expandedSize(
+                for: tab,
+                appearance: settings.appearance,
+                geometry: geometry
+            )
+        case .alert(.agentRequest(let request)):
+            let lines = request.reviewLineCount(charactersPerLine: 70)
+            return CGSize(
+                width: 560,
+                height: 32 + 2 + IslandMetrics.ContentHeight.agentRequest(lines: lines) + 14
+            )
+        case .alert(let alert) where alert.usesCompactAlert:
+            return ParityLayout.alertSize(for: alert, appearance: settings.appearance, geometry: geometry)
+        default:
+            return NotchPanelMetrics.size(for: presentation, geometry: geometry)
+        }
+    }
+
+    /// The part of the panel that should stay centred on the camera. A secondary bubble
+    /// stretches the panel to the right, so the compact shape itself remains the anchor.
+    public func panelAnchorWidth(for presentation: NotchPresentation, geometry: ScreenGeometry) -> CGFloat {
+        if case .compact = presentation {
+            return ParityLayout.compactWidth(settings.appearance, geometry: geometry)
+        }
+        return panelSize(for: presentation, geometry: geometry).width
     }
 
     public var currentAlert: NotchAlert? { alerts.current }
@@ -355,6 +576,8 @@ public final class AppState {
 
     public var activeActivities: Set<NotchActivity> {
         var active = Set<NotchActivity>()
+        if calls.session != nil { active.insert(.call) }
+        if !downloadProgress.items.isEmpty { active.insert(.download) }
         if timer.isActive { active.insert(.timer) }
         if stopwatch.isActive { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
@@ -430,7 +653,7 @@ public final class AppState {
             return String(title.prefix(28))
         }
         if compactCharging { return "\(system.batteryLevel)%" }
-        return ClockFormat.wallClockIST()
+        return ClockFormat.wallClockShortIST()
     }
 
     public var compactLabel: String {

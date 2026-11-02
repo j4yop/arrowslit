@@ -3,12 +3,24 @@ import UniformTypeIdentifiers
 
 struct ArrowslitRootView: View {
     @Bindable var state: AppState
+    /// The display this panel is on. With one panel this is the selected screen; with All
+    /// displays each panel passes its own screen so its notch and width are correct.
+    let screen: NSScreen?
+    let role: PanelRole
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var geometry: ScreenGeometry {
+        screen.map(ScreenReader.geometry(for:)) ?? ScreenReader.current
+    }
+
+    private var presentation: NotchPresentation {
+        role.isActive ? state.presentation : state.mirrorPresentation
+    }
+
     var body: some View {
-        let geometry = ScreenReader.current
-        let presentation = state.presentation
-        let size = NotchPanelMetrics.size(for: presentation, geometry: geometry)
+        let geometry = self.geometry
+        let presentation = self.presentation
+        let size = state.panelSize(for: presentation, geometry: geometry)
 
         ZStack(alignment: .top) {
             switch presentation {
@@ -24,11 +36,48 @@ struct ArrowslitRootView: View {
             case .expanded:
                 NookView(state: state)
                     .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
-            case .compact, .hud:
+            case .hidden(let peek):
+                HiddenPeekShape(
+                    size: size,
+                    appearance: state.settings.appearance,
+                    peek: peek,
+                    open: { state.expand(.home) }
+                )
+                .transition(.opacity)
+            case .idle:
                 CompactBar(
                     state: state,
-                    width: geometry.compactWidth,
-                    notchWidth: geometry.notchWidth,
+                    width: ParityLayout.compactWidth(state.settings.appearance, geometry: geometry),
+                    height: ParityLayout.compactHeight(state.settings.appearance, geometry: geometry),
+                    notchWidth: ParityLayout.notch(in: geometry).width,
+                    hud: nil
+                )
+                .transition(.opacity)
+            case .compact(_, let secondary):
+                let compactWidth = ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
+                let height = ParityLayout.compactHeight(state.settings.appearance, geometry: geometry)
+                let bubble = ParityLayout.compactBubbleDiameter(state.settings.appearance, geometry: geometry)
+                ZStack(alignment: .topLeading) {
+                    CompactBar(
+                        state: state,
+                        width: compactWidth,
+                        height: height,
+                        notchWidth: ParityLayout.notch(in: geometry).width,
+                        hud: nil
+                    )
+                    if let secondary {
+                        SecondaryBubble(state: state, activity: secondary, diameter: bubble)
+                            .offset(x: compactWidth + 4, y: (height - bubble) / 2)
+                            .transition(.scale(scale: 0.6).combined(with: .opacity))
+                    }
+                }
+                .transition(.opacity)
+            case .hud:
+                CompactBar(
+                    state: state,
+                    width: ParityLayout.compactWidth(state.settings.appearance, geometry: geometry),
+                    height: ParityLayout.compactHeight(state.settings.appearance, geometry: geometry),
+                    notchWidth: ParityLayout.notch(in: geometry).width,
                     hud: presentation.hudAlert
                 )
                 .transition(.opacity)
@@ -37,6 +86,111 @@ struct ArrowslitRootView: View {
         .frame(width: size.width, height: size.height, alignment: .top)
         .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: presentation)
         .environment(\.colorScheme, .dark)
+        .environment(\.panelGeometry, geometry)
+    }
+}
+
+/// The detached circle that carries the second live activity.
+private struct SecondaryBubble: View {
+    @Bindable var state: AppState
+    let activity: NotchActivity
+    let diameter: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle().fill(ArrowTheme.ink)
+            Circle().stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            content
+        }
+        .frame(width: diameter, height: diameter)
+        .accessibilityElement()
+        .accessibilityLabel("Second activity: \(name)")
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch activity {
+        case .nowPlaying:
+            if let artwork = state.nowPlaying.activeArtwork {
+                Image(nsImage: artwork)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fill)
+                    .clipShape(Circle())
+            } else {
+                Image(systemName: "music.note")
+                    .font(.system(size: diameter * 0.42, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+            }
+        case .timer:
+            Image(systemName: "timer")
+                .font(.system(size: diameter * 0.42, weight: .semibold))
+                .foregroundStyle(ArrowTheme.amber)
+        case .stopwatch:
+            Image(systemName: "stopwatch.fill")
+                .font(.system(size: diameter * 0.42, weight: .semibold))
+                .foregroundStyle(ArrowTheme.amber)
+        case .sports:
+            Image(systemName: "soccerball")
+                .font(.system(size: diameter * 0.42, weight: .semibold))
+                .foregroundStyle(ArrowTheme.green)
+        case .download:
+            Image(systemName: "arrow.down")
+                .font(.system(size: diameter * 0.42, weight: .bold))
+                .foregroundStyle(Color(red: 0.04, green: 0.52, blue: 1))
+        case .call:
+            Image(systemName: "phone.fill")
+                .font(.system(size: diameter * 0.4, weight: .semibold))
+                .foregroundStyle(ArrowTheme.green)
+        case .charging:
+            Image(systemName: "bolt.fill")
+                .font(.system(size: diameter * 0.4, weight: .semibold))
+                .foregroundStyle(ArrowTheme.green)
+        case .stats:
+            Image(systemName: "gauge.with.dots.needle.33percent")
+                .font(.system(size: diameter * 0.4, weight: .semibold))
+                .foregroundStyle(ArrowTheme.green)
+        }
+    }
+
+    private var name: String {
+        switch activity {
+        case .nowPlaying: "Now Playing"
+        case .timer: "Timer"
+        case .stopwatch: "Stopwatch"
+        case .sports: "Sports"
+        case .download: "Download"
+        case .call: "Call"
+        case .charging: "Charging"
+        case .stats: "Stats"
+        }
+    }
+}
+
+/// The retracted notch. The panel is still a 200×35 hover target, but only the peek draws
+/// anything; the real camera housing hides the rest.
+private struct HiddenPeekShape: View {
+    let size: CGSize
+    let appearance: NotchAppearance
+    let peek: Bool
+    let open: () -> Void
+
+    var body: some View {
+        Group {
+            if peek {
+                SlitShape(radius: 11, flare: 5)
+                    .fill(ArrowTheme.ink)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: open)
+        .accessibilityElement()
+        .accessibilityLabel("Arrowslit")
+        .accessibilityHint("Open Home")
+        .accessibilityAction(named: "Open Home", open)
     }
 }
 
@@ -44,7 +198,9 @@ struct ArrowslitRootView: View {
 /// housing, so nothing can disappear under the notch on any Mac.
 private struct CompactBar: View {
     @Bindable var state: AppState
+    @Environment(\.panelGeometry) private var geometry
     let width: CGFloat
+    let height: CGFloat
     let notchWidth: CGFloat
     var hud: NotchAlert?
     @State private var isDropTargeted = false
@@ -56,13 +212,13 @@ private struct CompactBar: View {
         if state.timer.isActive || state.timer.justFinished { return false }
         if state.stopwatch.isActive { return false }
         if state.nowPlaying.isVisible,
-           let title = state.nowPlaying.track?.title,
+           let title = state.nowPlaying.activeTrack?.title,
            !title.isEmpty { return false }
         return true
     }
 
     private var musicTrack: NowPlayingTrack? {
-        guard state.nowPlaying.isVisible, let track = state.nowPlaying.track, track.hasContent else { return nil }
+        guard state.nowPlaying.isVisible, let track = state.nowPlaying.activeTrack, track.hasContent else { return nil }
         return track
     }
 
@@ -71,6 +227,42 @@ private struct CompactBar: View {
             if let hud {
                 hudContent(hud)
                     .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+            } else if let session = state.calls.session {
+                Group {
+                    if let icon = state.calls.appIcon {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .interpolation(.high)
+                            .frame(width: 22, height: 22)
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    } else {
+                        Image(systemName: session.isCall ? "phone.fill" : "mic.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(session.isCall ? ArrowTheme.green : ArrowTheme.amber)
+                    }
+                }
+                .padding(.leading, 10)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                HStack(spacing: 3) {
+                    if state.microphone.isMuted {
+                        Image(systemName: "mic.slash.fill")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.red)
+                            .accessibilityHidden(true)
+                    }
+                    Text(session.startDate, style: .timer)
+                        .font(.system(size: 11, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(session.isCall ? ArrowTheme.green : ArrowTheme.amber)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                .padding(.trailing, 6)
+                .frame(width: ear, alignment: .trailing)
             } else if state.timer.isActive {
                 Image(systemName: "timer")
                     .font(.system(size: 15, weight: .semibold))
@@ -115,12 +307,49 @@ private struct CompactBar: View {
 
                 MusicBars(
                     isPlaying: track.isPlaying,
-                    color: state.nowPlaying.accent.color,
+                    color: state.nowPlaying.activeAccent.color,
                     height: 15,
                     width: 20
                 )
                 .padding(.trailing, 10)
                 .frame(width: ear, alignment: .trailing)
+            } else if !state.downloadProgress.items.isEmpty {
+                DownloadCompactIcon(fontSize: compactFontSize)
+                    .padding(.leading, 10)
+                    .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                DownloadCompactValue(summary: state.downloadProgress.summary, fontSize: compactFontSize)
+                    .padding(.trailing, 10)
+                    .frame(width: ear, alignment: .trailing)
+            } else if state.settings.statsEnabled, state.stats.isRunning, state.stats.hasReading {
+                HStack(spacing: 4) {
+                    Image(systemName: "gauge.with.dots.needle.33percent")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.green)
+                    Text("CPU \(Int((state.stats.cpu * 100).rounded()))%")
+                        .font(.system(size: 10.5, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(ArrowTheme.bone)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                .padding(.leading, 9)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text("MEM \(Int((state.stats.memoryShare * 100).rounded()))%")
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ArrowTheme.muted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .padding(.trailing, 9)
+                    .frame(width: ear, alignment: .trailing)
             } else if state.compactCharging {
                 HStack(spacing: 5) {
                     Image(systemName: "bolt.fill")
@@ -153,7 +382,7 @@ private struct CompactBar: View {
                 Color.clear
                     .frame(width: notchWidth)
 
-                HStack(spacing: 5) {
+                HStack(spacing: 3) {
                     compactValue
 
                     Image(systemName: "chevron.down")
@@ -162,20 +391,20 @@ private struct CompactBar: View {
                         .frame(width: 10)
                         .accessibilityHidden(true)
                 }
-                .padding(.trailing, 8)
+                .padding(.trailing, 4)
                 .frame(width: ear, alignment: .trailing)
             }
         }
-        .frame(width: width, height: 32)
+        .frame(width: width, height: height)
         .animation(NookMotion.reducing(NookMotion.quick, reduceMotion: reduceMotion), value: hud)
-        .background(ArrowTheme.ink)
-        .clipShape(SlitShape(radius: 12))
+        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 12, flare: 6, notchBand: geometry.notch?.height ?? 0))
+        .clipShape(SlitShape(radius: 12, flare: 6))
         .overlay {
-            SlitShape(radius: 12)
+            SlitShape(radius: 12, flare: 6)
                 .stroke(isDropTargeted ? Color(red: 0.20, green: 0.55, blue: 1) : ArrowTheme.hairline, lineWidth: isDropTargeted ? 1.5 : 0.5)
                 .animation(NookMotion.reducing(NookMotion.hover, reduceMotion: reduceMotion), value: isDropTargeted)
         }
-        .contentShape(SlitShape(radius: 12))
+        .contentShape(SlitShape(radius: 12, flare: 6))
         .onTapGesture { state.expandDefault() }
         .onDrop(of: [.fileURL, .url], isTargeted: $isDropTargeted) { providers in
             Task { @MainActor in
@@ -234,7 +463,7 @@ private struct CompactBar: View {
     @ViewBuilder
     private var compactArtwork: some View {
         Group {
-            if let artwork = state.nowPlaying.artwork {
+            if let artwork = state.nowPlaying.activeArtwork {
                 Image(nsImage: artwork)
                     .resizable()
                     .interpolation(.high)
@@ -251,7 +480,7 @@ private struct CompactBar: View {
     private var compactValue: some View {
         if isLiveClock {
             TimelineView(.everyMinute) { context in
-                timeText(ClockFormat.wallClockIST(context.date), color: ArrowTheme.bone)
+                timeText(ClockFormat.wallClockShortIST(context.date), color: ArrowTheme.bone)
             }
         } else {
             timeText(
@@ -261,18 +490,36 @@ private struct CompactBar: View {
         }
     }
 
+    private var compactFontSize: CGFloat {
+        let scale = state.settings.appearance.size.scale
+        return min(max(height * 0.4 * scale, 10), 18)
+    }
+
     private func timeText(_ value: String, color: Color) -> some View {
-        Text(value)
-            .font(.system(size: 13, weight: .semibold))
+        let fontSize = compactFontSize
+        return Text(value)
+            .font(.system(size: fontSize, weight: .semibold))
             .monospacedDigit()
             .foregroundStyle(color)
             .lineLimit(1)
-            .minimumScaleFactor(0.8)
+            .minimumScaleFactor(0.7)
             .truncationMode(.tail)
-            .frame(width: max(24, ear - 27), alignment: .trailing)
+            .frame(width: max(20, ear - 18), alignment: .trailing)
     }
 
     private var accessibilityLabel: String {
+        if let session = state.calls.session {
+            return "Arrowslit. \(session.isCall ? "On call with" : "Microphone used by") \(session.appName)"
+        }
+        if state.settings.statsEnabled, state.stats.hasReading, state.activeActivities == [.stats] {
+            return "Arrowslit. CPU \(Int((state.stats.cpu * 100).rounded())) percent, memory \(Int((state.stats.memoryShare * 100).rounded())) percent"
+        }
+        if !state.downloadProgress.items.isEmpty {
+            let count = state.downloadProgress.items.count
+            let summary = state.downloadProgress.summary
+            let progress = summary.fraction.map { "\(Int(($0 * 100).rounded())) percent" } ?? "in progress"
+            return "Arrowslit. \(count == 1 ? "Download" : "\(count) downloads"), \(progress)"
+        }
         if let hud {
             switch hud {
             case .level(let kind, let value, let muted):

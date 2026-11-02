@@ -25,12 +25,35 @@ public enum ClockFormat {
         date.formatted(date: .omitted, time: .shortened)
     }
 
+    /// VoiceOver-friendly duration: "4 minutes, 59 seconds".
+    public static func spoken(_ seconds: TimeInterval) -> String {
+        guard seconds.isFinite else { return "0 seconds" }
+        let total = Int(max(0, seconds).rounded())
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        let secs = total % 60
+        var parts: [String] = []
+        if hours > 0 { parts.append("\(hours) hour\(hours == 1 ? "" : "s")") }
+        if minutes > 0 { parts.append("\(minutes) minute\(minutes == 1 ? "" : "s")") }
+        if secs > 0 || parts.isEmpty { parts.append("\(secs) second\(secs == 1 ? "" : "s")") }
+        return parts.joined(separator: ", ")
+    }
+
     /// Live time in India Standard Time, e.g. "3:25 PM".
     public static func wallClockIST(_ date: Date = Date()) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(identifier: "Asia/Kolkata") ?? .current
         formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+
+    /// Compact form for the 47 pt ear: "3:25", without the AM/PM suffix.
+    public static func wallClockShortIST(_ date: Date = Date()) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Kolkata") ?? .current
+        formatter.dateFormat = "h:mm"
         return formatter.string(from: date)
     }
 
