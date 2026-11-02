@@ -420,13 +420,14 @@ public enum AgentHookSettings {
         try write(settings, to: url)
     }
 
-    /// OpenCode loads JavaScript plugins from its global plugins directory. This file listens
-    /// for `permission.asked`, asks Arrowslit over the same private socket, and replies through
-    /// OpenCode's own client API. It never approves anything if the app is not running.
+    /// OpenCode 2.2+ loads JavaScript plugins from its global plugins directory. This file
+    /// registers the `permission.evaluate` hook, asks Arrowslit over the same private socket,
+    /// and leaves OpenCode's own decision untouched if the app is not running.
     public static func installOpenCode(socket: String, at url: URL? = nil) throws {
         let file = url ?? defaultURL(for: .opencode)
         let script = """
-        // Arrowslit approval bridge. Installed by Arrowslit; remove with the Settings switch.
+        // Arrowslit approval bridge for OpenCode 2.2+ (V2 plugin API).
+        // Installed by Arrowslit; remove with the Settings switch.
         import net from "node:net"
 
         const socket = \(String(reflecting: socket))
@@ -437,7 +438,7 @@ public enum AgentHookSettings {
             const client = net.createConnection(socket)
             let data = ""
             const timer = setTimeout(() => { client.destroy(); resolve(null) }, timeoutMs)
-            client.on("connect", () => client.write(JSON.stringify({ agent: "opencode", input: payload }) + "\n"))
+            client.on("connect", () => client.write(JSON.stringify({ agent: "opencode", input: payload }) + "\\n"))
             client.on("data", (chunk) => { data += chunk.toString() })
             client.on("end", () => {
               clearTimeout(timer)
@@ -447,52 +448,34 @@ public enum AgentHookSettings {
           })
         }
 
-        function payloadFor(input, directory) {
-          const action = input?.action || input?.permission || "tool"
-          const metadata = input?.metadata || {}
-          const resources = input?.resources || input?.patterns || []
-          const command = metadata.command || metadata.filePath || resources.join("\n")
+        function payloadFor(event, directory) {
+          const metadata = event?.metadata || {}
+          const resources = event?.resources || []
+          const command = metadata.command || metadata.filePath || resources.join("\\n")
           return {
             hook_event_name: "PermissionRequest",
-            tool_name: action,
+            tool_name: event?.action || "tool",
             tool_input: { command },
             cwd: directory || ""
           }
         }
 
+        // Undefined leaves OpenCode's own decision untouched.
         function decisionFor(reply) {
-          if (!reply) return "ask"
-          if (reply.decision === "once") return "allow"
-          if (reply.decision === "reject") return "deny"
-          return "ask"
+          if (reply?.decision === "once") return "allow"
+          if (reply?.decision === "reject") return "deny"
+          return undefined
         }
 
-        export const ArrowslitApproval = async ({ client, directory }) => ({
-          // OpenCode 2.2+ calls this hook before showing its own permission prompt.
-          "permission.ask": async (input, output) => {
-            const reply = await ask(payloadFor(input, directory))
-            output.status = decisionFor(reply)
-          },
-          // Older OpenCode builds emit a permission event instead of calling the hook.
-          event: async ({ event }) => {
-            if (event.type !== "permission.asked" && event.type !== "permission.v2.asked") return
-            const data = event.data || event.properties || {}
-            if (!data.id || !data.sessionID) return
-            const reply = await ask(payloadFor(data, directory))
-            if (!reply) return
-            const decision = reply.decision
-            if (decision !== "once" && decision !== "reject") return
-            try {
-              const replyFn = client.permission?.reply ?? client.session?.permission?.reply
-              await replyFn({
-                sessionID: data.sessionID,
-                requestID: data.id,
-                reply: decision,
-                message: decision === "reject" ? "Denied from Arrowslit." : undefined
-              })
-            } catch {}
+        export default {
+          id: "arrowslit.approval",
+          async setup(ctx) {
+            await ctx.permission.hook("evaluate", async (event) => {
+              const decision = decisionFor(await ask(payloadFor(event, ctx.location.directory)))
+              if (decision) event.effect = decision
+            })
           }
-        })
+        }
         """
         do {
             try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
