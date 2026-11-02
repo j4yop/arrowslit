@@ -50,6 +50,7 @@
 - **Signed upgrade:** installed 0.10.0 over 0.9.2, then installed a second same-certificate build over it. Camera, Calendar and Accessibility survived; the existing Sports Keychain item asks for its one-time “Always Allow”.
 - **Released 0.10.0:** PR #26 was merged into `main` at `1aaaaf0`. The signed `0.10.0` app was published as Latest and the Homebrew cask was updated.
 - **Released 0.10.1:** PR #27 was merged into `main` at `4fa7c84`. The signed `0.10.1` DMG, checksum and update manifest are public at `v0.10.1` (Latest), the Homebrew cask PR #2 was merged, and `brew upgrade --cask arrowslit` installed 0.10.1 on this Mac.
+- **Existing-user upgrade check:** installing the public 0.10.0 DMG and launching it detected 0.10.1, downloaded the signed DMG and offered **Open DMG**. In-place **Install and Relaunch** starts with 0.10.1 because 0.10.0 predates that Settings action.
 - **0.10.1 is the feel/finish pass:** Notch Shell's exact palette and type scale, the persistent Home/Files/Clipboard header, the 580 pt nook geometry, the paged launcher with real ⌃⌥ labels, click/hover mode and hover delay, scaled Small/Medium content, the corrected Clipboard/Tray cards, conditional player lyrics and the 580×178 Calendar/Timer/Stats/Notes pages.
 - **162 tests pass in 47 suites.**
 
