@@ -32,6 +32,17 @@ public struct NowPlayingTrack: Equatable, Sendable {
     }
 }
 
+/// Another app that was playing when a newer one took over Now Playing, and may still be.
+public struct MediaSource: Identifiable {
+    public var id: String
+    public var name: String
+    public var icon: NSImage?
+    public var track: NowPlayingTrack
+    public var artwork: NSImage?
+    public var accent: ArtworkAccent
+    public var since: Date
+}
+
 @MainActor
 @Observable
 public final class NowPlayingService {
@@ -42,6 +53,37 @@ public final class NowPlayingService {
     /// A paused track stays in the notch for a little while, like the iPhone.
     public private(set) var isLingering = false
     public var lingerDuration: TimeInterval = 30
+
+    /// Which apps to show. Anything else playing is treated as if nothing were.
+    public var appFilter: MediaAppFilter = .all {
+        didSet {
+            guard appFilter != oldValue else { return }
+            applyFilterChange()
+        }
+    }
+
+    /// Called with each app that reports playback, shown or not, so Settings can list it.
+    @ObservationIgnored public var onAppSeen: ((String) -> Void)?
+
+    /// Apps that were playing before the current one took over and are probably still going.
+    public private(set) var otherSources: [MediaSource] = []
+    /// Which app the player shows: nil for the current one, or an id from `otherSources`.
+    public var selectedSourceID: String?
+
+    public var currentSourceID: String? { track?.bundleIdentifier }
+
+    public var selectedSource: MediaSource? {
+        guard let selectedSourceID else { return nil }
+        return otherSources.first { $0.id == selectedSourceID }
+    }
+
+    public var activeTrack: NowPlayingTrack? { selectedSource?.track ?? track }
+    public var activeArtwork: NSImage? {
+        if let selectedSource { return selectedSource.artwork }
+        return artwork
+    }
+    public var activeAccent: ArtworkAccent { selectedSource?.accent ?? accent }
+    public var isControllingCurrentSource: Bool { selectedSource == nil }
 
     @ObservationIgnored private let reader = MediaLineReader()
     @ObservationIgnored private var lingerTask: Task<Void, Never>?
@@ -58,8 +100,23 @@ public final class NowPlayingService {
     public init() {}
 
     public var isVisible: Bool {
-        guard track?.hasContent == true else { return false }
-        return track?.isPlaying == true || isLingering
+        guard let activeTrack, activeTrack.hasContent else { return false }
+        return selectedSource != nil || activeTrack.isPlaying || isLingering
+    }
+
+    /// Show another remembered source, or nil to return to the current system player.
+    public func selectSource(_ id: String?) {
+        if let id, !otherSources.contains(where: { $0.id == id }) { return }
+        selectedSourceID = id
+    }
+
+    /// Bring another playing app forward so it can be controlled there.
+    public func open(_ source: MediaSource) {
+        if let app = NSRunningApplication.runningApplications(withBundleIdentifier: source.id).first {
+            app.activate()
+        } else if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: source.id) {
+            NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+        }
     }
 
     public func start() {
@@ -83,6 +140,36 @@ public final class NowPlayingService {
     }
 
     /// Debug builds only: show a known track and artwork for visual QA.
+    public func showDemoSource(
+        name: String,
+        bundleID: String,
+        title: String,
+        artist: String,
+        isPlaying: Bool = true
+    ) {
+        let track = NowPlayingTrack(
+            title: title,
+            artist: artist,
+            album: "",
+            duration: 320,
+            elapsed: 42,
+            sampledAt: Date(),
+            rate: 1,
+            isPlaying: isPlaying,
+            bundleIdentifier: bundleID,
+            artworkKey: "demo-source"
+        )
+        otherSources.append(MediaSource(
+            id: bundleID,
+            name: name,
+            icon: NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID).map { NSWorkspace.shared.icon(forFile: $0.path) },
+            track: track,
+            artwork: nil,
+            accent: ArtworkAccent(red: 0.2, green: 0.8, blue: 0.5),
+            since: Date()
+        ))
+    }
+
     public func showDemo(
         title: String,
         artist: String,
@@ -126,7 +213,7 @@ public final class NowPlayingService {
     }
 
     public func toggle() {
-        guard var current = track else { return }
+        guard isControllingCurrentSource, var current = track else { return }
         let now = Date()
         current.elapsed = current.elapsed(at: now)
         current.sampledAt = now
@@ -141,7 +228,7 @@ public final class NowPlayingService {
     public func previous() { send("previous") }
 
     public func seek(to seconds: TimeInterval) {
-        guard var current = track, let duration = current.duration else { return }
+        guard isControllingCurrentSource, var current = track, let duration = current.duration else { return }
         let target = min(max(seconds, 0), duration)
         current.elapsed = target
         current.sampledAt = Date()
@@ -252,23 +339,23 @@ public final class NowPlayingService {
         if isDemo { return }
         #endif
         guard message.hasInfo == true else {
-            track = nil
-            artwork = nil
-            self.accent = .white
-            expectedPlayState = nil
-            endLinger()
+            clearCurrent()
             return
         }
         let title = message.title ?? ""
         let artist = message.artist ?? ""
         guard !title.isEmpty || !artist.isEmpty else {
-            track = nil
-            artwork = nil
-            self.accent = .white
-            expectedPlayState = nil
-            endLinger()
+            clearCurrent()
             return
         }
+
+        let identifier = message.bundleID
+        if let identifier { onAppSeen?(identifier) }
+        guard appFilter.allows(identifier) else {
+            if track != nil { clearCurrent() }
+            return
+        }
+
         var newTrack = NowPlayingTrack(
             title: title,
             artist: artist,
@@ -291,6 +378,10 @@ public final class NowPlayingService {
                 newTrack.rate = track?.rate ?? newTrack.rate
             }
         }
+
+        let previousTrack = track
+        let previousArtwork = artwork
+        let previousAccent = self.accent
         if let encoded = message.artwork, let data = Data(base64Encoded: encoded), let image = NSImage(data: data) {
             artwork = image
             self.accent = accent ?? .white
@@ -298,6 +389,16 @@ public final class NowPlayingService {
             artwork = nil
             self.accent = .white
         }
+
+        if let previousTrack, previousTrack.hasContent,
+           previousTrack.bundleIdentifier != newTrack.bundleIdentifier {
+            rememberSource(previousTrack, artwork: previousArtwork, accent: previousAccent)
+        }
+        if let currentID = newTrack.bundleIdentifier {
+            otherSources.removeAll { $0.id == currentID }
+            if selectedSourceID == currentID { selectedSourceID = nil }
+        }
+
         let wasPlaying = track?.isPlaying ?? false
         track = newTrack
         if newTrack.isPlaying {
@@ -305,6 +406,51 @@ public final class NowPlayingService {
         } else if wasPlaying {
             beginLinger()
         }
+        pruneOtherSources()
+    }
+
+    private func rememberSource(_ track: NowPlayingTrack, artwork: NSImage?, accent: ArtworkAccent) {
+        let id = track.bundleIdentifier ?? track.title
+        guard !id.isEmpty else { return }
+        let app = track.bundleIdentifier.flatMap {
+            NSRunningApplication.runningApplications(withBundleIdentifier: $0).first
+        }
+        let source = MediaSource(
+            id: id,
+            name: app?.localizedName ?? track.bundleIdentifier ?? "Now Playing",
+            icon: app?.icon,
+            track: track,
+            artwork: artwork,
+            accent: accent,
+            since: Date()
+        )
+        otherSources.removeAll { $0.id == id }
+        otherSources.insert(source, at: 0)
+        if otherSources.count > 5 { otherSources.removeLast(otherSources.count - 5) }
+    }
+
+    private func pruneOtherSources() {
+        let cutoff = Date().addingTimeInterval(-20 * 60)
+        otherSources.removeAll { $0.since < cutoff || !appFilter.allows($0.id) }
+        if let selectedSourceID, !otherSources.contains(where: { $0.id == selectedSourceID }) {
+            self.selectedSourceID = nil
+        }
+    }
+
+    private func clearCurrent() {
+        track = nil
+        artwork = nil
+        accent = .white
+        expectedPlayState = nil
+        endLinger()
+        selectedSourceID = nil
+    }
+
+    private func applyFilterChange() {
+        if let id = track?.bundleIdentifier, !appFilter.allows(id) {
+            clearCurrent()
+        }
+        pruneOtherSources()
     }
 
     private func beginLinger() {

@@ -7,13 +7,23 @@ struct NookView: View {
     @State private var isDropTargeted = false
     @State private var dropPoint: CGPoint = .zero
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.panelGeometry) private var geometry
+
+    private var size: CGSize { state.panelSize(for: .expanded(state.activeTab), geometry: geometry) }
 
     var body: some View {
         VStack(spacing: 0) {
-            NookHeader(state: state, notchWidth: ScreenReader.current.notchWidth)
+            NookHeader(state: state, notchWidth: ParityLayout.notch(in: geometry).width, width: size.width)
             Group {
                 switch state.activeTab {
-                case .home: HomePane(state: state)
+                case .home:
+                    if state.settings.appearance.nookLayout == .elongated {
+                        ElongatedHomePane(state: state)
+                    } else {
+                        HomePane(state: state)
+                    }
+                case .call: CallPane(state: state)
+                case .download: DownloadPane(state: state)
                 case .nowPlaying: CompactNowPlaying(state: state)
                 case .timer, .stopwatch: ClockPane(state: state)
                 case .calendar: CalendarPanelBody(state: state)
@@ -34,16 +44,16 @@ struct NookView: View {
             .padding(.bottom, 16)
             .overlay {
                 if isDropTargeted {
-                    NookDropOverlay(point: dropPoint, split: 336)
+                    NookDropOverlay(tray: state.tray, point: dropPoint, split: 336)
                         .transition(.opacity.combined(with: .scale(scale: 0.99, anchor: .top)))
                 }
             }
         }
-        .frame(width: 560, height: state.activeTab == .home ? 204 : 178)
-        .background(ArrowTheme.ink)
-        .clipShape(SlitShape(radius: 18))
+        .frame(width: size.width, height: size.height)
+        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 30, flare: 10, notchBand: geometry.notch?.height ?? 0))
+        .clipShape(SlitShape(radius: 30, flare: 10))
         .overlay {
-            SlitShape(radius: 18).stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            SlitShape(radius: 30, flare: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5)
         }
         .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
         .onDrop(
@@ -72,11 +82,12 @@ struct NookView: View {
 private struct NookHeader: View {
     @Bindable var state: AppState
     let notchWidth: CGFloat
+    let width: CGFloat
 
     private var sideWidth: CGFloat {
         // Keep a small buffer around the camera housing so no control touches it.
         let gap = min(260, notchWidth + 12)
-        return max(120, (560 - gap) / 2)
+        return max(120, (width - gap) / 2)
     }
 
     private var shortcuts: [WorkbenchTab] {
@@ -118,7 +129,7 @@ private struct NookHeader: View {
             .padding(.leading, 10)
             .frame(width: sideWidth, alignment: .leading)
 
-            Color.clear.frame(width: 560 - sideWidth * 2)
+            Color.clear.frame(width: width - sideWidth * 2)
 
             HStack(spacing: 4) {
                 if state.activeTab == .launcher, state.isEditingShortcuts {
@@ -201,6 +212,7 @@ private struct NookTabButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(NookPressStyle())
+        .nookHitSlop()
         .onHover { isHovering = $0 }
         .help(title)
         .accessibilityLabel(title)
@@ -344,10 +356,10 @@ private struct CompactNowPlaying: View {
     private var service: NowPlayingService { state.nowPlaying }
 
     var body: some View {
-        if let track = service.track, track.hasContent {
+        if let track = service.activeTrack, track.hasContent {
             HStack(spacing: 12) {
                 Group {
-                    if let image = service.artwork {
+                    if let image = service.activeArtwork {
                         Image(nsImage: image).resizable().interpolation(.high).aspectRatio(contentMode: .fill)
                     } else {
                         ZStack { ArrowTheme.panel; SlitMark(height: 20) }
@@ -487,20 +499,45 @@ private struct CompactTray: View {
     @Bindable var state: AppState
     @State private var isTargeted = false
 
+    private var isWide: Bool { state.settings.appearance.nookLayout == .elongated }
+
     var body: some View {
         VStack(spacing: 6) {
             if state.tray.items.isEmpty {
-                VStack(spacing: 7) {
-                    Image(systemName: "tray.and.arrow.down.fill")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
-                    Text("Drag files onto the notch to keep them here")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.bone.opacity(0.9))
-                    Text("They stay until you quit, or pin one to keep it. Your originals aren't touched.")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(ArrowTheme.muted)
-                        .multilineTextAlignment(.center)
+                Group {
+                    if isWide {
+                        HStack(spacing: 18) {
+                            Image(systemName: "tray.and.arrow.down.fill")
+                                .font(.system(size: 34, weight: .semibold))
+                                .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
+                                .frame(width: 58, height: 58)
+                                .background(Circle().fill(Color.white.opacity(0.05)))
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Drag files onto the notch to keep them here")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.bone.opacity(0.92))
+                                Text("They stay until you quit, or pin one to keep it. Your originals aren't touched.")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(ArrowTheme.muted)
+                            }
+                            Spacer(minLength: 0)
+                            AddFilesButton(state: state)
+                        }
+                        .padding(.horizontal, 18)
+                    } else {
+                        VStack(spacing: 7) {
+                            Image(systemName: "tray.and.arrow.down.fill")
+                                .font(.system(size: 28, weight: .semibold))
+                                .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.muted)
+                            Text("Drag files onto the notch to keep them here")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(isTargeted ? ArrowTheme.amber : ArrowTheme.bone.opacity(0.9))
+                            Text("They stay until you quit, or pin one to keep it. Your originals aren't touched.")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundStyle(ArrowTheme.muted)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
@@ -592,19 +629,23 @@ private struct CompactTrayItem: View {
     let item: TrayItem
     @State private var isHovering = false
 
+    private var isWide: Bool { state.settings.appearance.nookLayout == .elongated }
+    private var iconSize: CGFloat { isWide ? 54 : 42 }
+    private var nameWidth: CGFloat { isWide ? 84 : 62 }
+
     var body: some View {
-        VStack(spacing: 3) {
+        VStack(spacing: isWide ? 5 : 3) {
             Image(nsImage: state.tray.icon(for: item))
                 .resizable().interpolation(.high).aspectRatio(contentMode: .fit)
-                .frame(width: 42, height: 42)
+                .frame(width: iconSize, height: iconSize)
             Text(item.name)
-                .font(.system(size: 8.5, weight: .medium))
+                .font(.system(size: isWide ? 10 : 8.5, weight: .medium))
                 .foregroundStyle(ArrowTheme.bone.opacity(0.85))
                 .lineLimit(1).truncationMode(.middle)
-                .frame(width: 62)
+                .frame(width: nameWidth)
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 5)
+        .padding(.vertical, isWide ? 8 : 5)
+        .padding(.horizontal, isWide ? 8 : 5)
         .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(isHovering ? 0.07 : 0.035)))
         .overlay(alignment: .topLeading) {
             if item.isPinned {
@@ -687,31 +728,89 @@ private struct CompactMirror: View {
 
 private struct CompactClipboard: View {
     @Bindable var state: AppState
+    @State private var query = ""
+    @FocusState private var searchFocused: Bool
+
+    private var isWide: Bool { state.settings.appearance.nookLayout == .elongated }
+    private var filtered: [ClipboardEntry] { state.clipboard.matching(query) }
 
     var body: some View {
         if state.clipboard.entries.isEmpty {
-            CompactEmpty(symbol: "doc.on.clipboard", title: "Copy something", detail: "Text you copy appears here; passwords are skipped.")
+            CompactEmpty(symbol: "doc.on.clipboard", title: "Copy something", detail: "Text you copy appears here; passwords are skipped. Pin a clip to keep it after quitting.")
         } else {
-            HStack(spacing: 8) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(state.clipboard.entries) { entry in
-                            CompactClipCard(state: state, entry: entry)
+            VStack(spacing: 6) {
+                HStack(spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(searchFocused ? ArrowTheme.bone : ArrowTheme.muted)
+                        TextField("Search clips", text: $query)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(ArrowTheme.bone)
+                            .focused($searchFocused)
+                            .onSubmit {
+                                if let first = filtered.first { state.clipboard.copy(first) }
+                            }
+                        if !query.isEmpty {
+                            Text("\(filtered.count)")
+                                .font(.system(size: 9.5, weight: .semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(ArrowTheme.muted)
+                                .accessibilityLabel("\(filtered.count) matches")
+                            Button { query = "" } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(ArrowTheme.muted)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Clear search")
                         }
                     }
+                    .padding(.horizontal, 8)
+                    .frame(height: 26)
+                    .background(Capsule().fill(Color.white.opacity(searchFocused ? 0.11 : 0.06)))
+
+                    Button { state.clipboard.clear() } label: {
+                        Image(systemName: "xmark.bin.fill")
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.muted)
+                            .frame(width: 26, height: 26)
+                            .background(Circle().fill(Color.white.opacity(0.07)))
+                    }
+                    .buttonStyle(NookPressStyle())
+                    .help("Clear unpinned clips")
+                    .accessibilityLabel("Clear unpinned clips")
+                    .disabled(state.clipboard.entries.allSatisfy(\.isPinned))
                 }
-                .nookScrollEdgeFade()
-                .nookScrollBounce()
-                Button { state.clipboard.clear() } label: {
-                    Image(systemName: "xmark.bin.fill")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(ArrowTheme.muted)
-                        .frame(width: 26, height: 26)
-                        .background(Circle().fill(Color.white.opacity(0.07)))
+
+                if filtered.isEmpty {
+                    VStack(spacing: 4) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(ArrowTheme.faint)
+                        Text("No clips match “\(query)”")
+                            .font(.system(size: 10.5, weight: .medium))
+                            .foregroundStyle(ArrowTheme.muted)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(filtered) { entry in
+                                CompactClipCard(state: state, entry: entry, wide: isWide)
+                            }
+                        }
+                    }
+                    .nookScrollEdgeFade()
+                    .nookScrollBounce()
                 }
-                .buttonStyle(NookPressStyle())
-                .help("Clear")
             }
+            .onAppear {
+                state.isSearchingClipboard = true
+                DispatchQueue.main.async { searchFocused = true }
+            }
+            .onDisappear { state.isSearchingClipboard = false }
         }
     }
 }
@@ -719,62 +818,77 @@ private struct CompactClipboard: View {
 private struct CompactClipCard: View {
     @Bindable var state: AppState
     let entry: ClipboardEntry
+    var wide = false
     @State private var isHovering = false
 
     var body: some View {
-        Button { state.clipboard.copy(entry) } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(ClipboardRules.preview(entry.text, limit: 120))
-                    .font(.system(size: 10.5, weight: .medium))
-                    .foregroundStyle(ArrowTheme.bone)
-                    .lineLimit(4)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                HStack(spacing: 4) {
-                    if let app = entry.appName { Text(app).lineLimit(1); Text("·") }
-                    Text(ClockFormat.age(entry.copiedAt))
+        ZStack(alignment: .topTrailing) {
+            Button { state.clipboard.copy(entry) } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(ClipboardRules.preview(entry.text, limit: wide ? 220 : 110))
+                        .font(.system(size: wide ? 12 : 10.5, weight: .medium))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .lineLimit(wide ? 5 : 4)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    HStack(spacing: 4) {
+                        if let app = entry.appName { Text(app).lineLimit(1); Text("·") }
+                        Text(ClockFormat.age(entry.copiedAt))
+                    }
+                    .font(.system(size: wide ? 9.5 : 8.5))
+                    .foregroundStyle(ArrowTheme.faint)
                 }
-                .font(.system(size: 8.5))
-                .foregroundStyle(ArrowTheme.faint)
+                .padding(wide ? 10 : 8)
+                .padding(.trailing, 12)
+                .frame(width: wide ? 220 : 150, height: wide ? 96 : 88)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.white.opacity(entry.isPinned ? 0.075 : (isHovering ? 0.1 : 0.05)))
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(entry.isPinned ? ArrowTheme.amber.opacity(0.2) : .clear, lineWidth: 0.5)
+                }
+                .contentShape(Rectangle())
             }
-            .padding(9)
-            .frame(width: 150, height: 100)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isHovering ? 0.1 : 0.05)))
-            .contentShape(Rectangle())
+            .buttonStyle(NookPressStyle())
+            .onHover { isHovering = $0 }
+            .help("Copy again")
+
+            Button { state.clipboard.togglePin(entry) } label: {
+                Image(systemName: entry.isPinned ? "pin.fill" : "pin")
+                    .font(.system(size: 8.5, weight: .semibold))
+                    .foregroundStyle(entry.isPinned ? ArrowTheme.amber : ArrowTheme.muted)
+                    .frame(width: 18, height: 18)
+                    .background(Circle().fill(Color.black.opacity(0.35)))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(5)
+            .help(entry.isPinned ? "Unpin clip" : "Pin clip")
+            .accessibilityLabel(entry.isPinned ? "Unpin clip" : "Pin clip")
         }
-        .buttonStyle(NookPressStyle())
-        .onHover { isHovering = $0 }
-        .help("Copy again")
     }
 }
 
 private struct CompactNotes: View {
     @Bindable var state: AppState
-    @FocusState private var focused: Bool
+    @State private var controller = RichTextController()
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 10, style: .continuous).fill(ArrowTheme.panel)
-            if state.notes.isEmpty {
-                Text("Start typing.")
-                    .font(.system(size: 11.5)).foregroundStyle(ArrowTheme.faint)
-                    .padding(.horizontal, 10).padding(.vertical, 8).allowsHitTesting(false)
-            }
-            TextEditor(text: Binding(get: { state.notes.text }, set: { state.notes.setText($0) }))
-                .font(.system(size: 11.5))
-                .foregroundStyle(ArrowTheme.bone)
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
-                .padding(5)
-                .focused($focused)
-        }
+        NoteCard(
+            state: state,
+            controller: controller,
+            fontSize: 11.5,
+            focusOnAppear: true
+        )
         .overlay(alignment: .bottomTrailing) {
             Text(state.notes.isSaved ? "Saved" : "Saving…")
-                .font(.system(size: 9))
+                .font(.system(size: 8.5, weight: .medium))
                 .foregroundStyle(state.notes.isSaved ? ArrowTheme.green : ArrowTheme.amber)
-                .padding(7)
+                .padding(.trailing, 8)
+                .padding(.bottom, 25)
+                .allowsHitTesting(false)
         }
-        .overlay { RoundedRectangle(cornerRadius: 10).stroke(ArrowTheme.hairline, lineWidth: 0.5) }
-        .onAppear { focused = true }
         .onDisappear { state.notes.save() }
     }
 }

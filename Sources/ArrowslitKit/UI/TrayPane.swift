@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -7,7 +8,7 @@ struct TrayPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            PaneHeader("Files", detail: "Drop files to keep a reference. Originals stay where they are.") {
+            PaneHeader("Tray", detail: "Drop files or links to keep a reference. Originals stay where they are.") {
                 if !state.tray.items.isEmpty {
                     Button {
                         state.tray.airDrop(state.tray.items)
@@ -43,7 +44,7 @@ struct TrayPane: View {
                 .nookScrollBounce()
             }
 
-            HStack {
+            HStack(spacing: 8) {
                 Button {
                     addFiles()
                 } label: {
@@ -55,6 +56,21 @@ struct TrayPane: View {
                         .background(
                             RoundedRectangle(cornerRadius: 7, style: .continuous)
                                 .fill(ArrowTheme.amber)
+                        )
+                }
+                .buttonStyle(NookPressStyle())
+
+                Button {
+                    addLink()
+                } label: {
+                    Label("Add link", systemImage: "link")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(ArrowTheme.bone)
+                        .padding(.horizontal, 12)
+                        .frame(height: 30)
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(Color.white.opacity(0.08))
                         )
                 }
                 .buttonStyle(NookPressStyle())
@@ -109,6 +125,22 @@ struct TrayPane: View {
             state.tray.add(panel.urls)
         }
     }
+
+    private func addLink() {
+        let alert = NSAlert()
+        alert.messageText = "Add a link"
+        alert.informativeText = "Keep a web page in the tray as a draggable shortcut."
+        alert.addButton(withTitle: "Add")
+        alert.addButton(withTitle: "Cancel")
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        field.placeholderString = "https://"
+        alert.accessoryView = field
+        guard alert.runModal() == .alertFirstButtonReturn,
+              let url = URL(string: field.stringValue),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else { return }
+        state.tray.add([url])
+    }
 }
 
 private struct TrayCell: View {
@@ -153,9 +185,11 @@ private struct TrayCell: View {
         .onTapGesture(count: 2) { state.tray.open(item) }
         .onHover { isHovering = $0 }
         .contextMenu {
-            Button("Open") { state.tray.open(item) }
-            Button("Show in Finder") { state.tray.reveal(item) }
-            Button("Send with AirDrop") { state.tray.airDrop([item]) }
+            Button(item.isLink ? "Open Link" : "Open") { state.tray.open(item) }
+            if !item.isLink {
+                Button("Show in Finder") { state.tray.reveal(item) }
+                Button("Send with AirDrop") { state.tray.airDrop([item]) }
+            }
             Divider()
             Button("Remove") { state.tray.remove(item.id) }
         }

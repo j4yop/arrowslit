@@ -117,6 +117,7 @@ struct ClockPane: View {
 struct ClockRunningPane: View {
     @Bindable var state: AppState
     let mode: ClockMode
+    @Environment(\.panelGeometry) private var geometry
 
     private var timer: TimerService { state.timer }
     private var stopwatch: StopwatchService { state.stopwatch }
@@ -146,10 +147,10 @@ struct ClockRunningPane: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(width: 360, height: 124)
-        .background(ArrowTheme.ink)
-        .clipShape(SlitShape(radius: 18))
+        .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 30, flare: 10, notchBand: geometry.notch?.height ?? 0))
+        .clipShape(SlitShape(radius: 30, flare: 10))
         .overlay {
-            SlitShape(radius: 18)
+            SlitShape(radius: 30, flare: 10)
                 .stroke(ArrowTheme.hairline, lineWidth: 0.5)
         }
         .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
@@ -171,6 +172,8 @@ struct ClockRunningPane: View {
                 }
             ) {
                 Text(ClockFormat.clock(timer.remaining, roundingUp: true))
+                    .accessibilityLabel("Time remaining")
+                    .accessibilityValue(ClockFormat.spoken(timer.remaining))
             }
         case .stopwatch:
             ClockRunningClock(
@@ -185,6 +188,8 @@ struct ClockRunningPane: View {
                 }
             ) {
                 Text(ClockFormat.clock(stopwatch.elapsed, tenths: true))
+                    .accessibilityLabel("Stopwatch")
+                    .accessibilityValue(ClockFormat.spoken(stopwatch.elapsed))
             }
         }
     }

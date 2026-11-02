@@ -20,25 +20,21 @@ public enum ArrowTheme {
     public static let caption = Font.system(size: 10, weight: .regular)
 }
 
-/// A notch-fused rectangle: flat top, softly rounded bottom.
+/// A notch-fused rectangle: flat top, softly rounded bottom. Pass a flare to get the
+/// Notch Shell-style concave shoulders; the default keeps the original Arrowslit silhouette.
 public struct SlitShape: Shape {
     public var radius: CGFloat
+    public var flare: CGFloat
+    public var topRadius: CGFloat
 
-    public init(radius: CGFloat) {
+    public init(radius: CGFloat, flare: CGFloat = 0, topRadius: CGFloat = 0) {
         self.radius = radius
+        self.flare = flare
+        self.topRadius = topRadius
     }
 
     public func path(in rect: CGRect) -> Path {
-        Path(
-            roundedRect: rect,
-            cornerRadii: RectangleCornerRadii(
-                topLeading: 0,
-                bottomLeading: radius,
-                bottomTrailing: radius,
-                topTrailing: 0
-            ),
-            style: .continuous
-        )
+        IslandShape(topRadius: topRadius, bottomRadius: radius, flare: flare).path(in: rect)
     }
 }
 

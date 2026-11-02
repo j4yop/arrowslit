@@ -51,6 +51,13 @@ struct NookPressStyle: ButtonStyle {
 }
 
 extension View {
+    /// Expands the hit area around a small control without changing its layout.
+    func nookHitSlop(_ inset: CGFloat = 4) -> some View {
+        contentShape(Rectangle().inset(by: -inset))
+    }
+}
+
+extension View {
     /// A soft scroll-edge fade instead of a hard divider. Used on horizontal
     /// shelves where cards meet the edge of the nook.
     func nookScrollEdgeFade() -> some View {

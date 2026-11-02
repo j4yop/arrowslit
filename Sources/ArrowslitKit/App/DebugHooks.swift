@@ -29,10 +29,35 @@ final class DebugHooks {
         switch command {
         case "expand": state.expand(.timer)
         case "home": state.expand(.home)
+        case "elongated":
+            state.settings.appearance.nookLayout = .elongated
+            state.expand(.home)
+        case "elongated-hold":
+            state.settings.appearance.nookLayout = .elongated
+            state.settings.collapseOnLeave = false
+            state.expand(.home)
+        case "todo-demo":
+            state.todos.add("Review the notch layout")
+            state.todos.add("Ship the parity port")
+            state.expand(.home)
+        case "clipboard-demo":
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString("Arrowslit clipboard preview: a copied paragraph that should wrap onto a second line.", forType: .string)
+            state.expand(.clipboard)
         case "collapse": state.collapse()
         case "nowplaying": state.expand(.nowPlaying)
         case "nowplaying-demo":
             showDemoTrack()
+            state.expand(.nowPlaying)
+        case "nowplaying-sources":
+            showDemoTrack()
+            state.nowPlaying.showDemoSource(
+                name: "Spotify",
+                bundleID: "com.spotify.client",
+                title: "One More Time",
+                artist: "Daft Punk"
+            )
             state.expand(.nowPlaying)
         case "home-demo":
             showDemoTrack()
@@ -83,6 +108,9 @@ final class DebugHooks {
             ))
         case "dismissalert": state.dismissAlert()
         case "tray": state.expand(.tray)
+        case "traylink":
+            state.tray.add([URL(string: "https://example.com/article")!])
+            state.expand(.tray)
         case "addfile": state.tray.add([URL(fileURLWithPath: "/etc/hosts")])
         case "mirror": state.expand(.mirror)
         case "clipboard": state.expand(.clipboard)
@@ -111,6 +139,30 @@ final class DebugHooks {
         case "stopwatch": state.expand(.stopwatch)
         case "keepawake": state.expand(.keepAwake)
         case "launcher": state.expand(.launcher)
+        case "downloads-on": state.setDownloadsEnabled(true)
+        case "download-state":
+            let items = state.downloadProgress.items
+            let text = items.map { "\($0.name):\($0.completed)/\($0.total)" }.joined(separator: ",")
+            FileHandle.standardError.write(Data("ARROWSLIT_DOWNLOADS count=\(items.count) \(text)\n".utf8))
+        case "download-tab": state.expand(.download)
+        case "download-progress":
+            state.downloadProgress.showDemo()
+            state.collapse()
+        case "download-end":
+            state.downloadProgress.endDemo()
+            state.collapse()
+        case "agent-demo":
+            state.agents.enabledKinds = Set(AgentKind.allCases)
+            state.agents.start()
+            state.agents.showDemo(kind: .opencode)
+        case "agent-alert":
+            state.receive(.agentRequest(AgentRequest(
+                kind: .opencode,
+                project: "arrowslit",
+                toolName: "Bash",
+                title: "Run a command",
+                detail: "swift test --build-system native"
+            )))
         case "settings":
             state.collapse()
             state.onOpenSettings?()
@@ -118,6 +170,13 @@ final class DebugHooks {
             state.expand(.launcher)
             state.isEditingShortcuts = true
         case "focus": state.startFocus()
+        case "window-state":
+            let key = NSApp.keyWindow
+            let responder = key?.firstResponder.map { String(describing: type(of: $0)) } ?? "none"
+            let accepts = (key as? NSPanel).map { _ in "?" } ?? "?"
+            FileHandle.standardError.write(Data(
+                "ARROWSLIT_STATE expanded=\(state.isExpanded) typing=\(state.isTypingInNook) key=\(key != nil) responder=\(responder) accepts=\(accepts)\n".utf8
+            ))
         case "start5": state.startTimer(minutes: 5)
         case "start25": state.startTimer(minutes: 25)
         case "toggle": state.toggleTimer()

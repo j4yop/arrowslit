@@ -8,6 +8,7 @@ VERSION="${VERSION:-0.9.2}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
 BUNDLE_ID="${BUNDLE_ID:-com.j4yop.arrowslit}"
 APP="${APP_OUTPUT:-$ROOT/build/Arrowslit.app}"
+UPDATE_PUBLIC_KEY="${UPDATE_PUBLIC_KEY:-$(cat "$ROOT/Support/UpdatePublicKey.txt" 2>/dev/null || true)}"
 
 DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
 export DEVELOPER_DIR
@@ -52,7 +53,8 @@ else
     cp "$BIN_DIR/Arrowslit" "$APP/Contents/MacOS/Arrowslit"
     cp "$BIN_DIR/libArrowslitMedia.dylib" "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
 fi
-sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD_NUMBER/" -e "s/__BUNDLE_ID__/$BUNDLE_ID/" \
+sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD_NUMBER/" \
+    -e "s/__BUNDLE_ID__/$BUNDLE_ID/" -e "s|__UPDATE_PUBLIC_KEY__|$UPDATE_PUBLIC_KEY|" \
     "$ROOT/Support/Info.plist" > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist" > /dev/null
 printf 'APPL????' > "$APP/Contents/PkgInfo"
@@ -66,7 +68,41 @@ fi
 
 xattr -dr com.apple.FinderInfo "$APP" 2>/dev/null || true
 xattr -dr com.apple.ResourceFork "$APP" 2>/dev/null || true
-codesign --force --options runtime --timestamp=none --sign - "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
-codesign --force --options runtime --timestamp=none --entitlements "$ROOT/Support/Arrowslit.entitlements" --sign - "$APP"
+SIGN_ARGS=(--force --options runtime --timestamp=none)
+if [[ -n "${SIGN_IDENTITY:-}" ]]; then
+    SIGN_ARGS+=(--sign "$SIGN_IDENTITY")
+else
+    SIGN_ARGS+=(--sign -)
+fi
+
+# A stable self-signed identity lets macOS keep TCC/Keychain permissions across builds. The
+# dedicated keychain is only in the search list while codesigning, then the user's list is
+# restored exactly as it was.
+SIGN_KEYCHAIN="${SIGN_KEYCHAIN:-$HOME/Library/Keychains/arrowslit-signing.keychain-db}"
+SIGN_PASSWORD_FILE="${SIGN_PASSWORD_FILE:-$HOME/Library/Application Support/Arrowslit/signing-keychain-password}"
+SAVED_KEYCHAINS=()
+ADDED_KEYCHAIN=0
+restore_keychains() {
+    if [[ "$ADDED_KEYCHAIN" == "1" ]]; then
+        security list-keychains -d user -s "${SAVED_KEYCHAINS[@]}" >/dev/null 2>&1 || true
+        ADDED_KEYCHAIN=0
+    fi
+}
+if [[ -n "${SIGN_IDENTITY:-}" && -f "$SIGN_KEYCHAIN" ]]; then
+    if [[ -f "$SIGN_PASSWORD_FILE" ]]; then
+        security unlock-keychain -p "$(cat "$SIGN_PASSWORD_FILE")" "$SIGN_KEYCHAIN" >/dev/null
+    fi
+    while IFS= read -r keychain; do
+        SAVED_KEYCHAINS+=("$keychain")
+    done < <(security list-keychains -d user | sed -e 's/^[[:space:]]*"//' -e 's/"$//')
+    security list-keychains -d user -s "$SIGN_KEYCHAIN" "${SAVED_KEYCHAINS[@]}" >/dev/null
+    ADDED_KEYCHAIN=1
+    trap restore_keychains EXIT
+fi
+
+codesign "${SIGN_ARGS[@]}" "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
+codesign "${SIGN_ARGS[@]}" --entitlements "$ROOT/Support/Arrowslit.entitlements" "$APP"
+restore_keychains
+trap - EXIT
 codesign --verify --deep --strict "$APP"
 echo "✓ Built $APP ($VERSION, build $BUILD_NUMBER)"

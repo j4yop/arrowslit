@@ -32,6 +32,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
             item.button?.image = Self.icon()
             item.button?.toolTip = "Arrowslit"
+            item.button?.setAccessibilityLabel("Arrowslit")
             let menu = NSMenu()
             menu.delegate = self
             item.menu = menu
@@ -87,7 +88,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(quit)
     }
 
-    @objc private func openAction() { state.expandDefault() }
+    @objc private func openAction() {
+        // Let the status menu finish tracking and close before opening the notch. Otherwise the
+        // same click is seen outside the panel and immediately collapses it.
+        DispatchQueue.main.async { [weak self] in self?.state.expandDefault() }
+    }
     @objc private func toggleTimerAction() { state.toggleTimer() }
     @objc private func resetTimerAction() { state.resetTimer() }
     @objc private func startTimerAction(_ sender: NSMenuItem) { state.startTimer(minutes: sender.tag) }
