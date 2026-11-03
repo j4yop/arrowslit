@@ -25,7 +25,6 @@ struct ParityLayoutTests {
         #expect(ParityLayout.compactSize(large, geometry: builtIn) == CGSize(width: 274, height: 32))
         #expect(ParityLayout.compactSize(medium, geometry: builtIn) == CGSize(width: 264, height: 32))
         #expect(ParityLayout.compactSize(small, geometry: builtIn) == CGSize(width: 256, height: 32))
-        #expect(ParityLayout.compactSize(large, geometry: builtIn, hasSecondary: true) == CGSize(width: 304, height: 32))
     }
 
     @Test func externalDisplayGetsAVirtualNotch() {

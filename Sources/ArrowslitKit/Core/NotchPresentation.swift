@@ -138,8 +138,10 @@ public enum NotchPresentation: Equatable, Sendable {
     case hidden(peek: Bool)
     /// An empty pill, shown when "Show when idle" is on.
     case idle
-    /// The closed strip: optional live activity plus the clock.
-    case compact(primary: NotchActivity?, secondary: NotchActivity?)
+    /// The closed strip: at most one live activity plus the clock. Keeping
+    /// the strip to one reading means a second activity never grows a
+    /// companion bubble beside the notch.
+    case compact(primary: NotchActivity?)
     /// A transient system HUD drawn inside the compact strip.
     case hud(NotchAlert)
     /// The open workbench on one tab.
@@ -230,7 +232,7 @@ public enum PresentationResolver {
 
         let ordered = ordered(input.activeActivities, preferred: input.preferredPrimary)
         if let primary = ordered.first {
-            return .compact(primary: primary, secondary: ordered.dropFirst().first)
+            return .compact(primary: primary)
         }
         if input.showWhenIdle {
             return .idle
