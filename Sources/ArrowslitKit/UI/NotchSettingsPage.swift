@@ -135,7 +135,7 @@ private extension NotchLiveSettings.Event {
         case .keyboardLight: "Shows the keyboard backlight level."
         case .microphone: "Shows when the microphone is muted or live."
         case .inputSource: "Shows the keyboard layout after a switch."
-        case .battery: "Charging, connected, charged, on battery and low battery."
+        case .battery: "Charging and low-battery warnings."
         case .accessory: "A Bluetooth audio accessory connecting."
         case .systemNotification: "Mirrors a macOS Notification Center banner."
         case .clipboard: "A short confirmation when something is copied."
