@@ -34,6 +34,51 @@
 
 ---
 
+## Installation
+
+### Method 1: Homebrew (Recommended)
+
+```bash
+brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
+```
+
+Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS quarantine flag automatically so Arrowslit opens immediately.
+
+On earlier Homebrew versions, run:
+
+```bash
+brew install --cask j4yop/tap/arrowslit
+```
+
+---
+
+### Method 2: Direct Download DMG
+
+1. Download **[Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg)**.
+2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
+3. Open Applications and double-click **Arrowslit**. If macOS warns that the developer cannot be verified, click **Done**.
+4. Open **System Settings › Privacy & Security**, scroll down to the security section, and click **Open Anyway**. Enter your password or Touch ID.
+5. Arrowslit launches and immediately docks into your notch.
+
+Alternatively, remove the Gatekeeper quarantine attribute via Terminal:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
+open "/Applications/Arrowslit.app"
+```
+
+### Release Metadata
+
+| Detail | Value |
+| :--- | :--- |
+| **Current Release** | 0.11.1 (build 65) |
+| **Direct Download** | [Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg) |
+| **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
+| **SHA-256 Checksum** | `1d817f546343df219d0dbdaed20b945d47bac8ee9c15136e7545637e8afcbec8` |
+| **License** | GNU General Public License v3.0 or later |
+
+---
+
 ## Why Arrowslit?
 
 The notch on your MacBook usually sits empty. Most of the day it does nothing at all.
@@ -181,51 +226,6 @@ Click the grid icon at the top right to access any utility instantly, with custo
 <p align="center">
   <img src="Docs/Images/arrowslit-day-timeline.jpg" width="100%" alt="A day at the edge: One notch, all day">
 </p>
-
----
-
-## Installation
-
-### Method 1: Homebrew (Recommended)
-
-```bash
-brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
-```
-
-Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS quarantine flag automatically so Arrowslit opens immediately.
-
-On earlier Homebrew versions, run:
-
-```bash
-brew install --cask j4yop/tap/arrowslit
-```
-
----
-
-### Method 2: Direct Download DMG
-
-1. Download **[Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg)**.
-2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
-3. Open Applications and double-click **Arrowslit**. If macOS warns that the developer cannot be verified, click **Done**.
-4. Open **System Settings › Privacy & Security**, scroll down to the security section, and click **Open Anyway**. Enter your password or Touch ID.
-5. Arrowslit launches and immediately docks into your notch.
-
-Alternatively, remove the Gatekeeper quarantine attribute via Terminal:
-
-```bash
-xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
-open "/Applications/Arrowslit.app"
-```
-
-### Release Metadata
-
-| Detail | Value |
-| :--- | :--- |
-| **Current Release** | 0.11.1 (build 65) |
-| **Direct Download** | [Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg) |
-| **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
-| **SHA-256 Checksum** | `1d817f546343df219d0dbdaed20b945d47bac8ee9c15136e7545637e8afcbec8` |
-| **License** | GNU General Public License v3.0 or later |
 
 ---
 
