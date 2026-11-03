@@ -112,7 +112,8 @@ struct ArrowslitRootView: View {
                 .transition(.opacity)
             }
 
-            if outlineEnabled, let radius = NotchOutline.radius(for: presentation) {
+            if outlineEnabled, NotchOutline.isVisible(for: presentation),
+               let radius = NotchOutline.radius(for: presentation) {
                 NotchOutlineOverlay(
                     shape: SlitShape(radius: radius, flare: NotchOutline.flare(for: presentation)),
                     color: .white.opacity(contrast == .increased
