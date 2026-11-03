@@ -249,7 +249,7 @@ private struct CompactBar: View {
                     Text(session.startDate, style: .timer)
                         .font(.system(size: 11, weight: .semibold))
                         .monospacedDigit()
-                        .foregroundStyle(session.isCall ? ArrowTheme.green : ArrowTheme.amber)
+                        .foregroundStyle(ArrowTheme.bone)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                 }
