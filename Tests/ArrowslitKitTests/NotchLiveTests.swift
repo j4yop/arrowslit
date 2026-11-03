@@ -13,6 +13,8 @@ struct NotchLiveTests {
     }
 
     @Test func eventDefaultsMatchTheSupportedCatalogue() {
+        #expect(NotchLiveSettings.Event.allCases.count == 15)
+        #expect(NotchLiveSettings.Strip.allCases.count == 7)
         let live = NotchLiveSettings(defaults: defaults())
         #expect(live.isOn(NotchLiveSettings.Event.volume))
         #expect(live.isOn(NotchLiveSettings.Event.brightness))
