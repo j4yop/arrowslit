@@ -570,6 +570,14 @@ struct SettingsStoreTests {
         #expect(settings.timerSound)
     }
 
+    @Test func statsDoesNotTakeTheRestingStrip() {
+        let (defaults, name) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: name) }
+        let state = AppState(settings: SettingsStore(defaults: defaults))
+        #expect(!state.activeActivities.contains(.stats))
+        state.stats.stop()
+    }
+
     @Test func enabledFeaturesKeepTheirTabs() {
         let (defaults, name) = makeDefaults()
         defer { defaults.removePersistentDomain(forName: name) }
