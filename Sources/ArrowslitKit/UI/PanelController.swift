@@ -377,7 +377,11 @@ final class PanelController {
         let x = (screen.frame.minX + geometry.centreX - anchorWidth / 2).rounded()
         let y = screen.frame.maxY - size.height
         let frame = NSRect(x: x, y: y, width: size.width, height: size.height)
-        if animated,
+        // A HUD replaces the compact strip at the same moment. Animating its
+        // resize leaves the old strip visible in the growing window for a
+        // frame or two, so the feedback appears only after the swap.
+        let isHUD = presentation.hudAlert != nil
+        if animated, !isHUD,
            state.settings.liquidAnimations,
            !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             NSAnimationContext.runAnimationGroup { context in

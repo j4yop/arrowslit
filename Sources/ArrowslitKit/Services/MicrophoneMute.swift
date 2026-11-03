@@ -12,6 +12,7 @@ public final class MicrophoneMute {
     /// False when the current input device can't be muted or turned down.
     public private(set) var canMute = false
 
+    @ObservationIgnored public var onMuteChanged: ((Bool) -> Void)?
     @ObservationIgnored private var device: AudioDeviceID = 0
     @ObservationIgnored private var deviceListener: AudioHW.Listener?
     @ObservationIgnored private var muteListener: AudioHW.Listener?
@@ -73,6 +74,7 @@ public final class MicrophoneMute {
     }
 
     private func refresh() {
+        let wasMuted = isMuted
         canMute = device != 0 && (Self.isSettable(device, Self.muteAddress) || Self.isSettable(device, Self.volumeAddress))
         if Self.isSettable(device, Self.muteAddress) {
             let value: UInt32 = AudioHW.value(device, Self.muteAddress, default: 0)
@@ -80,6 +82,7 @@ public final class MicrophoneMute {
         } else {
             isMuted = savedVolume != nil
         }
+        if isMuted != wasMuted { onMuteChanged?(isMuted) }
     }
 
     private static let muteAddress = AudioHW.address(kAudioDevicePropertyMute, scope: kAudioDevicePropertyScopeInput)

@@ -15,6 +15,7 @@ public final class SystemMonitorService {
     public private(set) var isCharging = false
 
     @ObservationIgnored public var onAlert: ((NotchAlert) -> Void)?
+    @ObservationIgnored public var live: NotchLiveSettings?
     @ObservationIgnored private let settings: SettingsStore
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var ticks = 0
@@ -37,7 +38,8 @@ public final class SystemMonitorService {
     public func start() {
         guard timer == nil else { return }
         pollPower()
-        pollAudio()
+        pollAudio(volume: live?.isOn(.volume) ?? settings.alertVolumeBrightness,
+                  accessory: live?.isOn(.accessory) ?? settings.alertHeadphones)
         pollBrightness()
 
         let timer = Timer(timeInterval: 0.4, repeats: true) { [weak self] _ in
@@ -68,15 +70,19 @@ public final class SystemMonitorService {
         ticks += 1
         if ticks % 5 == 0 { pollPower() }
 
-        if settings.alertHeadphones || settings.alertVolumeBrightness {
-            pollAudio()
+        let volumeOn = live?.isOn(.volume) ?? settings.alertVolumeBrightness
+        let accessoryOn = live?.isOn(.accessory) ?? settings.alertHeadphones
+        let brightnessOn = live?.isOn(.brightness) ?? settings.alertVolumeBrightness
+
+        if accessoryOn || volumeOn {
+            pollAudio(volume: volumeOn, accessory: accessoryOn)
         } else {
             lastOutputDevice = 0
             lastVolume = nil
             lastMuted = nil
         }
 
-        if settings.alertVolumeBrightness {
+        if brightnessOn {
             pollBrightness()
         } else {
             lastBrightness = nil
@@ -130,7 +136,7 @@ public final class SystemMonitorService {
         var name: String
     }
 
-    private func pollAudio() {
+    private func pollAudio(volume volumeOn: Bool, accessory accessoryOn: Bool) {
         guard let output = Self.outputDevice() else {
             lastOutputDevice = 0
             lastVolume = nil
@@ -138,7 +144,7 @@ public final class SystemMonitorService {
             return
         }
 
-        if settings.alertHeadphones {
+        if accessoryOn {
             let previous = lastOutputDevice
             lastOutputDevice = output.id
             let isBluetooth = output.transport == kAudioDeviceTransportTypeBluetooth
@@ -150,7 +156,7 @@ public final class SystemMonitorService {
             lastOutputDevice = 0
         }
 
-        if settings.alertVolumeBrightness {
+        if volumeOn {
             guard let (volume, muted) = Self.volume(of: output.id) else {
                 lastVolume = nil
                 lastMuted = nil

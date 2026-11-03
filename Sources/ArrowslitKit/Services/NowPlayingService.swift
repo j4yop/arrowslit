@@ -88,6 +88,7 @@ public final class NowPlayingService {
     @ObservationIgnored private let reader = MediaLineReader()
     @ObservationIgnored private var lingerTask: Task<Void, Never>?
     /// Ignore a stale helper update for a moment after the user presses play/pause.
+    @ObservationIgnored public var onTrackChanged: ((NowPlayingTrack) -> Void)?
     @ObservationIgnored private var expectedPlayState: (isPlaying: Bool, until: Date)?
     @ObservationIgnored private var process: Process?
     @ObservationIgnored private var input: FileHandle?
@@ -400,11 +401,15 @@ public final class NowPlayingService {
         }
 
         let wasPlaying = track?.isPlaying ?? false
+        let titleChanged = newTrack.title != track?.title || newTrack.artist != track?.artist
         track = newTrack
         if newTrack.isPlaying {
             endLinger()
         } else if wasPlaying {
             beginLinger()
+        }
+        if titleChanged, newTrack.isPlaying, !newTrack.title.isEmpty {
+            onTrackChanged?(newTrack)
         }
         pruneOtherSources()
     }

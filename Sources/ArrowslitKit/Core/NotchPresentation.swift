@@ -6,6 +6,9 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
     case timer
     case stopwatch
     case agents
+    case calendar
+    case keepAwake
+    case watch
     case sports
     case nowPlaying
     case download
@@ -19,11 +22,14 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
         case .timer: 1
         case .stopwatch: 2
         case .agents: 3
-        case .sports: 4
-        case .nowPlaying: 5
-        case .download: 6
-        case .charging: 7
-        case .stats: 8
+        case .calendar: 4
+        case .keepAwake: 5
+        case .watch: 6
+        case .sports: 7
+        case .nowPlaying: 8
+        case .download: 9
+        case .charging: 10
+        case .stats: 11
         }
     }
 }
@@ -42,10 +48,19 @@ public enum NotchAlert: Equatable, Sendable {
     case shortcut(name: String, succeeded: Bool)
     case agentRequest(AgentRequest)
     case level(kind: LevelKind, value: Double, muted: Bool)
+    case clipboard(kind: String)
+    case track(title: String, artist: String)
+    case microphone(muted: Bool)
+    case inputSource(code: String, name: String)
+    case agentEvent(provider: String, title: String, detail: String)
+    case systemNotification(app: String, title: String, body: String)
+    case capture(kind: String)
+    case watch(title: String, detail: String)
 
     public enum LevelKind: String, Sendable, Equatable {
         case volume
         case brightness
+        case keyboardLight
     }
 
     /// Alerts of the same kind replace one another instead of stacking.
@@ -61,6 +76,13 @@ public enum NotchAlert: Equatable, Sendable {
         case shortcut
         case agent
         case level
+        case clipboard
+        case track
+        case microphone
+        case inputSource
+        case systemNotification
+        case capture
+        case watch
     }
 
     public var kind: Kind {
@@ -76,6 +98,14 @@ public enum NotchAlert: Equatable, Sendable {
         case .shortcut: .shortcut
         case .agentRequest: .agent
         case .level: .level
+        case .clipboard: .clipboard
+        case .track: .track
+        case .microphone: .microphone
+        case .inputSource: .inputSource
+        case .agentEvent: .agent
+        case .systemNotification: .systemNotification
+        case .capture: .capture
+        case .watch: .watch
         }
     }
 
@@ -93,6 +123,14 @@ public enum NotchAlert: Equatable, Sendable {
         case .shortcut: 2.5
         case .agentRequest: 125
         case .level: 1.6
+        case .clipboard: 2.5
+        case .track: 3
+        case .microphone: 1.6
+        case .inputSource: 1.6
+        case .agentEvent: 5
+        case .systemNotification: 3
+        case .capture: 12
+        case .watch: 6
         }
     }
 
@@ -113,9 +151,11 @@ public enum NotchAlert: Equatable, Sendable {
     /// These alerts fit in the compact strip. Calendar and timer alerts keep the larger panel.
     public var usesCompactHUD: Bool {
         switch self {
-        case .charging, .lowBattery, .headphones, .level:
+        case .charging, .lowBattery, .headphones, .level,
+             .clipboard, .microphone, .inputSource, .agentEvent,
+             .systemNotification, .capture, .watch:
             return true
-        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal, .shortcut, .agentRequest:
+        case .upcomingEvent, .timerFinished, .download, .update, .welcome, .sportsGoal, .shortcut, .agentRequest, .track:
             return false
         }
     }
@@ -124,9 +164,11 @@ public enum NotchAlert: Equatable, Sendable {
     /// trailing value around the camera. Goal and timer-done cards keep their larger layout.
     public var usesCompactAlert: Bool {
         switch self {
-        case .upcomingEvent, .download, .update, .welcome, .shortcut:
+        case .upcomingEvent, .download, .update, .welcome, .shortcut, .track:
             return true
-        case .timerFinished, .charging, .lowBattery, .headphones, .sportsGoal, .agentRequest, .level:
+        case .timerFinished, .charging, .lowBattery, .headphones, .sportsGoal, .agentRequest, .level,
+             .clipboard, .track, .microphone, .inputSource, .agentEvent,
+             .systemNotification, .capture, .watch:
             return false
         }
     }

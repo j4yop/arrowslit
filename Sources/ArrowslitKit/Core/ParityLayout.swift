@@ -174,9 +174,10 @@ public enum ParityLayout {
         let scale = appearance.size.scale
 
         switch alert {
-        case .level:
+        case .level, .clipboard, .track, .microphone, .inputSource, .agentEvent,
+             .systemNotification, .capture, .watch:
             return notch.width + 2 * max(ear, (IslandMetrics.levelEarWidth * scale).rounded())
-        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut:
+        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut, .track:
             return notch.width + 2 * max(ear, (IslandMetrics.namedAlertEarWidth * scale).rounded())
         case .agentRequest:
             return 560
