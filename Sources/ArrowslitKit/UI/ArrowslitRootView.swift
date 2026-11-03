@@ -15,15 +15,18 @@ struct ArrowslitRootView: View {
         screen.map(ScreenReader.geometry(for:)) ?? ScreenReader.current
     }
 
-    /// The second live activity is a detached bubble beside the strip, so the
-    /// outline covers the strip alone rather than the wider window.
+    /// The compact strip can sit in a wider window when a second live
+    /// activity is detached beside it. The outline belongs to the strip, so
+    /// it always uses the strip's own width rather than the window's.
     private func outlineWidth(for presentation: NotchPresentation,
                               size: CGSize,
                               geometry: ScreenGeometry) -> CGFloat {
-        if case .compact(_, let secondary) = presentation, secondary != nil {
+        switch presentation {
+        case .idle, .compact, .hud:
             return ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
+        default:
+            return size.width
         }
-        return size.width
     }
 
     private var presentation: NotchPresentation {
