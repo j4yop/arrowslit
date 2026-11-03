@@ -23,7 +23,7 @@ struct ArrowslitRootView: View {
                               geometry: ScreenGeometry) -> CGFloat {
         switch presentation {
         case .hidden(let peek):
-            return peek ? size.width : ParityLayout.notch(in: geometry).width
+            return peek ? size.width : size.width - ParityLayout.restingOutlineInset * 2
         case .idle, .compact, .hud:
             return ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
         default:
@@ -34,9 +34,6 @@ struct ArrowslitRootView: View {
     private func outlineHeight(for presentation: NotchPresentation,
                                size: CGSize,
                                geometry: ScreenGeometry) -> CGFloat {
-        if case .hidden(let peek) = presentation, !peek {
-            return ParityLayout.notch(in: geometry).height
-        }
         return size.height
     }
 

@@ -21,7 +21,7 @@ struct ParityLayoutTests {
     private let small = NotchAppearance(width: 200, height: 32, size: .small)
 
     @Test func compactMatchesDynamicLedgeEars() {
-        #expect(ParityLayout.hiddenSize(large, geometry: builtIn) == CGSize(width: 200, height: 35))
+        #expect(ParityLayout.hiddenSize(large, geometry: builtIn) == CGSize(width: 296, height: 34))
         #expect(ParityLayout.compactSize(large, geometry: builtIn) == CGSize(width: 274, height: 32))
         #expect(ParityLayout.compactSize(medium, geometry: builtIn) == CGSize(width: 264, height: 32))
         #expect(ParityLayout.compactSize(small, geometry: builtIn) == CGSize(width: 256, height: 32))

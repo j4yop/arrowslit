@@ -54,11 +54,19 @@ public enum ParityLayout {
         )
     }
 
-    /// The invisible hover target around the physical notch. It is larger than the housing so
-    /// the pointer does not have to land pixel-perfectly; the surface is clear until `peek`.
+    /// Vorssaint's resting island adds a wing on either side of the camera
+    /// and keeps two points of outline clearance below it.
+    public static let restingWingWidth: CGFloat = 58
+    public static let restingOutlineInset: CGFloat = 6.5
+
+    /// The invisible hover target around the physical notch. It matches
+    /// Vorssaint's resting strip so the outline has the same width and height.
     public static func hiddenSize(_ appearance: NotchAppearance, geometry: ScreenGeometry) -> CGSize {
         let notch = notch(in: geometry)
-        return CGSize(width: notch.width + 20, height: notch.height + 3)
+        return CGSize(
+            width: min(geometry.size.width - 24, notch.width + restingWingWidth * 2),
+            height: notch.height + 2
+        )
     }
 
     // MARK: Expanded

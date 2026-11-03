@@ -15,8 +15,8 @@ public enum NotchOutline {
     /// outline belongs to the physical notch, not the wider hidden window.
     public static func radius(for presentation: NotchPresentation) -> CGFloat? {
         switch presentation {
-        case .hidden:
-            return 11
+        case .hidden(let peek):
+            return peek ? 11 : 12
         case .idle, .compact, .hud:
             return 12
         case .alert:
