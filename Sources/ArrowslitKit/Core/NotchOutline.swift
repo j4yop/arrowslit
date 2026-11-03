@@ -11,12 +11,12 @@ public enum NotchOutline {
     public static let opacity: Double = 0.65
     public static let increasedContrastOpacity: Double = 0.85
 
-    /// The bottom radius of the surface this presentation draws, or nil when
-    /// nothing is visible.
+    /// The bottom radius of the surface this presentation draws. At rest the
+    /// outline belongs to the physical notch, not the wider hidden window.
     public static func radius(for presentation: NotchPresentation) -> CGFloat? {
         switch presentation {
-        case .hidden(let peek):
-            return peek ? 11 : nil
+        case .hidden:
+            return 11
         case .idle, .compact, .hud:
             return 12
         case .alert:
@@ -28,8 +28,8 @@ public enum NotchOutline {
 
     public static func flare(for presentation: NotchPresentation) -> CGFloat {
         switch presentation {
-        case .hidden:
-            return 5
+        case .hidden(let peek):
+            return peek ? 5 : 0
         case .idle, .compact, .hud, .alert:
             return 6
         case .expanded, .clockRunning:

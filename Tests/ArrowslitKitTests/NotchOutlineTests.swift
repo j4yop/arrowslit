@@ -20,11 +20,12 @@ struct NotchOutlineTests {
         #expect(NotchOutline.radius(for: .expanded(.home)) == 30)
         #expect(NotchOutline.radius(for: .clockRunning(.timer)) == 30)
         #expect(NotchOutline.radius(for: .hidden(peek: true)) == 11)
-        #expect(NotchOutline.radius(for: .hidden(peek: false)) == nil)
+        #expect(NotchOutline.radius(for: .hidden(peek: false)) == 11)
     }
 
     @Test func outlineFlareFollowsEachSurface() {
         #expect(NotchOutline.flare(for: .hidden(peek: true)) == 5)
+        #expect(NotchOutline.flare(for: .hidden(peek: false)) == 0)
         #expect(NotchOutline.flare(for: .idle) == 6)
         #expect(NotchOutline.flare(for: .compact(primary: nil, secondary: nil)) == 6)
         #expect(NotchOutline.flare(for: .hud(.lowBattery(level: 10))) == 6)

@@ -22,11 +22,27 @@ struct ArrowslitRootView: View {
                               size: CGSize,
                               geometry: ScreenGeometry) -> CGFloat {
         switch presentation {
+        case .hidden(let peek):
+            return peek ? size.width : ParityLayout.notch(in: geometry).width
         case .idle, .compact, .hud:
             return ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
         default:
             return size.width
         }
+    }
+
+    private func outlineHeight(for presentation: NotchPresentation,
+                               size: CGSize,
+                               geometry: ScreenGeometry) -> CGFloat {
+        if case .hidden(let peek) = presentation, !peek {
+            return ParityLayout.notch(in: geometry).height
+        }
+        return size.height
+    }
+
+    private func isRestingNotch(_ presentation: NotchPresentation) -> Bool {
+        if case .hidden(let peek) = presentation { return !peek }
+        return false
     }
 
     private var presentation: NotchPresentation {
@@ -104,10 +120,11 @@ struct ArrowslitRootView: View {
                     shape: SlitShape(radius: radius, flare: NotchOutline.flare(for: presentation)),
                     color: .white.opacity(contrast == .increased
                                           ? NotchOutline.increasedContrastOpacity
-                                          : NotchOutline.opacity)
+                                          : NotchOutline.opacity),
+                    fillsNotch: isRestingNotch(presentation)
                 )
                 .frame(width: outlineWidth(for: presentation, size: size, geometry: geometry),
-                       height: size.height)
+                       height: outlineHeight(for: presentation, size: size, geometry: geometry))
             }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
@@ -124,16 +141,24 @@ struct ArrowslitRootView: View {
 private struct NotchOutlineOverlay: View {
     let shape: SlitShape
     let color: Color
+    /// The hidden window is transparent; the resting notch needs its black
+    /// body so the outline reads as the Mac notch, not a line over the desktop.
+    var fillsNotch = false
 
     var body: some View {
-        shape
-            .stroke(color, lineWidth: NotchOutline.lineWidth)
-            .clipShape(shape)
-            .mask(alignment: .top) {
-                Rectangle().padding(.top, NotchOutline.topGap)
+        ZStack {
+            if fillsNotch {
+                shape.fill(Color.black)
             }
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+            shape
+                .stroke(color, lineWidth: NotchOutline.lineWidth)
+                .clipShape(shape)
+                .mask(alignment: .top) {
+                    Rectangle().padding(.top, NotchOutline.topGap)
+                }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
