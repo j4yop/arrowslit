@@ -16,6 +16,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case stats
     case sports
     case reminders
+    case agents
     case stopwatch
     case keepAwake
     case launcher
@@ -37,6 +38,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .stats: "Stats"
         case .sports: "Sports"
         case .reminders: "Reminders"
+        case .agents: "AI Agents"
         case .stopwatch: "Stopwatch"
         case .keepAwake: "Keep Awake"
         case .launcher: "All Features"
@@ -58,6 +60,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .stats: "gauge.with.dots.needle.33percent"
         case .sports: "soccerball"
         case .reminders: "checklist"
+        case .agents: "sparkles"
         case .stopwatch: "stopwatch"
         case .keepAwake: "cup.and.saucer"
         case .launcher: "square.grid.2x2"
@@ -74,6 +77,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .calendar: "A"
         case .sports: "F"
         case .reminders: "O"
+        case .agents: "G"
         case .clipboard: "B"
         case .tray: "L"
         case .notes: "N"

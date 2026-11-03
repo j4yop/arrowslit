@@ -25,6 +25,7 @@ struct WorkbenchView: View {
                     case .stats: StatsPane(state: state)
                     case .sports: SportsPane(state: state)
                     case .reminders: RemindersPane(state: state)
+                    case .agents: AI AgentsAgentsPane(state: state)
                     case .stopwatch: StopwatchPane(state: state)
                     case .keepAwake: KeepAwakePane(state: state)
                     }

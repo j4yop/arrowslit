@@ -44,11 +44,12 @@ struct DisplayTests {
     @MainActor
     @Test func launcherShortcutsAreCompleteAndUnique() {
         let tabs = HotKeys.items
-        #expect(tabs.count == 12)
+        #expect(tabs.count == 13)
         #expect(Set(tabs.compactMap(\.shortcutKey)).count == tabs.count)
         #expect(WorkbenchTab.nowPlaying.shortcutLabel == "⌃⌥M")
         #expect(WorkbenchTab.tray.shortcutLabel == "⌃⌥L")
         #expect(WorkbenchTab.sports.shortcutLabel == "⌃⌥F")
+        #expect(WorkbenchTab.agents.shortcutLabel == "⌃⌥G")
         #expect(HotKeys.keyCode("L") != nil)
         #expect(HotKeys.keyCode("Q") == nil)
     }
