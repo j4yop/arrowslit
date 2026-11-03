@@ -82,25 +82,15 @@ struct ArrowslitRootView: View {
                     hud: nil
                 )
                 .transition(.opacity)
-            case .compact(let primary, let secondary):
-                let compactWidth = ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
-                let height = ParityLayout.compactHeight(state.settings.appearance, geometry: geometry)
-                let bubble = ParityLayout.compactBubbleDiameter(state.settings.appearance, geometry: geometry)
-                ZStack(alignment: .topLeading) {
-                    CompactBar(
-                        state: state,
-                        width: compactWidth,
-                        height: height,
-                        notchWidth: ParityLayout.notch(in: geometry).width,
-                        hud: nil,
-                        activity: primary
-                    )
-                    if let secondary {
-                        SecondaryBubble(state: state, activity: secondary, diameter: bubble)
-                            .offset(x: compactWidth + 4, y: (height - bubble) / 2)
-                            .transition(.scale(scale: 0.6).combined(with: .opacity))
-                    }
-                }
+            case .compact(let primary):
+                CompactBar(
+                    state: state,
+                    width: ParityLayout.compactWidth(state.settings.appearance, geometry: geometry),
+                    height: ParityLayout.compactHeight(state.settings.appearance, geometry: geometry),
+                    notchWidth: ParityLayout.notch(in: geometry).width,
+                    hud: nil,
+                    activity: primary
+                )
                 .transition(.opacity)
             case .hud:
                 CompactBar(
@@ -158,93 +148,6 @@ private struct NotchOutlineOverlay: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-    }
-}
-
-/// The detached circle that carries the second live activity.
-private struct SecondaryBubble: View {
-    @Bindable var state: AppState
-    let activity: NotchActivity
-    let diameter: CGFloat
-    @ObservedObject private var agentUsage = AgentUsageService.shared
-
-    var body: some View {
-        ZStack {
-            Circle().fill(ArrowTheme.ink)
-            Circle().stroke(ArrowTheme.hairline, lineWidth: 0.5)
-            content
-        }
-        .frame(width: diameter, height: diameter)
-        .accessibilityElement()
-        .accessibilityLabel("Second activity: \(name)")
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        switch activity {
-        case .nowPlaying:
-            if let artwork = state.nowPlaying.activeArtwork {
-                Image(nsImage: artwork)
-                    .resizable()
-                    .interpolation(.high)
-                    .aspectRatio(contentMode: .fill)
-                    .clipShape(Circle())
-            } else {
-                Image(systemName: "music.note")
-                    .font(.system(size: diameter * 0.42, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.bone)
-            }
-        case .timer:
-            Image(systemName: "timer")
-                .font(.system(size: diameter * 0.42, weight: .semibold))
-                .foregroundStyle(ArrowTheme.amber)
-        case .stopwatch:
-            Image(systemName: "stopwatch.fill")
-                .font(.system(size: diameter * 0.42, weight: .semibold))
-                .foregroundStyle(ArrowTheme.amber)
-        case .sports:
-            Image(systemName: "soccerball")
-                .font(.system(size: diameter * 0.42, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .download:
-            Image(systemName: "arrow.down")
-                .font(.system(size: diameter * 0.42, weight: .bold))
-                .foregroundStyle(ArrowTheme.blue)
-        case .call:
-            Image(systemName: "phone.fill")
-                .font(.system(size: diameter * 0.4, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .charging:
-            Image(systemName: "bolt.fill")
-                .font(.system(size: diameter * 0.4, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .stats:
-            Image(systemName: "gauge.with.dots.needle.33percent")
-                .font(.system(size: diameter * 0.4, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .agents:
-            if let provider = agentUsage.snapshot.live.first?.provider {
-                NotchAgentMark(provider: provider, size: diameter * 0.42)
-            } else {
-                Image(systemName: "sparkles")
-                    .font(.system(size: diameter * 0.4, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.green)
-            }
-        }
-    }
-
-    private var name: String {
-        switch activity {
-        case .nowPlaying: "Now Playing"
-        case .timer: "Timer"
-        case .stopwatch: "Stopwatch"
-        case .sports: "Sports"
-        case .download: "Download"
-        case .call: "Call"
-        case .charging: "Charging"
-        case .stats: "Stats"
-        case .agents: "AI Agents"
-        }
     }
 }
 

@@ -577,7 +577,7 @@ public final class AppState {
         if case .hud = presentation { return presentation }
         let ordered = PresentationResolver.ordered(activeActivities, preferred: nil)
         if let primary = ordered.first {
-            return .compact(primary: primary, secondary: ordered.dropFirst().first)
+            return .compact(primary: primary)
         }
         return settings.showWhenIdle ? .idle : .hidden(peek: false)
     }
@@ -607,8 +607,8 @@ public final class AppState {
             return ParityLayout.hiddenSize(settings.appearance, geometry: geometry)
         case .idle:
             return ParityLayout.compactSize(settings.appearance, geometry: geometry)
-        case .compact(_, let secondary):
-            return ParityLayout.compactSize(settings.appearance, geometry: geometry, hasSecondary: secondary != nil)
+        case .compact:
+            return ParityLayout.compactSize(settings.appearance, geometry: geometry)
         case .expanded(let tab):
             return ParityLayout.expandedSize(
                 for: tab,
@@ -633,13 +633,9 @@ public final class AppState {
         }
     }
 
-    /// The part of the panel that should stay centred on the camera. A secondary bubble
-    /// stretches the panel to the right, so the compact shape itself remains the anchor.
+    /// The part of the panel that should stay centred on the camera.
     public func panelAnchorWidth(for presentation: NotchPresentation, geometry: ScreenGeometry) -> CGFloat {
-        if case .compact = presentation {
-            return ParityLayout.compactWidth(settings.appearance, geometry: geometry)
-        }
-        return panelSize(for: presentation, geometry: geometry).width
+        panelSize(for: presentation, geometry: geometry).width
     }
 
     public var currentAlert: NotchAlert? { alerts.current }

@@ -38,18 +38,12 @@ public enum ParityLayout {
         notch(in: geometry).width + 2 * earWidth(appearance, geometry: geometry)
     }
 
-    public static func compactBubbleDiameter(_ appearance: NotchAppearance, geometry: ScreenGeometry) -> CGFloat {
-        max(((compactHeight(appearance, geometry: geometry) - 6) * appearance.size.scale).rounded(), 16)
-    }
-
     public static func compactSize(
         _ appearance: NotchAppearance,
-        geometry: ScreenGeometry,
-        hasSecondary: Bool = false
+        geometry: ScreenGeometry
     ) -> CGSize {
-        let bubble = hasSecondary ? 4 + compactBubbleDiameter(appearance, geometry: geometry) : 0
-        return CGSize(
-            width: compactWidth(appearance, geometry: geometry) + bubble,
+        CGSize(
+            width: compactWidth(appearance, geometry: geometry),
             height: compactHeight(appearance, geometry: geometry)
         )
     }
@@ -215,8 +209,8 @@ public enum ParityLayout {
             return hiddenSize(appearance, geometry: geometry)
         case .idle:
             return compactSize(appearance, geometry: geometry)
-        case .compact(_, let secondary):
-            return compactSize(appearance, geometry: geometry, hasSecondary: secondary != nil)
+        case .compact:
+            return compactSize(appearance, geometry: geometry)
         case .hud(let alert):
             return CGSize(
                 width: alertWidth(for: alert, appearance: appearance, geometry: geometry),
