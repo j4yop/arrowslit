@@ -26,6 +26,18 @@ public enum NotchOutline {
         }
     }
 
+    /// Vorssaint keeps the outline on the resting and opened island, and
+    /// drops it while a live activity, HUD or notification is using the
+    /// compact strip. The setting still switches all of it.
+    public static func isVisible(for presentation: NotchPresentation) -> Bool {
+        switch presentation {
+        case .hidden, .idle, .expanded:
+            return true
+        case .compact, .hud, .alert, .clockRunning:
+            return false
+        }
+    }
+
     public static func flare(for presentation: NotchPresentation) -> CGFloat {
         switch presentation {
         case .hidden(let peek):

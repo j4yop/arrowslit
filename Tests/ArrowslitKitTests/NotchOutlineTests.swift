@@ -12,6 +12,21 @@ struct NotchOutlineTests {
         #expect(abs(NotchOutline.increasedContrastOpacity - 0.85) < 0.0001)
     }
 
+    @Test func outlineHidesForLiveActivitiesAndShowsAtRestOrOpen() {
+        #expect(NotchOutline.isVisible(for: .hidden(peek: false)))
+        #expect(NotchOutline.isVisible(for: .hidden(peek: true)))
+        #expect(NotchOutline.isVisible(for: .idle))
+        #expect(NotchOutline.isVisible(for: .expanded(.home)))
+        #expect(NotchOutline.isVisible(for: .expanded(.nowPlaying)))
+        #expect(!NotchOutline.isVisible(for: .compact(primary: .nowPlaying, secondary: nil)))
+        #expect(!NotchOutline.isVisible(for: .compact(primary: .call, secondary: .nowPlaying)))
+        #expect(!NotchOutline.isVisible(for: .hud(.level(kind: .volume, value: 0.5, muted: false))))
+        #expect(!NotchOutline.isVisible(for: .hud(.charging(level: 50, isCharging: true))))
+        #expect(!NotchOutline.isVisible(for: .alert(.headphones(name: "AirPods"))))
+        #expect(!NotchOutline.isVisible(for: .alert(.timerFinished)))
+        #expect(!NotchOutline.isVisible(for: .clockRunning(.timer)))
+    }
+
     @Test func outlineFollowsEachSurface() {
         #expect(NotchOutline.radius(for: .idle) == 12)
         #expect(NotchOutline.radius(for: .compact(primary: .nowPlaying, secondary: nil)) == 12)
