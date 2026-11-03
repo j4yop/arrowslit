@@ -129,7 +129,7 @@ struct ArrowslitRootView: View {
     }
 }
 
-/// Arrowslit's optional outline: a two-point stroke, clipped so only its inner
+/// The optional notch outline: a two-point stroke, clipped so only its inner
 /// half shows, with the first point at the top masked because the island hangs
 /// from the top of the display.
 private struct NotchOutlineOverlay: View {
@@ -192,7 +192,7 @@ private struct CompactBar: View {
     let height: CGFloat
     let notchWidth: CGFloat
     var hud: NotchAlert?
-    /// Which live activity fills the strip; the agent compact strip opens its page.
+    /// Which live activity fills the strip; the agent strip opens its page.
     var activity: NotchActivity? = nil
     @State private var isDropTargeted = false
     @ObservedObject private var agentUsage = AgentUsageService.shared
@@ -337,14 +337,14 @@ private struct CompactBar: View {
                 .padding(.trailing, 10)
                 .frame(width: ear, alignment: .trailing)
             } else if activity == .agents, let live = agentUsage.snapshot.live.first {
-                // Arrowslit's strip: one breathing mark per working agent,
+                // The compact strip: one breathing mark per working agent,
                 // each in its own color, and one reading on the other side.
                 let working = AgentProvider.allCases.filter { provider in
                     agentUsage.snapshot.live.contains { $0.provider == provider }
                 }
                 let preferred = min(working.count > 1 ? 11.0 : 14.0, max(8, height - 14))
                 // Arrowslit's ear is fixed, so several marks share its width
-                // rather than widening the island as Arrowslit's wing does.
+                // rather than widening the island as the wing does.
                 let count = CGFloat(max(1, working.count))
                 let inset: CGFloat = working.count > 1 ? 6 : 10
                 let room = (ear - inset - (count - 1)) / (count * 1.45)

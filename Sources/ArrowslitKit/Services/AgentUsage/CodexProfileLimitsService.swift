@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import AppKit
 import Combine
@@ -47,7 +47,7 @@ final class CodexProfileLimitsService: ObservableObject, @unchecked Sendable {
     /// Asks the due homes again while the page shows any; nil otherwise.
     private(set) var timer: Timer?
 
-    private let queue = DispatchQueue(label: "com.ai-agents.codex-profile-limits", qos: .utility)
+    private let queue = DispatchQueue(label: "com.j4yop.arrowslit.codex-profile-limits", qos: .utility)
     private let defaults: UserDefaults
     private let reader: Reader?
     private let loginShellPath: () -> String?

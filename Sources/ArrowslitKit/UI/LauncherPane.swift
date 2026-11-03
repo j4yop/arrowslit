@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Notch Shell-style feature launcher: five columns, two rows per page, a paged vertical
+/// Feature launcher: five columns, two rows per page, a paged vertical
 /// scroll view and page dots on the right. Tiles keep their own icons, live dots and hold-to-
 /// edit shortcut selection.
 struct LauncherPane: View {
@@ -196,7 +196,7 @@ struct LauncherPane: View {
         }
     }
 
-    /// Notch Shell's launcher palette: colour marks the feature category, while the
+    /// The launcher palette: colour marks the feature category, while the
     /// utility surfaces (Clipboard, Files, Scratchpad, Camera) stay white.
     private func tint(_ tab: WorkbenchTab) -> Color {
         switch tab {

@@ -121,7 +121,7 @@ public final class AgentBridge {
         let suffix = (Bundle.main.bundleIdentifier ?? "DynamicNotch").split(separator: ".").last.map(String.init) ?? "app"
         let name = "agent-\(suffix).sock"
         if let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
-            .appendingPathComponent("Notch Shell", isDirectory: true) {
+            .appendingPathComponent("Arrowslit", isDirectory: true) {
             let path = support.appendingPathComponent(name).path
             if path.utf8.count < 100 {
                 try? FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
@@ -139,7 +139,7 @@ final class AgentSocketServer: @unchecked Sendable {
     var onClose: (@Sendable (Int32) -> Void)?
 
     private let path: String
-    private let queue = DispatchQueue(label: "Notch Shell.agent-socket")
+    private let queue = DispatchQueue(label: "Arrowslit.agent-socket")
     // Confined to `queue`.
     private var listener: Int32 = -1
     private var acceptSource: DispatchSourceRead?

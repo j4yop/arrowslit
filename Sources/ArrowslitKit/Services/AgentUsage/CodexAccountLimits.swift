@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import Darwin
 import Foundation
@@ -28,7 +28,7 @@ struct CodexAccountProfile: Codable, Equatable, Identifiable {
         (try? JSONEncoder().encode(profiles)).flatMap { String(data: $0, encoding: .utf8) } ?? ""
     }
 
-    /// Only metadata is looked at: Codex, not AI Agents, opens the sign-in.
+    /// Only metadata is looked at: Codex, not Arrowslit, opens the sign-in.
     /// A home with only a config is valid too, since Codex can keep its
     /// sign-in in the Keychain.
     var canonicalDirectory: URL? {
@@ -120,7 +120,7 @@ enum CodexAccountUsageReader {
 
     static func environment(directory: URL, executable: URL, searchPath: String?,
                             base: [String: String] = ProcessInfo.processInfo.environment) -> [String: String] {
-        // Neither a sign-in, a provider nor a shared state folder AI Agents
+        // Neither a sign-in, a provider nor a shared state folder Arrowslit
         // was opened with may point a check at another account.
         let allowed = ["HOME", "USER", "LOGNAME", "TMPDIR", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
                        "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR",

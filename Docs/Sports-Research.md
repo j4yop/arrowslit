@@ -1,8 +1,8 @@
-# Arrowslit Sports — provider research and implementation plan
+# Arrowslit Sports: provider research and implementation plan
 
 **Status:** shipped football-only in Arrowslit 0.9.0.
 **Date:** 1 November 2026.
-**Goal:** live football scores in Arrowslit, with the Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1, configurable in Settings and fitting the notch/compact strip UI.
+**Goal:** live football scores in Arrowslit, with the Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1, configurable in Settings and fitting the notch UI.
 
 ---
 

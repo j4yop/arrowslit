@@ -113,7 +113,7 @@ struct ClockPane: View {
     }
 }
 
-/// The narrow running compact strip: back, pause, close on the left, label and time on the right.
+/// The narrow running strip: back, pause, close on the left, label and time on the right.
 struct ClockRunningPane: View {
     @Bindable var state: AppState
     let mode: ClockMode

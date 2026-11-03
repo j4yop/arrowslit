@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// Turns a presentation and a display into the exact Notch Shell panel size.
+/// Turns a presentation and a display into the exact panel size.
 /// This is the size half of the parity layout; the window placement and presentation state
 /// machine follow in the next slice.
 public enum ParityLayout {
@@ -48,13 +48,13 @@ public enum ParityLayout {
         )
     }
 
-    /// Arrowslit's resting island adds a wing on either side of the camera
+    /// The resting island adds a wing on either side of the camera
     /// and keeps two points of outline clearance below it.
     public static let restingWingWidth: CGFloat = 58
     public static let restingOutlineInset: CGFloat = 6.5
 
     /// The invisible hover target around the physical notch. It matches
-    /// Arrowslit's resting strip so the outline has the same width and height.
+    /// The resting strip so the outline has the same width and height.
     public static func hiddenSize(_ appearance: NotchAppearance, geometry: ScreenGeometry) -> CGSize {
         let notch = notch(in: geometry)
         return CGSize(
@@ -73,7 +73,7 @@ public enum ParityLayout {
     }
 
     public static func nookWidth(_ appearance: NotchAppearance, geometry: ScreenGeometry) -> CGFloat {
-        // The 560 pt body carries a 10 pt concave shoulder on each side, like Notch Shell.
+        // The 560 pt body carries a 10 pt concave shoulder on each side, in the layout.
         let flare = 2 * IslandMetrics.expandedFlare * appearance.size.scale
         return max(
             (IslandMetrics.Nook.width * appearance.size.scale + flare).rounded(),

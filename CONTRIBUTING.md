@@ -1,13 +1,12 @@
 # Contributing
 
-Arrowslit is a small, owner-maintained GPL-3.0-or-later project. It includes a substantial
-port of Notch Shell, so the project is local-only and copyleft rather than original-only.
+Arrowslit is a small, owner-maintained GPL-3.0-or-later project. The project is local-only and copyleft under the GNU GPL.
 
 ## Before you contribute
 
-- **Respect the license and attribution.** Code ported from Notch Shell is credited in
-  `NOTICE` and covered by the GNU GPL. Do not copy code, comments, assets or UI text from other
-  projects unless their license is compatible and you add the required attribution.
+- **Respect the license and attribution.** Code in Arrowslit is covered by the GNU GPL.
+  Do not copy code, comments, assets or UI text from other projects unless their license is
+  compatible and you add the required attribution.
 - **Open an issue first** for anything larger than a small fix.
 - **Contributions require a signed CLA with a copyright assignment** if they are accepted. A
   Developer Certificate of Origin (`Signed-off-by`) is not enough to keep the project
@@ -38,5 +37,4 @@ open "build/Arrowslit.app"
 - Prefer value types and injected clocks for time-based logic.
 - Comments explain *why*, not *what*.
 - No force unwraps in new code unless the invariant is local and obvious.
-- Keep the visual language warm, quiet and architectural. Ported Notch Shell surfaces stay
-  attributed; new surfaces should not copy another app's chrome.
+- Keep the visual language warm, quiet and architectural.

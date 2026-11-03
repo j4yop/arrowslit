@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import Combine
 import Foundation
@@ -46,7 +46,7 @@ final class AgentUsageService: ObservableObject, @unchecked Sendable {
     /// pause; a launch after a crash reads again only what came after.
     private static let saveInterval: TimeInterval = 5 * 60
 
-    private let queue = DispatchQueue(label: "com.ai-agents.agent-usage", qos: .utility, autoreleaseFrequency: .workItem)
+    private let queue = DispatchQueue(label: "com.j4yop.arrowslit.agent-usage", qos: .utility, autoreleaseFrequency: .workItem)
     private let home = FileManager.default.homeDirectoryForCurrentUser
 
     /// Lets a stop end a first read that is still going on the queue.
@@ -70,7 +70,7 @@ final class AgentUsageService: ObservableObject, @unchecked Sendable {
     private var pricesFailed = false
     /// When the list on disk was downloaded; nil until the queue has looked.
     private var pricesSaved: Date?
-    private let claudeAccountQueue = DispatchQueue(label: "com.ai-agents.claude-limits", qos: .utility)
+    private let claudeAccountQueue = DispatchQueue(label: "com.j4yop.arrowslit.claude-limits", qos: .utility)
     private var claudeAccountRequest: AgentClaudeServer.Request?
     private var claudeAccountAttempted = Date.distantPast
     /// Checks in a row that Claude Code did not answer, counted again from

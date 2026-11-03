@@ -4,7 +4,7 @@ import Testing
 
 @Suite("Notch outline")
 struct NotchOutlineTests {
-    @Test func outlineMatchesAI AgentsStroke() {
+    @Test func outlineMatchesTargetStroke() {
         #expect(NotchOutline.key == "notchOutlineEnabled")
         #expect(NotchOutline.lineWidth == 2)
         #expect(NotchOutline.topGap == 1)

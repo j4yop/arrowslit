@@ -60,7 +60,7 @@ struct NotchLiveTests {
         #expect(live.showsStrip(NotchActivity.timer))
     }
 
-    @Test func newAlertsUseTheCompactHUDAndKeepAI AgentsDurations() {
+    @Test func newAlertsUseTheCompactHUDAndKeepTargetDurations() {
         #expect(NotchAlert.clipboard(kind: "Text").usesCompactHUD)
         #expect(NotchAlert.track(title: "Song", artist: "Artist").usesCompactAlert)
         #expect(NotchAlert.microphone(muted: true).usesCompactHUD)

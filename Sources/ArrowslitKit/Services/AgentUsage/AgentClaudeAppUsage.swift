@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import Foundation
 
 /// The Claude app checks the plan's limits itself and keeps a month of them on
 /// this Mac, a percentage for each window every few minutes, while its menu
-/// bar icon is on. AI Agents reads that file, without a sign-in and sending
+/// bar icon is on. Arrowslit reads that file, without a sign-in and sending
 /// nothing, when Claude Code cannot check the account itself. The format is
 /// the app's own, so a version or an entry this reader does not know is left
 /// out rather than guessed.

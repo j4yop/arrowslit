@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import AppKit
 import Combine
@@ -30,7 +30,7 @@ final class AgentCodexResetService: ObservableObject, @unchecked Sendable {
     /// tells whether an unanswered use happened.
     static let retryWindow: TimeInterval = 10 * 60
 
-    private let queue = DispatchQueue(label: "com.ai-agents.codex-resets", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.j4yop.arrowslit.codex-resets", qos: .userInitiated)
     private var attempted = Date.distantPast
     /// A Terminal window's PATH, asked of the login shell only when the
     /// person looks again for a Codex that was not found: that runs their

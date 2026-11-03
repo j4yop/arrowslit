@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Notch Shell notch outline: a flat top fused to the screen edge, concave shoulders,
+/// The notch outline: a flat top fused to the screen edge, concave shoulders,
 /// and a rounded bottom. When `flare` is zero it is a plain rounded rectangle.
 public struct IslandShape: Shape {
     public var topRadius: CGFloat

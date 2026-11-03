@@ -4,7 +4,7 @@ import Observation
 /// The closed notch's live catalogue: the feedback events it can flash and
 /// the activities it can keep beside the camera.
 ///
-/// AI Agents exposes 15 feedback events and 7 live activities. Arrowslit
+/// Arrowslit exposes 15 feedback events and 7 live activities. Arrowslit
 /// keeps the same names and defaults where it has a source for them; rows
 /// without a macOS surface are marked unavailable instead of pretending to
 /// work.

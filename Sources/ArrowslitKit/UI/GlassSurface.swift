@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// A Notch Shell-style surface behind the notch content. Black stays plain black; Glass
+/// A glass surface behind the notch content. Black stays plain black; Glass
 /// fades from black around the camera into frosted glass along the bottom edge.
 struct NotchSurfaceBackground: View {
     let appearance: NotchAppearance

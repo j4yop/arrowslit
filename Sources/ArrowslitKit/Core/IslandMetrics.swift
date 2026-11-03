@@ -1,7 +1,7 @@
 import CoreGraphics
 
-/// Every size used by the parity shape. Mirrors Notch Shell's `IslandMetrics`;
-/// keep this and `Docs/Notch Shell-Parity-Spec.md` in sync.
+/// Every size used by the parity shape. Mirrors Arrowslit 1.4.2's `IslandMetrics`;
+/// keep this and `Docs/Arrowslit-Parity-Spec.md` in sync.
 public enum IslandMetrics {
     /// Width of each leading/trailing slot beside the camera, before the width setting.
     public static func slotWidth(height: CGFloat) -> CGFloat {

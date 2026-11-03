@@ -1,31 +1,11 @@
 Arrowslit
 Copyright (C) 2026 Jay Gopal and contributors
 
-This program includes code, layout and visual behaviour ported from Notch Shell:
+This program is distributed under the GNU General Public License,
+version 3 or (at your option) any later version.
 
-    Notch Shell
-    Copyright (C) 2026 Swagat Shandilya and contributors
-    https://github.com/shandilyaswagat/arrowslit
-
-Notch Shell is free software distributed under the GNU General Public License,
-version 3 or (at your option) any later version. The port was made from the
-1.4.2 source at commit 10a1dfa. Arrowslit as a whole is distributed under the
-GNU General Public License, version 3 or (at your option) any later version.
-
-Arrowslit's own additions include the football/Sports feature, BigBallsData
-integration, local-only clipboard and notes stores, agent approval adapters,
-signed update pipeline and the self-signed release identity.
+Arrowslit includes notch control surfaces, live activities, system HUDs,
+AI agent monitors, football/Sports live scores, local clipboard and notes stores,
+media controls, and release verification.
 
 See LICENSE for the full GPL text.
-
-The AI Agents AI usage reader and the rebuilt AI Agents page include code,
-layout and visual behaviour ported from AI Agents:
-
-    AI Agents
-    Copyright (C) 2026 AI Agents
-    https://github.com/ai-agents/ai-agents-utils
-
-AI Agents is free software distributed under the GNU General Public License,
-version 3 or (at your option) any later version. The port was made from the
-v3.4.3 source at commit a5da763. Arrowslit as a whole remains distributed under
-the GNU General Public License, version 3 or (at your option) any later version.

@@ -160,7 +160,7 @@ public enum NotchAlert: Equatable, Sendable {
         }
     }
 
-    /// These alerts use Notch Shell's short, content-adaptive alert row: a leading label and a
+    /// These alerts use a short, content-adaptive alert row: a leading label and a
     /// trailing value around the camera. Goal and timer-done cards keep their larger layout.
     public var usesCompactAlert: Bool {
         switch self {
@@ -188,7 +188,7 @@ public enum NotchPresentation: Equatable, Sendable {
     case hud(NotchAlert)
     /// The open workbench on one tab.
     case expanded(WorkbenchTab)
-    /// A running timer or stopwatch, shown as the narrow pause/close compact strip.
+    /// A running timer or stopwatch, shown as the narrow pause/close strip.
     case clockRunning(ClockMode)
     /// A short heads-up above the notch.
     case alert(NotchAlert)

@@ -35,7 +35,7 @@ struct NookView: View {
                 case .stats: CompactStats(state: state)
                 case .sports: SportsPane(state: state)
                 case .reminders: CompactReminders(state: state)
-                case .agents: AI AgentsAgentsPane(state: state)
+                case .agents: AgentsPane(state: state)
                 case .keepAwake: CompactKeepAwake(state: state)
                 case .launcher: LauncherPane(state: state)
                 }

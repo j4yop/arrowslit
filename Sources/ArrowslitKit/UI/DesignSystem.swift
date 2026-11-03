@@ -22,7 +22,7 @@ enum NookMotion {
     }
 }
 
-/// Every pressable surface in the nook gets Notch Shell's physical press: a 10%
+/// Every pressable surface in the nook gets a physical press: a 10%
 /// scale and a deeper opacity dip on mouse-down, released with a small spring.
 /// Reduce Motion keeps the opacity feedback but drops the scale.
 struct NookPressStyle: ButtonStyle {
@@ -50,7 +50,7 @@ struct NookPressStyle: ButtonStyle {
     }
 }
 
-/// Shared haptic feedback. Notch Shell uses the alignment haptic for holds, edits and
+/// Shared haptic feedback. Arrowslit uses the alignment haptic for holds, edits and
 /// one-shot switches; Arrowslit keeps the same feel and respects the user's toggle.
 @MainActor
 enum NookHaptics {
@@ -60,7 +60,7 @@ enum NookHaptics {
     }
 }
 
-/// A click that behaves like Notch Shell's launcher tile: a short hold runs `onHold`,
+/// A click that behaves like a launcher tile: a short hold runs `onHold`,
 /// while a normal click runs `onClick`. A plain Button also fires after a long hold, which
 /// would open a feature while the user is trying to edit the shortcuts.
 struct ClickNotHold: ViewModifier {

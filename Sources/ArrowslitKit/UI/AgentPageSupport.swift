@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// Number formatting for the agent page, taken from AI Agents.
+/// Number formatting for the agent page, used by Arrowslit.
 enum AgentFormat {
     static func cost(_ value: Double, locale: Locale = .autoupdatingCurrent) -> String {
         guard value.isFinite else { return "$0" }

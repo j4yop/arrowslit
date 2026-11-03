@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// The optional outline AI Agents draws on the island. It is a 2-point stroke
+/// The optional outline drawn on the island. It is a 2-point stroke
 /// clipped to the inside of the silhouette, with a 1-point gap along the top
 /// edge because the island hangs from the top of the display. The same radii
 /// as the drawn surfaces keep it on the panel at every presentation.
@@ -26,7 +26,7 @@ public enum NotchOutline {
         }
     }
 
-    /// AI Agents keeps the outline on the resting and opened island, and
+    /// Arrowslit keeps the outline on the resting and opened island, and
     /// drops it while a live activity, HUD or notification is using the
     /// compact strip. The setting still switches all of it.
     public static func isVisible(for presentation: NotchPresentation) -> Bool {

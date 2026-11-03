@@ -1,4 +1,4 @@
-/// Splits the launcher's features into Notch Shell pages: five columns, two rows per page.
+/// Splits the launcher's features into pages: five columns, two rows per page.
 public enum LauncherPaging {
     public static let columns = 5
     public static let rows = 2

@@ -20,7 +20,7 @@ struct ParityLayoutTests {
     private let medium = NotchAppearance(width: 200, height: 32, size: .medium)
     private let small = NotchAppearance(width: 200, height: 32, size: .small)
 
-    @Test func compactMatchesNotch ShellEars() {
+    @Test func compactMatchesTargetEars() {
         #expect(ParityLayout.hiddenSize(large, geometry: builtIn) == CGSize(width: 296, height: 34))
         #expect(ParityLayout.compactSize(large, geometry: builtIn) == CGSize(width: 274, height: 32))
         #expect(ParityLayout.compactSize(medium, geometry: builtIn) == CGSize(width: 264, height: 32))
@@ -34,7 +34,7 @@ struct ParityLayoutTests {
         #expect(ParityLayout.compactSize(large, geometry: external) == CGSize(width: 274, height: 32))
     }
 
-    @Test func expandedWidthsScaleLikeNotch Shell() {
+    @Test func expandedWidthsScaleTarget() {
         #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: large, geometry: builtIn) == CGSize(width: 390, height: 188))
         #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: medium, geometry: builtIn) == CGSize(width: 351, height: 173))
         #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: small, geometry: builtIn) == CGSize(width: 312, height: 157))
@@ -59,7 +59,7 @@ struct ParityLayoutTests {
         #expect(ParityLayout.expandedSize(for: .nowPlaying, appearance: elongated, geometry: builtIn).width == 390)
     }
 
-    @Test func alertsUseNotch ShellEarsAndHeight() {
+    @Test func alertsUseTargetEarsAndHeight() {
         let event = NotchAlert.upcomingEvent(title: "Design review", startsAt: .now, joinURL: nil, provider: nil)
         #expect(ParityLayout.alertSize(for: event, appearance: large, geometry: builtIn) == CGSize(width: 492, height: 38))
 

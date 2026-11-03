@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Home: up to three sections side by side, split by hairlines, like Notch Shell's standard
+/// Home: up to three sections side by side, split by hairlines, like the standard
 /// nook. The live media card only takes a section while something is playing; otherwise the
 /// calendar and timer share the full width.
 struct HomePane: View {
@@ -446,7 +446,7 @@ private struct HomeTimerColumn: View {
 }
 
 /// The elongated Home: one long, short row of widgets split by hairlines and scrolled
-/// sideways, following Notch Shell's 1240 pt layout.
+/// sideways, following the 1240 pt layout.
 struct ElongatedHomePane: View {
     @Bindable var state: AppState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

@@ -1,10 +1,10 @@
 import AppKit
 import SwiftUI
 
-/// Arrowslit's AI Agents page, rebuilt on its own card, bar-chart and heatmap
+/// The AI Agents page, rebuilt on its own card, bar-chart and heatmap
 /// components. The reader supplies Claude, Codex, OpenCode and Copilot data
 /// from local logs; the layout pairs cards and lets the charts take a full row.
-struct AI AgentsAgentsPane: View {
+struct AgentsPane: View {
     @Bindable var state: AppState
     @StateObject private var usage = AgentUsageService.shared
     @StateObject private var resets = AgentCodexResetService.shared
@@ -37,7 +37,7 @@ struct AI AgentsAgentsPane: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if providers.isEmpty {
-                    AI AgentsEmptyState(
+                    AgentsEmptyState(
                         symbol: "sparkles",
                         title: "No agent usage yet",
                         detail: "Claude Code, Codex, OpenCode and GitHub Copilot appear here after they work on this Mac."
@@ -751,7 +751,7 @@ private enum AgentHaptics {
 }
 
 
-private struct AI AgentsEmptyState: View {
+private struct AgentsEmptyState: View {
     let symbol: String
     let title: String
     let detail: String

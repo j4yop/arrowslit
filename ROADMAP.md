@@ -1,9 +1,6 @@
 # Arrowslit roadmap
 
-Arrowslit is a quiet, fast, local-only notch utility built on a GPL-compatible port of
-Notch Shell. The shell, layout engine, presentation rules and several surfaces come from
-Notch Shell; Arrowslit adds its own football, local-data and release work. See `NOTICE` for the
-attribution and `LICENSE` for the GPL terms.
+Arrowslit is a quiet, fast, local-only notch utility. See `NOTICE` and `LICENSE` for license terms.
 
 ## What shipped in 0.9.2
 
@@ -16,7 +13,7 @@ attribution and `LICENSE` for the GPL terms.
 - File Tray drop zone and pinned files
 - Football shelf with Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1, Following + Featured, and a 32px notch score
 - BigBallsData Free adapter with Keychain key storage and quota-aware refresh
-- Narrow running timer/stopwatch compact strip with pause and close
+- Narrow running timer/stopwatch HUD with pause and close
 - Calendar next event with EventKit permission flow
 - Five-minute calendar heads-up with Join buttons for Meet, Zoom, Teams and Webex
 - One-alert-at-a-time notch notifications with expiry, urgency and dismissal
@@ -24,8 +21,8 @@ attribution and `LICENSE` for the GPL terms.
 - Daily GitHub update check, checksum-verified DMG download and Download & Open button
 - Rate-limit-safe latest-release check through the GitHub releases redirect
 - Full 390×218 Now Playing player with lyrics
-- Apple Music-style 306×146 compact strip in the Home media card
-- Expand affordance on the Home compact card that opens the tall player (artwork/title also clickable)
+- Apple Music-style 306×146 card in the Home media card
+- Expand affordance on the Home media card that opens the tall player (artwork/title also clickable)
 - Liquid animations and haptic feedback controls
 - Optional lock-screen notch with timer, media and charging
 - Power, headphone and volume/brightness alerts in a compact icon-and-level HUD
@@ -45,7 +42,7 @@ attribution and `LICENSE` for the GPL terms.
 
 ## What changed in 0.10.0
 
-- Notch Shell shell, appearance engine, presentation rules, Home, launcher, alerts and elongated layout
+- Appearance engine, presentation rules, Home, launcher, alerts and elongated layout
 - Multi-display: Built-in, Main, Follow the pointer, named display and All displays, plus the virtual notch
 - Calls/microphone, downloads, media depth, clipboard search/pins, Rich Notes, inline to-dos and Shortcuts
 - Six coding-assistant approval adapters, including OpenCode

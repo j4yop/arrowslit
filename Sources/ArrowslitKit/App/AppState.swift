@@ -69,7 +69,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     }
 
     /// The letter pressed with Control and Option for the launcher and Home shortcuts.
-    /// Sports uses F (football); the rest follow Notch Shell's chosen keys.
+    /// Sports uses F (football); the rest follow standard shortcut keys.
     public var shortcutKey: Character? {
         switch self {
         case .nowPlaying: "M"
@@ -626,7 +626,7 @@ public final class AppState {
     }
 
     /// The window size for a presentation. The compact strip, the player and the launcher
-    /// already use the Notch Shell size contract; the remaining panels keep their
+    /// already use the standard size contract; the remaining panels keep their
     /// Arrowslit sizes until their views are ported in the Home/alert tickets.
     public func panelSize(for presentation: NotchPresentation) -> CGSize {
         panelSize(for: presentation, geometry: ScreenReader.current)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import Foundation
 
@@ -34,7 +34,7 @@ enum AgentUsageArchive {
     /// its build stamp tells two of them apart.
     static func build(info: [String: Any]?) -> String {
         let version = "\(info?["CFBundleShortVersionString"] as? String ?? "")-\(info?["CFBundleVersion"] as? String ?? "")"
-        guard let stamp = info?["AI AgentsBuildCommit"] as? String else { return version }
+        guard let stamp = info?["ArrowslitBuildCommit"] as? String else { return version }
         return "\(version) \(stamp)"
     }
 

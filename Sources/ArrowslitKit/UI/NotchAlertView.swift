@@ -225,7 +225,7 @@ struct NotchAlertView: View {
 }
 
 
-/// Notch Shell's short alert: a leading label and a trailing value on either side of the
+/// The short alert: a leading label and a trailing value on either side of the
 /// camera, 38 pt high at the default size. The whole row is the action.
 private struct CompactAlertView: View {
     @Bindable var state: AppState

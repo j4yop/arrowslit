@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 
 import AppKit
 import SwiftUI
@@ -312,7 +312,7 @@ struct NotchAgentHeatmap: View {
 
 /// Each agent's own mark, taken from its maker's app on this Mac: the
 /// monochrome image the app shows in the menu bar, or else the app's icon.
-/// None of that artwork ships with AI Agents, so a Mac without the app
+/// None of that artwork ships with Arrowslit, so a Mac without the app
 /// keeps a symbol. Looked up once; the strip redraws every second.
 enum AgentMarks {
     enum Mark {
@@ -406,7 +406,7 @@ struct NotchAgentMark: View {
 }
 
 
-/// The AI Agents card surface: a quiet film over the notch with an 18-point
+/// The card surface: a quiet film over the notch with an 18-point
 /// radius. Arrowslit's panel is opaque, so the film is tuned for black.
 struct AgentCardSurface: ViewModifier {
     var cornerRadius: CGFloat = 18

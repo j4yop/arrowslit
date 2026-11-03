@@ -1,6 +1,6 @@
 import Foundation
 
-/// The three modes in the shared clock panel. Pomodoro is the Notch Shell "focus" mode.
+/// The three modes in the shared clock panel. Pomodoro is the focus mode.
 public enum ClockMode: String, CaseIterable, Identifiable, Sendable, Equatable {
     case timer
     case focus

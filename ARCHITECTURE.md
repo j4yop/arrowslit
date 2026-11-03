@@ -1,7 +1,6 @@
 # Architecture
 
-Arrowslit is a SwiftPM macOS app with a small AppKit shell and SwiftUI content. The shell, layout
-engine and several surfaces are a GPL-compatible port of Notch Shell; see `NOTICE`.
+Arrowslit is a SwiftPM macOS app with a small AppKit shell and SwiftUI content.
 
 ```
 Sources/
@@ -10,7 +9,7 @@ Sources/
 │   ├── App/                          AppDelegate, AppState, status item, debug hooks
 │   ├── Core/                         Pure value types and maths
 │   │   ├── NotchAppearance.swift     size, theme, glass and layout controls
-│   │   ├── IslandMetrics.swift       Notch Shell size and content constants
+│   │   ├── IslandMetrics.swift       size and content constants
 │   │   ├── ParityLayout.swift        compact, expanded, elongated and alert sizes
 │   │   ├── IslandShape.swift         concave shoulders and slit geometry
 │   │   ├── DisplayChoice.swift       built-in, main, pointer, named and all displays
@@ -94,7 +93,7 @@ the current alert before closing the workbench.
 - elongated Home/Tray/Clipboard: up to 1240 × 178, clamped to the screen
 - Now Playing: 390 × 218
 - call and download panels: 390 × 120
-- running timer/stopwatch compact strip: 360 × 124
+- running timer/stopwatch compact HUD: 360 × 124
 - compact alerts: 491 × 38; named alerts grow from their ears
 
 Home is adaptive. It shows a 196 pt media card only while something is playing; calendar, timer
@@ -185,8 +184,8 @@ warning. See `Docs/Release-Signing.md`.
   can be turned off; lyrics lookup is optional and off by default.
 - **Quiet**: idle CPU near zero; stats only sample while visible; hover is event-driven.
 - **Small surface**: one notch, one workbench, no infinite widget grid.
-- **Copyleft and attributed**: Notch Shell-derived code stays GPL-3.0-or-later and is credited in
-  `NOTICE`. New surfaces should not copy another app's chrome without a compatible license.
+- **Copyleft**: Arrowslit is released under GPL-3.0-or-later; see `LICENSE` and `NOTICE`.
+  New surfaces should not copy another app's chrome without a compatible license.
 - **Failure tolerant**: the media helper can disappear, hooks fail closed, updates never install an
   unverified image.
 - **Testable core**: timers, formatting, layout and presentation rules are value types with

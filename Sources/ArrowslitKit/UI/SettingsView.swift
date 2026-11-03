@@ -35,7 +35,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Total window height, including the 32 pt titlebar. Notch Shell resizes the
+    /// Total window height, including the 32 pt titlebar. Arrowslit resizes the
     /// preferences window per tab; Arrowslit's custom tab strip needs the same treatment.
     var windowHeight: CGFloat {
         switch self {

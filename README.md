@@ -157,41 +157,41 @@ Hotfix for the 0.11.0 launch crash:
 
 ## What was in 0.11.0
 
-0.11.0 introduced the AI Agents live-notch and AI Agents work. It is superseded by 0.11.1, which fixes its launch crash.
+0.11.0 introduced live-notch feedback activities and the AI Agents dashboard. It is superseded by 0.11.1, which fixes its launch crash.
 
 * A full AI Agents page: Claude, Codex, OpenCode and GitHub Copilot readers, plan limits, API spend, models, projects, a stacked trend chart, a 13-week activity heatmap and Codex banked resets
-* A live agent compact strip in the closed notch: every working provider's mark in its own tint, plus the running elapsed turn time
-* Clicking the compact strip opens the AI Agents page
+* A live agent activity in the closed notch: every working provider's mark in its own tint, plus the running elapsed turn time
+* Clicking the activity opens the AI Agents page
 * One live activity at a time in the closed notch; the detached second-activity bubble is gone
-* A new Notch settings tab with Arrowslit's 15 live feedback events, 7 closed-notch activities and 13 Dynamic Island feature switches
+* A new Notch settings tab with 15 live feedback events, 7 closed-notch activities and 13 feature switches
 * Wired feedback: volume, brightness, microphone, input source, battery/charging, accessory connection, clipboard, downloads, AI agents, new tracks and timer completion
 * Wired activities: timer, music, downloads, AI agents, calendar countdown and Keep Awake
 * Calendar only takes the strip within 30 minutes of an event
 * HUD transitions no longer leave the old compact reading ghosted underneath
 * The call and microphone counter now uses white text, like the timer and stopwatch
-* Unsupported AI Agents subsystems are visible but disabled in Settings rather than shipping fake toggles: the Notification Center mirror, OCR watch, media queue, companion and keyboard-light source
+* Advanced subsystems are visible but disabled in Settings rather than shipping fake toggles: Notification Center mirror, OCR watch, media queue, companion and keyboard-light source
 
 ## What was in 0.10.1
 
-This is the feel and finish pass against Notch Shell:
+This is the feel and finish pass:
 
-* The exact Notch Shell palette and type scale: orange, red, blue, green and yellow are the same system colours, with the same secondary-text and hairline values
+* Refined palette and type scale: orange, red, blue, green and yellow system colours, with matching secondary-text and hairline values
 * The persistent Home, Files and Clipboard shortcut strip in place of the old back-button header
-* A 580 pt standard nook, matching Notch Shell's 560 pt body plus its 10 pt shoulders
-* The launcher rebuilt around Notch Shell's five-column, two-row paged scroll, 16 pt tiles, 19 pt regular icons, 11.5 pt medium titles and real ⌃⌥ shortcut labels
+* A 580 pt standard nook with 10 pt shoulders
+* The launcher rebuilt around a five-column, two-row paged scroll, 16 pt tiles, 19 pt regular icons, 11.5 pt medium titles and real ⌃⌥ shortcut labels
 * Click-to-open or hover-to-open, with a configurable 0.1–0.5 second hover delay
-* Notch Shell's 0.9 press spring, 0.7 press opacity, 0.15 hover fade and alignment haptics
+* Smooth 0.9 press spring, 0.7 press opacity, 0.15 hover fade and alignment haptics
 * Clipboard now opens to its cards, with search and clear on the right and the search field growing below only when needed
-* Tray and Clipboard cards use Notch Shell's 48 pt file icons, 150 pt clipboard cards and hover pin/remove controls
+* Tray and Clipboard cards use 48 pt file icons, 150 pt clipboard cards and hover pin/remove controls
 * Calendar, Timer and Player sizing corrected: 580×178 nook panels, a 390×188 no-lyrics player and a conditional lyrics row
 * Small and Medium sizes scale the header, launcher, Home, Tray, Clipboard and Calendar instead of clipping
 * Pitch black now removes the outline and shadow across every surface, so the shape fuses into the notch
 
 ## What was in 0.10.0
 
-This is the Notch Shell parity release. It is a broad shell port, not only a feature drop:
+This is the comprehensive notch shell and appearance update:
 
-* Notch Shell's appearance engine: size, width, thickness, theme, glass tint, pitch black, standard/elongated layout and reset
+* The appearance engine: size, width, thickness, theme, glass tint, pitch black, standard/elongated layout and reset
 * Hidden-at-rest notch with a hover peek, configurable hover delay, idle pill, click-to-open and collapse-on-leave
 * 274×32 compact ears, concave shoulders, the 30 pt expanded radius and 16 pt alert radius
 * Home at 560×178 and the elongated 1240×178 row for Home, Tray and Clipboard
@@ -221,16 +221,16 @@ This is the Notch Shell parity release. It is a broad shell port, not only a fea
 * 560×178 pt expanded workbench with smooth spring transitions
 * Shared Timer/Pomodoro/Stopwatch panel with a sliding minute ruler and per-minute haptic detents
 * Precision stopwatch with tenths-of-a-second readout
-* Narrow 360×124 running timer/stopwatch compact strip with back, pause/resume and close
+* Narrow 360×124 running timer/stopwatch strip with back, pause/resume and close
 * Music/video opens the 390×218 player by default; otherwise the notch opens Home
 * A launch and daily update check with a one-click Download & Open button in the notch and Settings
 * Update checks use the GitHub releases redirect first, so they do not depend on the anonymous API quota
-* Full 390×218 Now Playing player with lyrics, plus the 306×146 Apple Music-style compact strip on Home
-* The Home compact card has an expand button (and clickable artwork/title) that opens the full player
+* Full 390×218 Now Playing player with lyrics, plus the 306×146 Apple Music-style compact player on Home
+* The Home compact player has an expand button (and clickable artwork/title) that opens the full player
 * Liquid animations and haptic feedback toggles in Settings
 * Optional lock-screen notch for a running timer, media or charging
 * Charging, low-battery, headphone and volume/brightness alerts, each with its own toggle
-* System alerts appear inside the compact notch as a live icon-and-level HUD, matching the Notch Shell motion
+* System alerts appear inside the compact notch as a live icon-and-level HUD, with smooth spring animations
 * Update checks run on launch and notify the notch once per new release with a **Download & Open** action
 * Volume alerts also work on Bluetooth headphones that expose volume on channel 1/2 instead of the main element
 * Charging and low-battery icons pulse gently; volume and brightness levels animate smoothly

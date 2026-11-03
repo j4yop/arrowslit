@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// Overall size of everything the notch shows. Large is Notch Shell's original design.
+/// Overall size of everything the notch shows. Large is the expanded design.
 public enum NotchSize: String, CaseIterable, Sendable, Codable, Identifiable {
     case small
     case medium
@@ -38,7 +38,7 @@ public enum NotchTheme: String, CaseIterable, Sendable, Codable, Identifiable {
     public var id: String { rawValue }
 }
 
-/// The user's appearance choices. Mirrors Notch Shell's `NotchAppearance`.
+/// The user's appearance choices. Appearance configuration options`NotchAppearance`.
 public struct NotchAppearance: Equatable, Sendable, Codable {
     /// How far the shape reaches either side of the camera.
     public var width: Double

@@ -198,7 +198,7 @@ struct PresentationResolverTests {
         #expect(presentation == .compact(primary: .nowPlaying))
     }
 
-    @Test func runningTimerUsesTheClockCompact strip() {
+    @Test func runningTimerUsesTheClockStrip() {
         let presentation = PresentationResolver.resolve(PresentationInput(
             isExpanded: true,
             activeTab: .timer,
@@ -207,7 +207,7 @@ struct PresentationResolverTests {
         #expect(presentation == .clockRunning(.timer))
     }
 
-    @Test func runningStopwatchUsesTheClockCompact strip() {
+    @Test func runningStopwatchUsesTheClockStrip() {
         let presentation = PresentationResolver.resolve(PresentationInput(
             isExpanded: true,
             activeTab: .stopwatch,
@@ -417,7 +417,7 @@ struct NotchPanelMetricsTests {
         #expect(size == CGSize(width: geometry.compactWidth, height: 32))
     }
 
-    @Test func homeUsesTheTallerCompact stripBody() {
+    @Test func homeUsesTheTallerBody() {
         let size = NotchPanelMetrics.size(for: .expanded(.home), geometry: geometry)
         #expect(size == CGSize(width: 560, height: 204))
         let other = NotchPanelMetrics.size(for: .expanded(.timer), geometry: geometry)
@@ -437,7 +437,7 @@ struct NotchPanelMetricsTests {
         #expect(size == CGSize(width: geometry.compactWidth, height: 32))
     }
 
-    @Test func runningClockUsesTheNarrowCompact strip() {
+    @Test func runningClockUsesTheNarrowStrip() {
         let size = NotchPanelMetrics.size(for: .clockRunning(.stopwatch), geometry: geometry)
         #expect(size == CGSize(width: 360, height: 124))
     }

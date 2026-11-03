@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 AI Agents
+// Copyright (C) 2026 Arrowslit
 //
-// Compatibility layer for the AI Agents AI-usage reader ported into Arrowslit.
+// Compatibility layer for the AI-usage reader built into Arrowslit.
 // The reader itself is unchanged; this file supplies the small amount of
 // app-level configuration it expects.
 

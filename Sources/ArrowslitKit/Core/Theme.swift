@@ -24,7 +24,7 @@ public enum ArrowTheme {
 }
 
 /// A notch-fused rectangle: flat top, softly rounded bottom. Pass a flare to get the
-/// Notch Shell-style concave shoulders; the default keeps the original Arrowslit silhouette.
+/// Concave shoulders; the default keeps the original Arrowslit silhouette.
 public struct SlitShape: Shape {
     public var radius: CGFloat
     public var flare: CGFloat

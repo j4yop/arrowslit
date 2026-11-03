@@ -11,7 +11,7 @@ struct NotchSettingsPage: View {
         Group {
             SettingsSection(
                 title: "Live feedback",
-                note: "A brief heads-up in the notch. These match Arrowslit's 15 feedback events; rows without a macOS source are disabled."
+                note: "A brief heads-up in the notch. These configure the 15 live feedback events; rows without a macOS source are disabled."
             ) {
                 ForEach(NotchLiveSettings.Event.allCases) { event in
                     AlertToggleRow(
@@ -51,7 +51,7 @@ struct NotchSettingsPage: View {
 
             SettingsSection(
                 title: "Dynamic Island features",
-                note: "The 13 feature switches AI Agents groups under Dynamic Island. Arrowslit wires the ones it has; the rest stay visible but disabled."
+                note: "The 13 feature switches for the notch. Arrowslit wires the ones it has; the rest stay visible but disabled."
             ) {
                 ForEach(FeatureSwitch.allCases) { feature in
                     featureRow(feature)
@@ -260,7 +260,7 @@ private enum FeatureSwitch: String, CaseIterable, Identifiable {
         case .queue: "The up-next list in the music page."
         case .equalizer: "The animated bars in the music strip."
         case .downloads: "The download page and progress strip."
-        case .agents: "The AI Agents page and live compact strip."
+        case .agents: "The AI Agents page and live strip."
         case .watch: "OCR monitoring of a screen area."
         case .mascot: "The animated companion."
         }
