@@ -61,6 +61,11 @@ printf 'APPL????' > "$APP/Contents/PkgInfo"
 if [[ -f "$ROOT/Support/AppIcon.icns" ]]; then
     cp "$ROOT/Support/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 fi
+# SwiftPM's generated resource accessor asserts when its bundle is absent.
+# Ship the price list in the app's own Resources and read it there.
+if [[ -f "$ROOT/Sources/ArrowslitKit/Resources/agent-prices.json" ]]; then
+    cp "$ROOT/Sources/ArrowslitKit/Resources/agent-prices.json" "$APP/Contents/Resources/agent-prices.json"
+fi
 if [[ "$CONFIG" == "release" ]]; then
     strip -x "$APP/Contents/MacOS/Arrowslit"
     strip -x "$APP/Contents/Frameworks/libArrowslitMedia.dylib"

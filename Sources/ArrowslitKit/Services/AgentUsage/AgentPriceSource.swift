@@ -15,10 +15,27 @@ enum AgentPriceSource {
     private static let fileName = "agent-prices.json"
 
     static func bundled() -> AgentPriceList? {
-        let url = Bundle.main.url(forResource: "agent-prices", withExtension: "json")
-            ?? Bundle.module.url(forResource: "agent-prices", withExtension: "json")
-        guard let url, let data = try? Data(contentsOf: url) else { return nil }
+        guard let url = bundledURL(), let data = try? Data(contentsOf: url) else { return nil }
         return AgentPriceList.decode(data)
+    }
+
+    /// The packaged JSON lives in the app's Resources. SwiftPM also leaves a
+    /// resource bundle beside development binaries, so tests and `swift run`
+    /// can find it without touching `Bundle.module`, whose missing-bundle
+    /// assertion would terminate the app on launch.
+    private static func bundledURL() -> URL? {
+        if let url = Bundle.main.url(forResource: "agent-prices", withExtension: "json") {
+            return url
+        }
+        var candidates = [
+            Bundle.main.bundleURL.appendingPathComponent("Arrowslit_ArrowslitKit.bundle/\(fileName)"),
+            Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/\(fileName)")
+        ]
+        if let executable = Bundle.main.executableURL?.deletingLastPathComponent() {
+            candidates.append(executable.appendingPathComponent("Arrowslit_ArrowslitKit.bundle/\(fileName)"))
+            candidates.append(executable.appendingPathComponent(fileName))
+        }
+        return candidates.first { FileManager.default.fileExists(atPath: $0.path) }
     }
 
     private static var cacheURL: URL? {
