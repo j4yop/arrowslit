@@ -570,6 +570,33 @@ struct SettingsStoreTests {
         #expect(settings.timerSound)
     }
 
+    @Test func statsDoesNotTakeTheRestingStrip() {
+        let (defaults, name) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: name) }
+        let state = AppState(settings: SettingsStore(defaults: defaults))
+        #expect(!state.activeActivities.contains(.stats))
+        state.stats.stop()
+    }
+
+    @Test func enabledFeaturesKeepTheirTabs() {
+        let (defaults, name) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: name) }
+        defaults.set(["home", "timer"], forKey: "arrowslit.enabledTabs")
+        defaults.set(true, forKey: "arrowslit.clipboardEnabled")
+        defaults.set(true, forKey: "arrowslit.notesEnabled")
+        defaults.set(true, forKey: "arrowslit.statsEnabled")
+
+        let settings = SettingsStore(defaults: defaults)
+        #expect(settings.isTabEnabled(.clipboard))
+        #expect(settings.isTabEnabled(.notes))
+        #expect(settings.isTabEnabled(.stats))
+        #expect(defaults.stringArray(forKey: "arrowslit.enabledTabs")?.contains("stats") == true)
+
+        defaults.set(false, forKey: "arrowslit.statsEnabled")
+        let disabled = SettingsStore(defaults: defaults)
+        #expect(!disabled.isTabEnabled(.stats))
+    }
+
     @Test func alertAndLockScreenChoicesPersist() {
         let (defaults, name) = makeDefaults()
         defer { defaults.removePersistentDomain(forName: name) }

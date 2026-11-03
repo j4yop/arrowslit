@@ -7,10 +7,39 @@ struct ArrowslitRootView: View {
     /// displays each panel passes its own screen so its notch and width are correct.
     let screen: NSScreen?
     let role: PanelRole
+    @AppStorage(NotchOutline.key) private var outlineEnabled = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var contrast
 
     private var geometry: ScreenGeometry {
         screen.map(ScreenReader.geometry(for:)) ?? ScreenReader.current
+    }
+
+    /// The compact strip can sit in a wider window when a second live
+    /// activity is detached beside it. The outline belongs to the strip, so
+    /// it always uses the strip's own width rather than the window's.
+    private func outlineWidth(for presentation: NotchPresentation,
+                              size: CGSize,
+                              geometry: ScreenGeometry) -> CGFloat {
+        switch presentation {
+        case .hidden(let peek):
+            return peek ? size.width : size.width - ParityLayout.restingOutlineInset * 2
+        case .idle, .compact, .hud:
+            return ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
+        default:
+            return size.width
+        }
+    }
+
+    private func outlineHeight(for presentation: NotchPresentation,
+                               size: CGSize,
+                               geometry: ScreenGeometry) -> CGFloat {
+        return size.height
+    }
+
+    private func isRestingNotch(_ presentation: NotchPresentation) -> Bool {
+        if case .hidden(let peek) = presentation { return !peek }
+        return false
     }
 
     private var presentation: NotchPresentation {
@@ -82,12 +111,52 @@ struct ArrowslitRootView: View {
                 )
                 .transition(.opacity)
             }
+
+            if outlineEnabled, NotchOutline.isVisible(for: presentation),
+               let radius = NotchOutline.radius(for: presentation) {
+                NotchOutlineOverlay(
+                    shape: SlitShape(radius: radius, flare: NotchOutline.flare(for: presentation)),
+                    color: .white.opacity(contrast == .increased
+                                          ? NotchOutline.increasedContrastOpacity
+                                          : NotchOutline.opacity),
+                    fillsNotch: isRestingNotch(presentation)
+                )
+                .frame(width: outlineWidth(for: presentation, size: size, geometry: geometry),
+                       height: outlineHeight(for: presentation, size: size, geometry: geometry))
+            }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
         .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: presentation)
         .environment(\.colorScheme, .dark)
         .environment(\.panelGeometry, geometry)
         .environment(\.panelScale, state.settings.appearance.size.scale)
+    }
+}
+
+/// Arrowslit's optional outline: a two-point stroke, clipped so only its inner
+/// half shows, with the first point at the top masked because the island hangs
+/// from the top of the display.
+private struct NotchOutlineOverlay: View {
+    let shape: SlitShape
+    let color: Color
+    /// The hidden window is transparent; the resting notch needs its black
+    /// body so the outline reads as the Mac notch, not a line over the desktop.
+    var fillsNotch = false
+
+    var body: some View {
+        ZStack {
+            if fillsNotch {
+                shape.fill(Color.black)
+            }
+            shape
+                .stroke(color, lineWidth: NotchOutline.lineWidth)
+                .clipShape(shape)
+                .mask(alignment: .top) {
+                    Rectangle().padding(.top, NotchOutline.topGap)
+                }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

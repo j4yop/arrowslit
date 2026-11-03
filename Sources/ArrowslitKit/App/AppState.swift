@@ -639,7 +639,8 @@ public final class AppState {
         if stopwatch.isActive { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
         if session.isLocked, settings.showOnLockScreen, system.isOnAC { active.insert(.charging) }
-        if stats.isRunning, active.isEmpty { active.insert(.stats) }
+        // Stats is a page, not a resting activity. It stays in the menu, but
+        // never takes over the closed notch when nothing else is happening.
         if sports.notchMatch != nil { active.insert(.sports) }
         return active
     }

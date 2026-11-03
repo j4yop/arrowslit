@@ -187,7 +187,14 @@ public final class SettingsStore {
         sportsFollowedTeams = defaults.stringArray(forKey: Key.sportsFollowedTeams) ?? []
         sportsPinnedMatchID = defaults.string(forKey: Key.sportsPinnedMatch)
         let defaultTabs = WorkbenchTab.allCases.filter { $0 != .sports }.map(\.rawValue)
-        enabledTabs = Set(defaults.stringArray(forKey: Key.tabs) ?? defaultTabs)
+        let reconciledTabs = Self.reconciledTabs(
+            Set(defaults.stringArray(forKey: Key.tabs) ?? defaultTabs),
+            clipboardEnabled: defaults.object(forKey: Key.clipboard) as? Bool ?? true,
+            notesEnabled: defaults.object(forKey: Key.notes) as? Bool ?? true,
+            statsEnabled: defaults.object(forKey: Key.stats) as? Bool ?? true
+        )
+        enabledTabs = reconciledTabs
+        defaults.set(Array(reconciledTabs).sorted(), forKey: Key.tabs)
         let defaultsShortcuts = [WorkbenchTab.tray.rawValue, WorkbenchTab.clipboard.rawValue]
         let valid = Set(WorkbenchTab.allCases.map(\.rawValue))
         var seen = Set<String>()
@@ -197,15 +204,30 @@ public final class SettingsStore {
                 .filter { seen.insert($0).inserted }
                 .prefix(Self.shortcutLimit)
         )
-        if !clipboardEnabled { enabledTabs.remove(WorkbenchTab.clipboard.rawValue) }
-        if !notesEnabled { enabledTabs.remove(WorkbenchTab.notes.rawValue) }
-        if !statsEnabled { enabledTabs.remove(WorkbenchTab.stats.rawValue) }
         // Sports ships on so it is visible in the launcher, but it stays in
         // local preview mode until a BigBallsData key is connected.
         if !defaults.bool(forKey: Key.sportsDefaultAdded) {
             enabledTabs.insert(WorkbenchTab.sports.rawValue)
             defaults.set(true, forKey: Key.sportsDefaultAdded)
         }
+    }
+
+    /// A feature's switch and its tab are one setting. Older builds, or a
+    /// value changed outside the UI, could leave a feature on while its tab
+    /// was missing; bringing the two back together at launch repairs it.
+    static func reconciledTabs(_ tabs: Set<String>,
+                               clipboardEnabled: Bool,
+                               notesEnabled: Bool,
+                               statsEnabled: Bool) -> Set<String> {
+        var tabs = tabs
+        for (tab, enabled) in [
+            (WorkbenchTab.clipboard, clipboardEnabled),
+            (WorkbenchTab.notes, notesEnabled),
+            (WorkbenchTab.stats, statsEnabled),
+        ] {
+            if enabled { tabs.insert(tab.rawValue) } else { tabs.remove(tab.rawValue) }
+        }
+        return tabs
     }
 
     public func isTabEnabled(_ tab: WorkbenchTab) -> Bool {
@@ -230,6 +252,7 @@ public final class SettingsStore {
 
     public func resetAppearance() {
         appearance = .standard
+        UserDefaults.standard.removeObject(forKey: NotchOutline.key)
     }
 
     public func setTabEnabled(_ tab: WorkbenchTab, _ enabled: Bool) {
