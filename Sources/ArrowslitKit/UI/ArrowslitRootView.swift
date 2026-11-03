@@ -7,10 +7,23 @@ struct ArrowslitRootView: View {
     /// displays each panel passes its own screen so its notch and width are correct.
     let screen: NSScreen?
     let role: PanelRole
+    @AppStorage(NotchOutline.key) private var outlineEnabled = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var contrast
 
     private var geometry: ScreenGeometry {
         screen.map(ScreenReader.geometry(for:)) ?? ScreenReader.current
+    }
+
+    /// The second live activity is a detached bubble beside the strip, so the
+    /// outline covers the strip alone rather than the wider window.
+    private func outlineWidth(for presentation: NotchPresentation,
+                              size: CGSize,
+                              geometry: ScreenGeometry) -> CGFloat {
+        if case .compact(_, let secondary) = presentation, secondary != nil {
+            return ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
+        }
+        return size.width
     }
 
     private var presentation: NotchPresentation {
@@ -82,12 +95,42 @@ struct ArrowslitRootView: View {
                 )
                 .transition(.opacity)
             }
+
+            if outlineEnabled, let radius = NotchOutline.radius(for: presentation) {
+                NotchOutlineOverlay(
+                    shape: SlitShape(radius: radius, flare: NotchOutline.flare(for: presentation)),
+                    color: .white.opacity(contrast == .increased
+                                          ? NotchOutline.increasedContrastOpacity
+                                          : NotchOutline.opacity)
+                )
+                .frame(width: outlineWidth(for: presentation, size: size, geometry: geometry),
+                       height: size.height)
+            }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
         .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: presentation)
         .environment(\.colorScheme, .dark)
         .environment(\.panelGeometry, geometry)
         .environment(\.panelScale, state.settings.appearance.size.scale)
+    }
+}
+
+/// Vorssaint's optional outline: a two-point stroke, clipped so only its inner
+/// half shows, with the first point at the top masked because the island hangs
+/// from the top of the display.
+private struct NotchOutlineOverlay: View {
+    let shape: SlitShape
+    let color: Color
+
+    var body: some View {
+        shape
+            .stroke(color, lineWidth: NotchOutline.lineWidth)
+            .clipShape(shape)
+            .mask(alignment: .top) {
+                Rectangle().padding(.top, NotchOutline.topGap)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
 

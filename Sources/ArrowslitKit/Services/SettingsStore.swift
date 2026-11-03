@@ -230,6 +230,7 @@ public final class SettingsStore {
 
     public func resetAppearance() {
         appearance = .standard
+        UserDefaults.standard.removeObject(forKey: NotchOutline.key)
     }
 
     public func setTabEnabled(_ tab: WorkbenchTab, _ enabled: Bool) {

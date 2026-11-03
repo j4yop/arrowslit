@@ -877,6 +877,7 @@ private struct MediaAppInfo: Identifiable {
 
 private struct AppearanceSettingsSection: View {
     @Bindable var state: AppState
+    @AppStorage(NotchOutline.key) private var outlineEnabled = false
 
     private var appearance: NotchAppearance { state.settings.appearance }
 
@@ -907,7 +908,7 @@ private struct AppearanceSettingsSection: View {
                 title: "Look",
                 note: appearance.theme == .glass
                     ? "Frosted glass that blurs what's behind it, with softer, springier motion. The part around the camera stays black. More tint is easier to read over bright windows."
-                    : "The notch itself grows to show what's happening. Pitch black removes the shadow and outline so the extension is indistinguishable from the notch. On a screen without a notch, it appears in the same spot at the top."
+                    : "The notch itself grows to show what's happening. Pitch black removes the shadow and default hairline so the extension is indistinguishable from the notch. On a screen without a notch, it appears in the same spot at the top."
             ) {
                 row("Theme") {
                     Picker("", selection: binding(\.theme)) {
@@ -933,6 +934,10 @@ private struct AppearanceSettingsSection: View {
                         isOn: binding(\.pitchBlack)
                     )
                 }
+            }
+
+            SettingsSection {
+                OutlineSettingsRow(isOn: $outlineEnabled)
             }
 
             SettingsSection(
@@ -1511,6 +1516,36 @@ private struct SettingsToggle: View {
         .toggleStyle(.switch)
         .controlSize(.small)
         .tint(.accentColor)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct OutlineSettingsRow: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            HStack(spacing: 12) {
+                Image(systemName: "capsule")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 26, height: 26)
+                    .background(
+                        Color.accentColor.opacity(0.12),
+                        in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    )
+                Text("Show outline")
+                    .font(ArrowTheme.settingsBody)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Spacer(minLength: 8)
+            }
+        }
+        .toggleStyle(.switch)
+        .controlSize(.small)
+        .tint(.accentColor)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .accessibilityElement(children: .combine)
     }
 }
