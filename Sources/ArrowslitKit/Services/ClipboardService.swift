@@ -16,6 +16,7 @@ public final class ClipboardService {
     public var pinnedCount: Int { history.pinnedCount }
     public var canPin: Bool { history.canPin }
 
+    @ObservationIgnored public var onCaptured: ((String) -> Void)?
     @ObservationIgnored private let pasteboard: NSPasteboard
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var lastChangeCount: Int
@@ -99,6 +100,7 @@ public final class ClipboardService {
     func promote(_ text: String, appName: String?) {
         if history.add(text, appName: appName) {
             savePins()
+            onCaptured?(text)
         }
     }
 

@@ -7,6 +7,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case general
     case appearance
     case activities
+    case notch
     case home
     case about
 
@@ -17,6 +18,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: "General"
         case .appearance: "Appearance"
         case .activities: "Activities"
+        case .notch: "Notch"
         case .home: "Home"
         case .about: "About"
         }
@@ -27,6 +29,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: "gearshape"
         case .appearance: "capsule"
         case .activities: "square.stack.3d.up"
+        case .notch: "capsule"
         case .home: "house"
         case .about: "info.circle"
         }
@@ -39,6 +42,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: 704
         case .appearance: 740
         case .activities: 740
+        case .notch: 740
         case .home: 740
         case .about: 520
         }
@@ -121,6 +125,7 @@ struct SettingsView: View {
         case .general: generalTab
         case .appearance: appearanceTab
         case .activities: activitiesTab
+        case .notch: NotchSettingsPage(state: state)
         case .home: homeTab
         case .about: aboutTab
         }
@@ -313,51 +318,6 @@ struct SettingsView: View {
                 )
             }
 
-            SettingsSection(
-                title: "Alerts",
-                note: "A quick heads-up in the notch."
-            ) {
-                AlertToggleRow(
-                    symbol: "bolt.fill",
-                    tint: Color(red: 0.27, green: 0.78, blue: 0.40),
-                    title: "Charging",
-                    detail: nil,
-                    isOn: Binding(
-                        get: { state.settings.alertCharging },
-                        set: { state.settings.alertCharging = $0 }
-                    )
-                )
-                AlertToggleRow(
-                    symbol: "battery.25",
-                    tint: ArrowTheme.red,
-                    title: "Low Battery",
-                    detail: "At 20% and 10%",
-                    isOn: Binding(
-                        get: { state.settings.alertLowBattery },
-                        set: { state.settings.alertLowBattery = $0 }
-                    )
-                )
-                AlertToggleRow(
-                    symbol: "headphones",
-                    tint: Color.white.opacity(0.22),
-                    title: "Headphones",
-                    detail: "When AirPods or other Bluetooth headphones connect",
-                    isOn: Binding(
-                        get: { state.settings.alertHeadphones },
-                        set: { state.settings.alertHeadphones = $0 }
-                    )
-                )
-                AlertToggleRow(
-                    symbol: "speaker.wave.2.fill",
-                    tint: ArrowTheme.blue,
-                    title: "Volume & Brightness",
-                    detail: "Shows the level in the notch when you change it",
-                    isOn: Binding(
-                        get: { state.settings.alertVolumeBrightness },
-                        set: { state.settings.alertVolumeBrightness = $0 }
-                    )
-                )
-            }
         }
     }
 
@@ -1406,7 +1366,7 @@ private struct FileTraySettingsRow: View {
     }
 }
 
-private struct SettingsSection<Content: View>: View {
+struct SettingsSection<Content: View>: View {
     let title: String?
     let note: String?
     @ViewBuilder var content: Content
@@ -1568,7 +1528,7 @@ private struct LockScreenSection: View {
     }
 }
 
-private struct AlertToggleRow: View {
+struct AlertToggleRow: View {
     let symbol: String
     let tint: Color
     let title: String
