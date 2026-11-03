@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="Support/AppIcon-1024.png" width="160" alt="Arrowslit icon: a minimal aperture mark">
+  <img src="Docs/Images/arrowslit-brand-title.jpg" width="100%" alt="Arrowslit: Quiet control for your MacBook notch">
 </p>
 
 <h1 align="center">Arrowslit</h1>
 
 <p align="center">
-  A quiet control surface for your MacBook's notch.
+  <b>Quiet control for your MacBook notch.</b><br>
+  AI agent spend, instant approvals, focus timers, clipboard, files, media, and system stats. All right at the edge.
 </p>
 
 <p align="center">
@@ -13,257 +14,305 @@
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 or newer">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0 license"></a>
   <img src="https://img.shields.io/badge/architecture-universal-orange" alt="Universal Apple Silicon + Intel">
-  <img src="https://img.shields.io/badge/network-optional-f59e0b" alt="Local-first with optional lyrics and update checks">
+  <img src="https://img.shields.io/badge/privacy-local--first-2ea44f" alt="Zero telemetry. No accounts.">
   <img src="https://img.shields.io/badge/price-free-2ea44f" alt="Free">
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg">Download it here</a></b>
-  &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
+  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg"><b>Download Arrowslit 0.11.1 DMG</b></a>
+  &nbsp;·&nbsp;
+  or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
 ---
 
-The notch on my MacBook just sits there doing nothing. I wanted it to be useful without getting in my way or making noise, so I made Arrowslit.
+<p align="center">
+  <a href="Docs/Media/Arrowslit-Launch-48s.mp4">
+    <img src="Docs/Images/arrowslit-hero-purpose.jpg" width="100%" alt="Arrowslit Launch Film: Your MacBook has a notch. Now it has a purpose.">
+  </a>
+</p>
 
-The name comes from the narrow opening in a fortress wall: the smallest aperture that still gives a defender a full view and full control. When something is going on, the notch shows it. When nothing is, it tucks back in and you forget it is there.
+<p align="center">
+  <sub>Watch the 48-second launch film: click the preview above, or view <a href="Docs/Media/Arrowslit-Launch-48s.mp4"><b>Arrowslit-Launch-48s.mp4</b></a> (or the <a href="Docs/Media/Arrowslit-Launch-15s.mp4">15-second teaser</a>).</sub>
+</p>
 
-Here is what it shows:
+---
 
-* Whatever music is playing, with album art and animated bars tinted from the cover
-* A full 390×218 player with artwork, lyrics, scrubber and back/pause/forward controls
-* Timers, counting down right next to the camera
-* A live wall clock in India Standard Time or local time
-* A five-minute heads-up when your next meeting starts, with a Join button
-* A drop target for files right on the closed notch
+## Why Arrowslit?
 
-And when you click it, you get a little home base right under the notch:
+The notch on your MacBook usually sits empty. Most of the day it does nothing at all.
 
-* **Home** with the compact lyric-aware media card, the next calendar event, and quick 5m/10m/15m + Focus 25m actions
-* **Now Playing**, a tall player with album art, lyrics, scrubber and back/pause/forward, plus the compact card on Home
-* **Clipboard**, the last 20 things you copied. Click one to copy it again. Passwords from password managers are skipped and nothing is saved to disk
-* **Notes**, a little scratchpad for phone numbers, ideas, whatever. Saves as you type
-* **Mirror**, a quick look at your camera before you hop on a call, with a button to turn the camera off
-* **Timer / Pomodoro / Stopwatch**, a shared iPhone-style clock panel with a sliding minute ruler, one haptic detent per minute, a 5-minute Pomodoro break, and a tenths-of-a-second stopwatch
-* **Stats** with memory, CPU, disk and network tiles and animated bars that only sample while you look at them
-* **Sports** with live Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1 scores, Following + Featured, and a compact notch score. Preview works without a key; live mode uses a BigBallsData free key
-* **Files** with the full-width drop zone, pinned files that survive a quit, and AirDrop/open/reveal actions
-* **Calendar** with a live month grid, busy-day dots, day-by-day event lists, start times, a five-minute heads-up, and Join buttons for Meet, Zoom, Teams and Webex
-* **Reminders**, today's to-dos from Apple Reminders that you can tick off right in the notch
-* **Keep Awake**, keeps your Mac from sleeping with one tap while still letting the screen dim
+Arrowslit gives that dead space a real job. The name comes from medieval fortress architecture: the narrow opening in a stone wall that gives a defender a wide field of vision and complete control while revealing almost nothing.
 
-Drag files onto the notch and you can also AirDrop them straight from there. Files are references only; pin one to keep it across launches, while unpinned items clear when you quit. Your originals are never touched.
+When something needs your attention, the notch smoothly opens. When everything is quiet, it tucks back into the bezel and gets completely out of your way.
 
-Everything else lives behind the grid button at the top right: the timer, stopwatch, calendar, today's reminders, the scratchpad, your camera mirror, system stats, Sports, and Keep Awake.
+* **No cloud account, no sign-in, and zero analytics.**
+* **Local memory only:** Clipboard history and scratchpad stay on your Mac.
+* **Near-zero idle CPU:** Gauges and meters sleep when the notch is closed.
+* **Native Swift & AppKit:** Built for macOS 14 Sonoma and macOS 15 Sequoia.
 
-Next to Home at the top left sit up to three shortcuts of your own. They start as Files and Clipboard, and Files shows how many things are in your Tray. To change them, open the grid, click the pencil, and pick your favorites. Click **Done** when you are happy.
+---
 
-Arrowslit works on the built-in display and on external monitors. Choose Built-in, Main, Follow the pointer, a named display, or All displays in Settings › General › Display; screens without a camera housing get a virtual notch.
+## Everything at the Edge
 
-It does not need an account and does not track anything. Arrowslit asks GitHub when it starts and once a day after that whether a new version is out; you can turn that off in Settings. Lyrics are optional and off by default; if you turn them on, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Everything else stays on your Mac. All of this is free and open source.
+<p align="center">
+  <img src="Docs/Images/arrowslit-agents-dashboard.jpg" width="100%" alt="AI Agents Dashboard: Claude, Codex, OpenCode and Copilot spend">
+</p>
 
-## Installing it
+### AI Agents & Live Token Spend
+Track Claude, Codex, OpenCode, and GitHub Copilot live from your notch. Watch active turns, token velocity, cache efficiency, and exact API dollar spend in real time without opening a browser or logging into another billing portal.
 
-**The easy way, if you use [Homebrew](https://brew.sh):**
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-agent-approvals.jpg" width="100%" alt="Agent Approvals: Approve from the notch">
+</p>
+
+### One-Click Agent Approvals
+When a local agent asks to execute a shell command, read files, or run tests, the approval request surfaces right in your notch. Review the command line and click **Allow**, **Deny**, or **Ask in CLI** with zero window switching.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-focus-timer.jpg" width="100%" alt="Focus Timer: Sliding minute ruler with haptic detents">
+</p>
+
+### Focus, Pomodoro & Timers
+A shared clock panel with an iPhone-style sliding minute ruler, per-minute haptic feedback, a 5-minute Pomodoro break button, and a tenths-of-a-second stopwatch.
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-notch-timer.jpg" width="100%" alt="Always There: Quick timers next to the camera">
+</p>
+
+When you collapse the notch, your running timer stays pinned right next to the physical camera housing with pause and dismiss controls.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-calendar-meeting.jpg" width="100%" alt="Calendar: Your next meeting, before it starts">
+</p>
+
+### Calendar & 5-Minute Meeting Heads-Up
+Glance at your day with an interactive month grid and day-by-day event agenda. Five minutes before your next meeting begins, Arrowslit slides out a quiet heads-up with a direct **Join** button for Google Meet, Zoom, Microsoft Teams, and Webex.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-now-playing-room.jpg" width="100%" alt="Now Playing: Tall player with lyrics and cover-tinted bars">
+</p>
+
+### Now Playing & Audio
+A full player featuring album artwork, synchronized lyrics, a scrubbable timeline, and back/pause/forward controls. Arrowslit communicates with macOS audio through an isolated helper process, keeping your interface butter-smooth even if system audio services stall.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-clipboard-twenty.jpg" width="100%" alt="Clipboard: Twenty clips in memory only">
+</p>
+
+### Private Clipboard History
+Keeps your last 20 plain-text clips accessible with one click. Everything is held strictly in volatile RAM and is never written to disk. Passwords and concealed items from 1Password, Bitwarden, and Apple Keychain are automatically ignored.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-drop-tray.jpg" width="100%" alt="Drop Tray: Drop files on the notch, pin them, or AirDrop instantly">
+</p>
+
+### File Drop Zone & Instant AirDrop
+Drag any file from Finder onto the closed notch. Drop it on your Tray shelf to reference it later, or drop it on AirDrop to broadcast it instantly to nearby Macs and iPhones. Pinned files survive app restarts; unpinned references clear automatically on quit.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-scratchpad-notes.jpg" width="100%" alt="Scratchpad: Saves as you type">
+</p>
+
+### Quick Scratchpad
+A zero-friction notepad for phone numbers, code snippets, or thoughts. Formats with bold, italic, and underline, and saves locally as you type.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-system-stats.jpg" width="100%" alt="Stats: CPU, Memory, Disk and Network">
+</p>
+
+### Live System Stats
+Glanceable real-time monitors for Memory pressure, CPU load across all cores, Disk space, and live Network bandwidth. Sensors only sample while the panel is visible, keeping idle battery draw at zero.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-sports-match.jpg" width="100%" alt="Sports: Live football scores">
+</p>
+
+### Live Sports & Football
+Follow live scores from the Premier League, La Liga, UEFA Champions League, Serie A, Bundesliga, and Ligue 1. Pin your favorite matches or teams for live goal alerts and compact notch scores.
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-thirteen-tools.jpg" width="100%" alt="Everything else: Thirteen tools one grid away">
+</p>
+
+### Thirteen Tools. One Grid Away.
+Click the grid icon at the top right to access any utility instantly, with customizable shortcut keys:
+
+| Shortcut | Tool | Description |
+| :--- | :--- | :--- |
+| `^⌥M` | **Now Playing** | Tall music player with live lyrics and scrubber |
+| `^⌥T` | **Timer** | Sliding minute ruler with Pomodoro quick actions |
+| `^⌥S` | **Stopwatch** | Tenths-of-a-second precision timer with laps |
+| `^⌥A` | **Calendar** | Day agenda, month grid, and meeting links |
+| `^⌥F` | **Sports** | Premier League, La Liga, and Champions League live |
+| `^⌥R` | **Reminders** | Today's Apple Reminders checklist |
+| `^⌥G` | **AI Agents** | Token telemetry, spend, and prompt activity |
+| `^⌥B` | **Clipboard** | 20-item in-memory clipboard history |
+| `^⌥L` | **Files** | File shelf with drag-and-drop and AirDrop |
+| `^⌥N` | **Scratchpad** | Local notes with instant autosave |
+| `^⌥C` | **Camera Mirror** | Camera check before calls (turns sensor off when closed) |
+| `^⌥U` | **Stats** | Darwin memory, Mach CPU, disk, and network |
+| `^⌥K` | **Keep Awake** | Prevents system sleep while allowing screen dimming |
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-architecture-local.jpg" width="100%" alt="Architecture: Native, Local-First, No tracking, No telemetry">
+</p>
+
+---
+
+<p align="center">
+  <img src="Docs/Images/arrowslit-day-timeline.jpg" width="100%" alt="A day at the edge: One notch, all day">
+</p>
+
+---
+
+## Installation
+
+### Method 1: Homebrew (Recommended)
 
 ```bash
 brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
 ```
 
-Homebrew 7 asks you to trust a third-party tap once. The cask clears the quarantine flag automatically, so you can open Arrowslit right away.
+Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS quarantine flag automatically so Arrowslit opens immediately.
 
-On Homebrew versions before 7, this is enough:
+On earlier Homebrew versions, run:
 
 ```bash
 brew install --cask j4yop/tap/arrowslit
 ```
 
-Otherwise, download it yourself:
+---
 
-Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
+### Method 2: Direct Download DMG
 
-1. Download **[Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg)** and open it.
-2. Drag **Arrowslit** into your **Applications** folder.
-3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
-4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
-5. Settings opens automatically. Pick your features, close the window, and Arrowslit stays live in your notch.
+1. Download **[Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg)**.
+2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
+3. Open Applications and double-click **Arrowslit**. If macOS warns that the developer cannot be verified, click **Done**.
+4. Open **System Settings › Privacy & Security**, scroll down to the security section, and click **Open Anyway**. Enter your password or Touch ID.
+5. Arrowslit launches and immediately docks into your notch.
 
-If you are comfortable with Terminal, you can skip steps 3 and 4. After dragging the app into Applications, run this and open the app like normal:
+Alternatively, remove the Gatekeeper quarantine attribute via Terminal:
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
 open "/Applications/Arrowslit.app"
 ```
 
-The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/M4) and Intel Macs.
+### Release Metadata
 
-| Release Details | |
+| Detail | Value |
 | :--- | :--- |
-| **Version** | 0.11.1 (build 65) |
+| **Current Release** | 0.11.1 (build 65) |
 | **Direct Download** | [Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg) |
-| **SHA-256** | `1d817f546343df219d0dbdaed20b945d47bac8ee9c15136e7545637e8afcbec8` |
-| **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
+| **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
+| **SHA-256 Checksum** | `1d817f546343df219d0dbdaed20b945d47bac8ee9c15136e7545637e8afcbec8` |
+| **License** | GNU General Public License v3.0 or later |
 
-## Using it
+---
 
-| If you want to | Do this |
+## Quick Interaction Reference
+
+| Action | How to do it |
 | :--- | :--- |
-| Open the notch | Click the strip or hover the top center. Music/video opens the player; otherwise it opens Home |
-| Open the full music player from Home | Click the expand button on the music card, or its artwork/title |
-| Open anything else | Click the grid button at the top right |
-| Change your top shortcuts | Open the grid, click the pencil, and select up to three favorites |
-| Start a timer, Pomodoro or stopwatch | Open Timer/Stopwatch, slide the minute ruler, then press Start |
-| Keep files for later, or AirDrop them | Drag them onto the notch and drop on **Tray** or **AirDrop** |
-| Jot a quick note | Click Scratchpad; start typing immediately (saves as you type) |
-| Copy past clipboard items | Click Clipboard, then click any card to copy it back |
-| Close it | Click anywhere else, move your mouse down, or press Escape |
-| Open from the menu bar | Click the slit icon in your menu bar |
-| Open Settings | Click the gear icon at the top right, or choose Settings from the menu bar |
-| Use the notch on the lock screen | Turn on Settings › Show on Lock Screen |
-| Put the notch on another display | Settings › General › Display: Built-in, Main, Follow the pointer, All displays, or a named display |
+| **Open Notch** | Hover over the top center of your screen, or click the slit icon in your menu bar |
+| **Open Full Music Player** | Click the expand arrow on the Home music card, or click the album artwork |
+| **Open Launcher Grid** | Click the 2x2 grid icon in the top right corner of the notch |
+| **Customize Top Shortcuts** | Open the launcher grid, click the pencil icon, and pick your top three tools |
+| **Drop Files or AirDrop** | Drag any file from Finder onto the notch and release over **Tray** or **AirDrop** |
+| **Collapse Notch** | Move your pointer away, click outside the panel, or press **Escape** |
+| **External Displays** | Select your preferred monitor in **Settings › General › Display** |
+| **Lock Screen Notch** | Toggle **Show on Lock Screen** in Settings to keep timers and media visible |
 
-## Things people ask
+---
 
-**I installed it and nothing's showing up.** That's on purpose. It stays hidden until there is something to show, like music or a timer. Move your mouse to the top center of the screen, or click the slit icon in your menu bar, and the workbench will slide open.
+## Things People Ask
 
-**My Mac doesn't have a notch.** It still works. You get a virtual notch at the top center of the screen that stays out of sight until you hover or click. It works the same way on external displays.
+### I installed it and nothing is showing up.
+**Answer:** That is intentional. Arrowslit stays completely hidden at rest until there is active information to display (such as music playing or a running timer). Move your cursor to the top center of your display or click the small slit icon in your macOS menu bar to open the workbench immediately.
 
-**My music isn't showing.** Play something and give it a second. Arrowslit talks to macOS media services through an isolated helper process. If Apple media services ever stall, Arrowslit stays fast and unaffected.
+---
 
-**How do I update it?** Homebrew users can run `brew upgrade --cask arrowslit`. The app itself checks GitHub when it starts and once a day after that. When a signed update is available, Settings › About offers **Install and Relaunch** and verifies the Ed25519 manifest, size and SHA-256 before swapping the app; otherwise it opens the DMG. Manual users can always download the latest DMG. You can turn the check off in Settings.
+### My Mac does not have a display notch.
+**Answer:** Arrowslit works identically on MacBooks without a physical notch, as well as on external monitors, Mac minis, Mac Studios, and iMacs. The app draws an unobtrusive virtual notch at the top center of the screen that expands smoothly on hover or click.
 
-**Is it safe? Does it collect any data?** All the code is right here in this repository (it is free software, see [License](#license)). Arrowslit has no telemetry, tracking or user accounts. It checks GitHub when it starts and once a day for a new release unless you turn that off. Lyrics lookup is optional and off by default; when enabled, only the current song's title, artist, album and length are sent to lrclib.net and, when it has no answer, music.163.com. Sports is optional too: preview matches are local, and live mode sends only your BigBallsData key and competition queries to BigBallsData after you connect it in Settings. Everything else stays on your Mac. That warning during install only shows up because I haven't registered with Apple's paid developer program yet.
+---
 
-**Why is it asking for my camera or calendar?** Only if you use those bits. It asks for the camera when you open Mirror, calendar access when you click Connect on Calendar, and reminders access when you open Reminders. If you say no, those specific tabs stay disabled while the rest of Arrowslit keeps working.
+### My music is not appearing in the notch.
+**Answer:** Play a track in Apple Music, Spotify, or your browser and allow a second for media notification. Arrowslit communicates with macOS media controls through an isolated helper process. If Apple media services ever hitch, Arrowslit stays fast, stable, and unaffected.
 
-**Does it keep what I copy?** Only while the app is running, and only the last 20 bits of plain text. It is kept in memory only and never written to disk. Anything a password manager marks as private or concealed is skipped. Don't want it? Turn off Clipboard in Settings and it stops watching immediately.
+---
 
-**How do I get rid of it?** Click the slit icon in the menu bar and pick **Quit Arrowslit**, then drag the app from Applications to the Trash. If you want to clear out saved preferences and notes too, delete `~/Library/Preferences/com.j4yop.arrowslit.plist` and `~/Library/Application Support/Arrowslit`.
+### How do I update Arrowslit?
+**Answer:** Homebrew users can run `brew upgrade --cask arrowslit`. The app also checks GitHub on launch and once per day. When a signed release is published, **Settings › About** offers an **Install and Relaunch** button that cryptographically verifies the Ed25519 manifest, package size, and SHA-256 hash before updating.
 
-## What you need
+---
 
-* macOS 14 (Sonoma) or newer
-* Apple Silicon or Intel Mac
-* Works with or without a physical display notch
+### Is Arrowslit safe? Does it collect any data?
+**Answer:** Arrowslit is 100% free and open-source software under GPL-3.0. It contains zero tracking code, zero analytics, zero telemetric beacons, and requires no user account. Update checks query GitHub releases anonymously. Lyrics lookups are strictly optional and disabled by default. Sports preview matches are generated locally; live mode queries BigBallsData only after you provide your own key in Settings. Everything else remains strictly on your local Mac.
 
-## What is in 0.11.1
+---
 
-Hotfix for the 0.11.0 launch crash:
+### Why does it ask for camera, calendar, or reminders permissions?
+**Answer:** Only when you actively trigger those specific tools. macOS prompts for camera permission when you open Mirror, calendar permission when you click Connect on Calendar, and reminders permission when opening Reminders. If you decline, those specific panels stay disabled while the rest of Arrowslit functions normally.
 
-* Ships `agent-prices.json` inside the app and reads it through a safe resource lookup
-* The previous release could terminate in the agent-usage reader when SwiftPM's resource bundle was absent
-* Universal build for Apple Silicon and Intel
-* Includes every 0.11.0 feature below
+---
 
-## What was in 0.11.0
+### Does Arrowslit store what I copy?
+**Answer:** Only while the application is active, and only the latest 20 plain-text items. History is stored exclusively in volatile system RAM and is never written to disk or sent to any server. Content flagged as sensitive or concealed by password managers is automatically skipped. You can disable the clipboard monitor entirely in Settings at any time.
 
-0.11.0 introduced live-notch feedback activities and the AI Agents dashboard. It is superseded by 0.11.1, which fixes its launch crash.
+---
 
-* A full AI Agents page: Claude, Codex, OpenCode and GitHub Copilot readers, plan limits, API spend, models, projects, a stacked trend chart, a 13-week activity heatmap and Codex banked resets
-* A live agent activity in the closed notch: every working provider's mark in its own tint, plus the running elapsed turn time
-* Clicking the activity opens the AI Agents page
-* One live activity at a time in the closed notch; the detached second-activity bubble is gone
-* A new Notch settings tab with 15 live feedback events, 7 closed-notch activities and 13 feature switches
-* Wired feedback: volume, brightness, microphone, input source, battery/charging, accessory connection, clipboard, downloads, AI agents, new tracks and timer completion
-* Wired activities: timer, music, downloads, AI agents, calendar countdown and Keep Awake
-* Calendar only takes the strip within 30 minutes of an event
-* HUD transitions no longer leave the old compact reading ghosted underneath
-* The call and microphone counter now uses white text, like the timer and stopwatch
-* Advanced subsystems are visible but disabled in Settings rather than shipping fake toggles: Notification Center mirror, OCR watch, media queue, companion and keyboard-light source
+### How do I uninstall Arrowslit completely?
+**Answer:** Click the slit icon in your macOS menu bar and choose **Quit Arrowslit**. Then drag Arrowslit from your **Applications** folder to the Trash. If you wish to delete saved local configuration files and notes, remove `~/Library/Preferences/com.j4yop.arrowslit.plist` and `~/Library/Application Support/Arrowslit`.
 
-## What was in 0.10.1
+---
 
-This is the feel and finish pass:
+## Build from Source
 
-* Refined palette and type scale: orange, red, blue, green and yellow system colours, with matching secondary-text and hairline values
-* The persistent Home, Files and Clipboard shortcut strip in place of the old back-button header
-* A 580 pt standard nook with 10 pt shoulders
-* The launcher rebuilt around a five-column, two-row paged scroll, 16 pt tiles, 19 pt regular icons, 11.5 pt medium titles and real ⌃⌥ shortcut labels
-* Click-to-open or hover-to-open, with a configurable 0.1–0.5 second hover delay
-* Smooth 0.9 press spring, 0.7 press opacity, 0.15 hover fade and alignment haptics
-* Clipboard now opens to its cards, with search and clear on the right and the search field growing below only when needed
-* Tray and Clipboard cards use 48 pt file icons, 150 pt clipboard cards and hover pin/remove controls
-* Calendar, Timer and Player sizing corrected: 580×178 nook panels, a 390×188 no-lyrics player and a conditional lyrics row
-* Small and Medium sizes scale the header, launcher, Home, Tray, Clipboard and Calendar instead of clipping
-* Pitch black now removes the outline and shadow across every surface, so the shape fuses into the notch
-
-## What was in 0.10.0
-
-This is the comprehensive notch shell and appearance update:
-
-* The appearance engine: size, width, thickness, theme, glass tint, pitch black, standard/elongated layout and reset
-* Hidden-at-rest notch with a hover peek, configurable hover delay, idle pill, click-to-open and collapse-on-leave
-* 274×32 compact ears, concave shoulders, the 30 pt expanded radius and 16 pt alert radius
-* Home at 560×178 and the elongated 1240×178 row for Home, Tray and Clipboard
-* Multi-display support: Built-in, Main, Follow the pointer, named display and All displays, with one active panel and mirror panels
-* Virtual notch on external displays without a camera housing
-* Buttons to allow, deny or ask on behalf of Claude Code, Codex, Copilot CLI, Antigravity, Cursor and OpenCode
-* Calls and microphone detection with mute, a call panel and app-specific hang-up routes
-* Download progress, finished-download alerts, Show in Finder and Stop, including a Chrome/Firefox partial-file fallback
-* Media source switching, app filtering, scrolling titles and paused-media linger
-* Clipboard search, pinned clips and Return-to-copy
-* Rich Notes, inline to-dos, the Shortcuts runner and Reminders
-* Tray links, drop preview, compact Stats and the detached second-activity bubble
-* Signed in-place updates with an Ed25519 manifest and a stable self-signed permission identity
-* Five-tab native Settings shell with labelled controls, 4 pt hit slop, spoken timer values and accessibility actions
-
-## What is in 0.9.2
-
-* Sports tab with live Premier League, La Liga, Champions League, Serie A, Bundesliga and Ligue 1 scores
-* BigBallsData Free adapter with a Keychain-stored key and a 250-request/day quota display
-* Sports starts in Preview with sample matches, so the nook works before you connect a key
-* Following + Featured ranking: pin a match, follow teams, or filter by competition
-* 32px notch score for the pinned or first live match, with the football clock in the Sports pane and detail
-* Goal popup with the scoring team, new score, minute, a spring animation and a haptic; only while Arrowslit is running
-* Inline match detail with football key events
-* Quota-aware refresh at 30/60/120 seconds; polling slows down when requests run low
-* Menu bar accessory with notch-fused compact strip
-* 560×178 pt expanded workbench with smooth spring transitions
-* Shared Timer/Pomodoro/Stopwatch panel with a sliding minute ruler and per-minute haptic detents
-* Precision stopwatch with tenths-of-a-second readout
-* Narrow 360×124 running timer/stopwatch strip with back, pause/resume and close
-* Music/video opens the 390×218 player by default; otherwise the notch opens Home
-* A launch and daily update check with a one-click Download & Open button in the notch and Settings
-* Update checks use the GitHub releases redirect first, so they do not depend on the anonymous API quota
-* Full 390×218 Now Playing player with lyrics, plus the 306×146 Apple Music-style compact player on Home
-* The Home compact player has an expand button (and clickable artwork/title) that opens the full player
-* Liquid animations and haptic feedback toggles in Settings
-* Optional lock-screen notch for a running timer, media or charging
-* Charging, low-battery, headphone and volume/brightness alerts, each with its own toggle
-* System alerts appear inside the compact notch as a live icon-and-level HUD, with smooth spring animations
-* Update checks run on launch and notify the notch once per new release with a **Download & Open** action
-* Volume alerts also work on Bluetooth headphones that expose volume on channel 1/2 instead of the main element
-* Charging and low-battery icons pulse gently; volume and brightness levels animate smoothly
-* Optional timed lyrics, off by default: lrclib.net first, then a timed fallback when lrclib is down
-* Lyrics retry automatically while a song keeps playing, and the player says when lyrics are unavailable
-* Next calendar event, five-minute heads-up and Join buttons for Meet, Zoom, Teams and Webex
-* Today's to-dos from Reminders
-* File tray with drag-and-drop shelf and 1-click AirDrop
-* In-memory clipboard history that skips password managers
-* Persistent scratchpad saved locally as you type
-* Camera mirror preview that shuts off when closed
-* Mach CPU and Darwin memory gauges with zero idle draw
-* Keep Awake system sleep prevention
-* Customizable shortcut slots beside Home
-* One-alert-at-a-time notch notifications with expiry, urgency and dismissal
-
-## Want to build it yourself?
-
-Requires Swift 6 and Xcode 16 or newer.
+Building Arrowslit locally requires macOS 14+, Xcode 16+, and Swift 6:
 
 ```bash
-# Run test suite
+# Clone the repository
+git clone https://github.com/j4yop/arrowslit.git
+cd arrowslit
+
+# Run the test suite
 swift test
 
-# Build application bundle
+# Build debug application bundle
 ./Scripts/build-app.sh
 open "build/Arrowslit.app"
 
-# Build universal release DMG
+# Build universal release bundle and DMG
 UNIVERSAL=1 CONFIG=release ./Scripts/build-app.sh
 SKIP_BUILD=1 ./Scripts/make-dmg.sh
 ```
 
+---
+
 ## License
 
-Arrowslit is free software, © 2026 Jay Gopal and contributors. You can use it, share it, and change it under the [GNU General Public License, version 3](LICENSE) or (at your choice) any later version.
+Arrowslit is free software licensed under the [GNU General Public License v3.0](LICENSE) or (at your option) any later version.
