@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Foundation
 import Observation
 
@@ -113,6 +114,10 @@ public final class AppState {
     public let todos = TodoStore()
     public let shortcuts = ShortcutsService()
     public let agents = AgentBridge()
+    @ObservationIgnored private var agentLiveObservation: AnyCancellable?
+    /// Keeps the compact notch observing live agent sessions without making
+    /// every caller subscribe to the reader's full snapshot.
+    public private(set) var agentLiveCount = 0
     public let nowPlaying: NowPlayingService
     public let timer: TimerService
     public let calendar: CalendarService
@@ -240,9 +245,17 @@ public final class AppState {
             return self.receive(.update(version: release.version.description))
         }
         if settings.checksForUpdates { updater.startAutomaticChecks() }
+        AgentUsageService.shared.syncWithPreferences()
+        agentLiveObservation = AgentUsageService.shared.$snapshot
+            .map { $0.live.count }
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] count in self?.agentLiveCount = count }
     }
 
     public func stop() {
+        agentLiveObservation?.cancel()
+        agentLiveObservation = nil
         notes.save()
         tray.clearUnpinned()
         nowPlaying.stop()
@@ -642,6 +655,7 @@ public final class AppState {
         if timer.isActive { active.insert(.timer) }
         if stopwatch.isActive { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
+        if agentLiveCount > 0, settings.isTabEnabled(.agents) { active.insert(.agents) }
         if session.isLocked, settings.showOnLockScreen, system.isOnAC { active.insert(.charging) }
         // Stats is a page, not a resting activity. It stays in the menu, but
         // never takes over the closed notch when nothing else is happening.
