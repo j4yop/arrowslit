@@ -32,10 +32,6 @@
   </a>
 </p>
 
-<p align="center">
-  <sub>Watch the 48-second launch film: click the preview above, or view <a href="Docs/Media/Arrowslit-Launch-48s.mp4"><b>Arrowslit-Launch-48s.mp4</b></a> (or the <a href="Docs/Media/Arrowslit-Launch-15s.mp4">15-second teaser</a>).</sub>
-</p>
-
 ---
 
 ## Why Arrowslit?
