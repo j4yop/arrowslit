@@ -82,7 +82,7 @@ struct ArrowslitRootView: View {
                     hud: nil
                 )
                 .transition(.opacity)
-            case .compact(_, let secondary):
+            case .compact(let primary, let secondary):
                 let compactWidth = ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
                 let height = ParityLayout.compactHeight(state.settings.appearance, geometry: geometry)
                 let bubble = ParityLayout.compactBubbleDiameter(state.settings.appearance, geometry: geometry)
@@ -92,7 +92,8 @@ struct ArrowslitRootView: View {
                         width: compactWidth,
                         height: height,
                         notchWidth: ParityLayout.notch(in: geometry).width,
-                        hud: nil
+                        hud: nil,
+                        activity: primary
                     )
                     if let secondary {
                         SecondaryBubble(state: state, activity: secondary, diameter: bubble)
@@ -165,6 +166,7 @@ private struct SecondaryBubble: View {
     @Bindable var state: AppState
     let activity: NotchActivity
     let diameter: CGFloat
+    @ObservedObject private var agentUsage = AgentUsageService.shared
 
     var body: some View {
         ZStack {
@@ -220,6 +222,14 @@ private struct SecondaryBubble: View {
             Image(systemName: "gauge.with.dots.needle.33percent")
                 .font(.system(size: diameter * 0.4, weight: .semibold))
                 .foregroundStyle(ArrowTheme.green)
+        case .agents:
+            if let provider = agentUsage.snapshot.live.first?.provider {
+                NotchAgentMark(provider: provider, size: diameter * 0.42)
+            } else {
+                Image(systemName: "sparkles")
+                    .font(.system(size: diameter * 0.4, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.green)
+            }
         }
     }
 
@@ -233,6 +243,7 @@ private struct SecondaryBubble: View {
         case .call: "Call"
         case .charging: "Charging"
         case .stats: "Stats"
+        case .agents: "AI Agents"
         }
     }
 }
@@ -273,7 +284,10 @@ private struct CompactBar: View {
     let height: CGFloat
     let notchWidth: CGFloat
     var hud: NotchAlert?
+    /// Which live activity fills the strip; the agent nudge opens its page.
+    var activity: NotchActivity? = nil
     @State private var isDropTargeted = false
+    @ObservedObject private var agentUsage = AgentUsageService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
@@ -364,6 +378,38 @@ private struct CompactBar: View {
                     .monospacedDigit()
                     .foregroundStyle(ArrowTheme.bone)
                     .padding(.trailing, 10)
+                    .frame(width: ear, alignment: .trailing)
+            } else if let live = agentUsage.snapshot.live.first {
+                // Vorssaint's strip: one breathing mark per working agent,
+                // each in its own color, and one reading on the other side.
+                let working = AgentProvider.allCases.filter { provider in
+                    agentUsage.snapshot.live.contains { $0.provider == provider }
+                }
+                let preferred = min(working.count > 1 ? 11.0 : 14.0, max(8, height - 14))
+                // Arrowslit's ear is fixed, so several marks share its width
+                // rather than widening the island as Vorssaint's wing does.
+                let count = CGFloat(max(1, working.count))
+                let inset: CGFloat = working.count > 1 ? 6 : 10
+                let room = (ear - inset - (count - 1)) / (count * 1.45)
+                let markSize = min(preferred, max(7, room))
+                HStack(spacing: 1) {
+                    ForEach(working) { provider in
+                        NotchAgentGlyph(provider: provider, size: markSize)
+                    }
+                }
+                .padding(.leading, inset)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text(live.started, style: .timer)
+                    .font(.system(size: min(15, height - 7), weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(working.first?.tint ?? live.provider.tint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .padding(.trailing, 7)
                     .frame(width: ear, alignment: .trailing)
             } else if let match = state.sports.notchMatch {
                 SportsCompactScore(match: match, ear: ear, notchWidth: notchWidth)
@@ -480,7 +526,13 @@ private struct CompactBar: View {
             }
         }
         .contentShape(SlitShape(radius: 12, flare: 6))
-        .onTapGesture { state.expandDefault() }
+        .onTapGesture {
+            if activity == .agents, state.settings.isTabEnabled(.agents) {
+                state.expand(.agents)
+            } else {
+                state.expandDefault()
+            }
+        }
         .onDrop(of: [.fileURL, .url], isTargeted: $isDropTargeted) { providers in
             Task { @MainActor in
                 let urls = await FileDrop.urls(from: providers)
@@ -612,6 +664,9 @@ private struct CompactBar: View {
         }
         if state.timer.isActive {
             return "Arrowslit. \(state.compactLabel) \(state.compactValue)"
+        }
+        if activity == .agents, let live = agentUsage.snapshot.live.first {
+            return "Arrowslit. \(live.provider.displayName) working in \(live.project)"
         }
         if let match = state.sports.notchMatch {
             return "Arrowslit. \(match.home.shortName) \(match.homeScore ?? 0), \(match.away.shortName) \(match.awayScore ?? 0), \(SportsFormat.shortStatus(match))"

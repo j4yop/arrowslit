@@ -34,6 +34,13 @@ struct AgentUsageTests {
         #expect(usage.projects.first?.name == "arrowslit")
     }
 
+    @Test func liveAgentsOutrankMusicInTheCompactStrip() {
+        #expect(NotchActivity.agents.priority < NotchActivity.nowPlaying.priority)
+        #expect(NotchActivity.agents.priority < NotchActivity.sports.priority)
+        #expect(PresentationResolver.ordered([.nowPlaying, .agents], preferred: nil) == [.agents, .nowPlaying])
+        #expect(PresentationResolver.ordered([.sports, .agents], preferred: nil) == [.agents, .sports])
+    }
+
     @Test func agentPagePairsCardsAndChartsTakeFullRows() {
         let providers: [AgentProvider] = [.codex, .opencode]
         let tiles = NotchAgentSupport.tiles(cards: NotchAgentSupport.cards(), providers: providers)
