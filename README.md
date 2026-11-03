@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.10.1/Arrowslit-0.10.1.dmg">Download it here</a></b>
+  <b><a href="https://github.com/j4yop/arrowslit/releases/download/v0.11.0/Arrowslit-0.11.0.dmg">Download it here</a></b>
   &nbsp;·&nbsp; or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
@@ -82,7 +82,7 @@ Otherwise, download it yourself:
 
 Heads up: I haven't paid Apple for a developer account yet, so the first time you open the app your Mac will grumble about it. You only have to deal with this once and it takes about a minute.
 
-1. Download **[Arrowslit-0.10.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.10.1/Arrowslit-0.10.1.dmg)** and open it.
+1. Download **[Arrowslit-0.11.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.0/Arrowslit-0.11.0.dmg)** and open it.
 2. Drag **Arrowslit** into your **Applications** folder.
 3. Go to Applications and double-click **Arrowslit**. Your Mac will say it could not open it. Just hit **Done**.
 4. Open **System Settings**, go to **Privacy & Security** and scroll down a bit. You will see a line saying Arrowslit was blocked. Click **Open Anyway**, type your password (or use Touch ID) and click **Open Anyway** one more time.
@@ -99,9 +99,9 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 
 | Release Details | |
 | :--- | :--- |
-| **Version** | 0.10.1 (build 36) |
-| **Direct Download** | [Arrowslit-0.10.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.10.1/Arrowslit-0.10.1.dmg) |
-| **SHA-256** | `0100f388a8c3387aa6a687cb2859f70407e7bfd7fd1232404bdc6550ebde574a` |
+| **Version** | 0.11.0 (build 64) |
+| **Direct Download** | [Arrowslit-0.11.0.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.0/Arrowslit-0.11.0.dmg) |
+| **SHA-256** | See `Arrowslit-0.11.0.dmg.sha256` in the release assets. |
 | **Homebrew Cask** | [Casks/arrowslit.rb](https://github.com/j4yop/homebrew-tap/blob/main/Casks/arrowslit.rb) |
 
 ## Using it
@@ -146,7 +146,23 @@ The download is a universal build that runs natively on Apple Silicon (M1/M2/M3/
 * Apple Silicon or Intel Mac
 * Works with or without a physical display notch
 
-## What is in 0.10.1
+## What is in 0.11.0
+
+This is the AI Agents live-notch and AI Agents release:
+
+* A full AI Agents page: Claude, Codex, OpenCode and GitHub Copilot readers, plan limits, API spend, models, projects, a stacked trend chart, a 13-week activity heatmap and Codex banked resets
+* A live agent compact strip in the closed notch: every working provider's mark in its own tint, plus the running elapsed turn time
+* Clicking the compact strip opens the AI Agents page
+* One live activity at a time in the closed notch; the detached second-activity bubble is gone
+* A new Notch settings tab with Arrowslit's 15 live feedback events, 7 closed-notch activities and 13 Dynamic Island feature switches
+* Wired feedback: volume, brightness, microphone, input source, battery/charging, accessory connection, clipboard, downloads, AI agents, new tracks and timer completion
+* Wired activities: timer, music, downloads, AI agents, calendar countdown and Keep Awake
+* Calendar only takes the strip within 30 minutes of an event
+* HUD transitions no longer leave the old compact reading ghosted underneath
+* The call and microphone counter now uses white text, like the timer and stopwatch
+* Unsupported AI Agents subsystems are visible but disabled in Settings rather than shipping fake toggles: the Notification Center mirror, OCR watch, media queue, companion and keyboard-light source
+
+## What was in 0.10.1
 
 This is the feel and finish pass against Notch Shell:
 
@@ -162,7 +178,7 @@ This is the feel and finish pass against Notch Shell:
 * Small and Medium sizes scale the header, launcher, Home, Tray, Clipboard and Calendar instead of clipping
 * Pitch black now removes the outline and shadow across every surface, so the shape fuses into the notch
 
-## What is in 0.10.0
+## What was in 0.10.0
 
 This is the Notch Shell parity release. It is a broad shell port, not only a feature drop:
 
