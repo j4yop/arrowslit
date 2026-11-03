@@ -28,7 +28,7 @@
 
 <p align="center">
   <a href="Docs/Media/Arrowslit-Launch-48s.mp4">
-    <img src="Docs/Images/arrowslit-hero-purpose.jpg" width="100%" alt="Arrowslit Launch Film: Your MacBook has a notch. Now it has a purpose.">
+    <img src="Docs/Media/Arrowslit-Launch-48s.gif" width="100%" alt="Arrowslit Launch Film: Your MacBook has a notch. Now it has a purpose.">
   </a>
 </p>
 
