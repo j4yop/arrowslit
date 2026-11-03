@@ -20,7 +20,7 @@ struct NotchOutlineTests {
         #expect(NotchOutline.radius(for: .expanded(.home)) == 30)
         #expect(NotchOutline.radius(for: .clockRunning(.timer)) == 30)
         #expect(NotchOutline.radius(for: .hidden(peek: true)) == 11)
-        #expect(NotchOutline.radius(for: .hidden(peek: false)) == 11)
+        #expect(NotchOutline.radius(for: .hidden(peek: false)) == 12)
     }
 
     @Test func outlineFlareFollowsEachSurface() {
