@@ -56,6 +56,8 @@ public enum IslandMetrics {
         public static let mediaCardWidth: CGFloat = 210
         /// The grid of features gets more height than the other views.
         public static let launcherBody: CGFloat = 170
+        /// The AI Agents page is taller than the fixed nook: its cards scroll.
+        public static let agentBody: CGFloat = 330
         /// Clipboard's search bar, added below the clips while it is open.
         public static let searchBar: CGFloat = 40
         public static let launcherTile: CGFloat = 76

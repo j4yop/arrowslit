@@ -44,7 +44,7 @@ public final class HotKeys {
     /// Stable order for the Carbon IDs; the launcher uses the same tabs.
     static let items: [WorkbenchTab] = [
         .nowPlaying, .timer, .stopwatch, .calendar, .sports, .reminders,
-        .clipboard, .tray, .notes, .mirror, .keepAwake, .stats,
+        .clipboard, .tray, .notes, .mirror, .keepAwake, .stats, .agents,
     ]
 
     private static let signature: OSType = 0x4152_534C // "ARSL"

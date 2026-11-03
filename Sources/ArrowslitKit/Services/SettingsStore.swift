@@ -210,6 +210,10 @@ public final class SettingsStore {
             enabledTabs.insert(WorkbenchTab.sports.rawValue)
             defaults.set(true, forKey: Key.sportsDefaultAdded)
         }
+        if !defaults.bool(forKey: Key.agentsDefaultAdded) {
+            enabledTabs.insert(WorkbenchTab.agents.rawValue)
+            defaults.set(true, forKey: Key.agentsDefaultAdded)
+        }
     }
 
     /// A feature's switch and its tab are one setting. Older builds, or a
@@ -303,6 +307,7 @@ public final class SettingsStore {
         static let lyrics = "arrowslit.lyricsEnabled"
         static let checksForUpdates = "arrowslit.checksForUpdates"
         static let sportsDefaultAdded = "arrowslit.sports.defaultAdded"
+        static let agentsDefaultAdded = "arrowslit.agents.defaultAdded"
         static let sportsPreview = "arrowslit.sports.preview"
         static let sportsRefreshSeconds = "arrowslit.sports.refreshSeconds"
         static let sportsShowInNotch = "arrowslit.sports.showInNotch"

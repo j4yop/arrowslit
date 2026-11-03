@@ -35,6 +35,7 @@ struct NookView: View {
                 case .stats: CompactStats(state: state)
                 case .sports: SportsPane(state: state)
                 case .reminders: CompactReminders(state: state)
+                case .agents: VorssaintAgentsPane(state: state)
                 case .keepAwake: CompactKeepAwake(state: state)
                 case .launcher: LauncherPane(state: state)
                 }
@@ -89,6 +90,7 @@ struct NookView: View {
 private struct NookHeader: View {
     @Bindable var state: AppState
     let notchWidth: CGFloat
+    @AppStorage("arrowslit.agents.period") private var agentsPeriod = AgentPeriod.today.rawValue
     @Environment(\.panelScale) private var scale
 
     private var shortcuts: [WorkbenchTab] {
@@ -204,10 +206,61 @@ private struct NookHeader: View {
             .buttonStyle(NookPressStyle())
             .help("Home")
             .accessibilityLabel("Back to Home")
-            Text(state.activeTab.title)
-                .font(.system(size: 13 * scale, weight: .semibold))
-                .foregroundStyle(ArrowTheme.bone)
-                .lineLimit(1)
+            if state.activeTab == .agents {
+                agentPeriodMenu
+            } else {
+                Text(state.activeTab.title)
+                    .font(.system(size: 13 * scale, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    private var agentPeriodTitle: String {
+        switch AgentPeriod(rawValue: agentsPeriod) ?? .today {
+        case .today: "Today"
+        case .week: "7 days"
+        case .month: "30 days"
+        }
+    }
+
+    private var agentPeriodMenu: some View {
+        Menu {
+            ForEach(AgentPeriod.allCases) { period in
+                Button {
+                    agentsPeriod = period.rawValue
+                    NookHaptics.perform(enabled: state.settings.hapticFeedback)
+                } label: {
+                    if period.rawValue == agentsPeriod {
+                        Label(agentPeriodTitle(period), systemImage: "checkmark")
+                    } else {
+                        Text(agentPeriodTitle(period))
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 4 * scale) {
+                Text(agentPeriodTitle)
+                    .font(.system(size: 13 * scale, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.bone)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9 * scale, weight: .bold))
+                    .foregroundStyle(ArrowTheme.muted)
+            }
+            .lineLimit(1)
+            .fixedSize()
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .accessibilityLabel("AI Agents period")
+    }
+
+    private func agentPeriodTitle(_ period: AgentPeriod) -> String {
+        switch period {
+        case .today: "Today"
+        case .week: "7 days"
+        case .month: "30 days"
         }
     }
 }

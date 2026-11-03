@@ -119,6 +119,7 @@ public enum ParityLayout {
         case .clipboard:
             IslandMetrics.Nook.body + IslandMetrics.Nook.bodyTopInset
                 + (clipboardSearching ? IslandMetrics.Nook.searchBar : 0)
+        case .agents: IslandMetrics.Nook.agentBody + IslandMetrics.Nook.bodyTopInset
         case .home, .tray, .notes, .mirror, .calendar, .reminders, .stats, .sports, .keepAwake, .timer, .stopwatch:
             IslandMetrics.Nook.body + IslandMetrics.Nook.bodyTopInset
         case .launcher: IslandMetrics.Nook.launcherBody + IslandMetrics.Nook.bodyTopInset
