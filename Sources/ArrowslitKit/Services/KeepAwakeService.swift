@@ -6,6 +6,8 @@ import Observation
 @Observable
 public final class KeepAwakeService {
     public private(set) var isOn = false
+    /// When the current session started, for the closed-notch timer.
+    public private(set) var startedAt: Date?
 
     @ObservationIgnored private var activity: NSObjectProtocol?
 
@@ -21,6 +23,7 @@ public final class KeepAwakeService {
             options: [.idleSystemSleepDisabled, .userInitiated],
             reason: "Arrowslit Keep Awake"
         )
+        startedAt = Date()
         isOn = true
     }
 
@@ -29,6 +32,7 @@ public final class KeepAwakeService {
             ProcessInfo.processInfo.endActivity(activity)
             self.activity = nil
         }
+        startedAt = nil
         isOn = false
     }
 }

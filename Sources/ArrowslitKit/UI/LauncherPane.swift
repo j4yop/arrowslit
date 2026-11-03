@@ -16,7 +16,7 @@ struct LauncherPane: View {
     private var tileGap: CGFloat { 10 * scale }
 
     private var items: [WorkbenchTab] {
-        [.nowPlaying, .timer, .stopwatch, .calendar, .sports, .reminders,
+        [.nowPlaying, .timer, .stopwatch, .calendar, .sports, .reminders, .agents,
          .clipboard, .tray, .notes, .mirror, .keepAwake, .stats]
             .filter { state.settings.isTabEnabled($0) }
     }

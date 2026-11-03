@@ -82,24 +82,15 @@ struct ArrowslitRootView: View {
                     hud: nil
                 )
                 .transition(.opacity)
-            case .compact(_, let secondary):
-                let compactWidth = ParityLayout.compactWidth(state.settings.appearance, geometry: geometry)
-                let height = ParityLayout.compactHeight(state.settings.appearance, geometry: geometry)
-                let bubble = ParityLayout.compactBubbleDiameter(state.settings.appearance, geometry: geometry)
-                ZStack(alignment: .topLeading) {
-                    CompactBar(
-                        state: state,
-                        width: compactWidth,
-                        height: height,
-                        notchWidth: ParityLayout.notch(in: geometry).width,
-                        hud: nil
-                    )
-                    if let secondary {
-                        SecondaryBubble(state: state, activity: secondary, diameter: bubble)
-                            .offset(x: compactWidth + 4, y: (height - bubble) / 2)
-                            .transition(.scale(scale: 0.6).combined(with: .opacity))
-                    }
-                }
+            case .compact(let primary):
+                CompactBar(
+                    state: state,
+                    width: ParityLayout.compactWidth(state.settings.appearance, geometry: geometry),
+                    height: ParityLayout.compactHeight(state.settings.appearance, geometry: geometry),
+                    notchWidth: ParityLayout.notch(in: geometry).width,
+                    hud: nil,
+                    activity: primary
+                )
                 .transition(.opacity)
             case .hud:
                 CompactBar(
@@ -126,7 +117,12 @@ struct ArrowslitRootView: View {
             }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
-        .animation(NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion), value: presentation)
+        // A HUD replaces the strip rather than growing out of it; crossfading
+        // both leaves the old reading visible beneath the new one.
+        .animation(presentation.hudAlert == nil
+                   ? NookMotion.reducing(NookMotion.open, reduceMotion: reduceMotion)
+                   : nil,
+                   value: presentation)
         .environment(\.colorScheme, .dark)
         .environment(\.panelGeometry, geometry)
         .environment(\.panelScale, state.settings.appearance.size.scale)
@@ -157,83 +153,6 @@ private struct NotchOutlineOverlay: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-    }
-}
-
-/// The detached circle that carries the second live activity.
-private struct SecondaryBubble: View {
-    @Bindable var state: AppState
-    let activity: NotchActivity
-    let diameter: CGFloat
-
-    var body: some View {
-        ZStack {
-            Circle().fill(ArrowTheme.ink)
-            Circle().stroke(ArrowTheme.hairline, lineWidth: 0.5)
-            content
-        }
-        .frame(width: diameter, height: diameter)
-        .accessibilityElement()
-        .accessibilityLabel("Second activity: \(name)")
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        switch activity {
-        case .nowPlaying:
-            if let artwork = state.nowPlaying.activeArtwork {
-                Image(nsImage: artwork)
-                    .resizable()
-                    .interpolation(.high)
-                    .aspectRatio(contentMode: .fill)
-                    .clipShape(Circle())
-            } else {
-                Image(systemName: "music.note")
-                    .font(.system(size: diameter * 0.42, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.bone)
-            }
-        case .timer:
-            Image(systemName: "timer")
-                .font(.system(size: diameter * 0.42, weight: .semibold))
-                .foregroundStyle(ArrowTheme.amber)
-        case .stopwatch:
-            Image(systemName: "stopwatch.fill")
-                .font(.system(size: diameter * 0.42, weight: .semibold))
-                .foregroundStyle(ArrowTheme.amber)
-        case .sports:
-            Image(systemName: "soccerball")
-                .font(.system(size: diameter * 0.42, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .download:
-            Image(systemName: "arrow.down")
-                .font(.system(size: diameter * 0.42, weight: .bold))
-                .foregroundStyle(ArrowTheme.blue)
-        case .call:
-            Image(systemName: "phone.fill")
-                .font(.system(size: diameter * 0.4, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .charging:
-            Image(systemName: "bolt.fill")
-                .font(.system(size: diameter * 0.4, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        case .stats:
-            Image(systemName: "gauge.with.dots.needle.33percent")
-                .font(.system(size: diameter * 0.4, weight: .semibold))
-                .foregroundStyle(ArrowTheme.green)
-        }
-    }
-
-    private var name: String {
-        switch activity {
-        case .nowPlaying: "Now Playing"
-        case .timer: "Timer"
-        case .stopwatch: "Stopwatch"
-        case .sports: "Sports"
-        case .download: "Download"
-        case .call: "Call"
-        case .charging: "Charging"
-        case .stats: "Stats"
-        }
     }
 }
 
@@ -273,7 +192,10 @@ private struct CompactBar: View {
     let height: CGFloat
     let notchWidth: CGFloat
     var hud: NotchAlert?
+    /// Which live activity fills the strip; the agent compact strip opens its page.
+    var activity: NotchActivity? = nil
     @State private var isDropTargeted = false
+    @ObservedObject private var agentUsage = AgentUsageService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
@@ -297,7 +219,7 @@ private struct CompactBar: View {
             if let hud {
                 hudContent(hud)
                     .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
-            } else if let session = state.calls.session {
+            } else if activity == .call, let session = state.calls.session {
                 Group {
                     if let icon = state.calls.appIcon {
                         Image(nsImage: icon)
@@ -327,13 +249,13 @@ private struct CompactBar: View {
                     Text(session.startDate, style: .timer)
                         .font(.system(size: 11, weight: .semibold))
                         .monospacedDigit()
-                        .foregroundStyle(session.isCall ? ArrowTheme.green : ArrowTheme.amber)
+                        .foregroundStyle(ArrowTheme.bone)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                 }
                 .padding(.trailing, 6)
                 .frame(width: ear, alignment: .trailing)
-            } else if state.timer.isActive {
+            } else if activity == .timer, state.timer.isActive {
                 Image(systemName: "timer")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(state.timer.isPaused ? ArrowTheme.muted : ArrowTheme.amber)
@@ -349,7 +271,7 @@ private struct CompactBar: View {
                     .foregroundStyle(ArrowTheme.bone)
                     .padding(.trailing, 10)
                     .frame(width: ear, alignment: .trailing)
-            } else if state.stopwatch.isActive {
+            } else if activity == .stopwatch, state.stopwatch.isActive {
                 Image(systemName: "stopwatch")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(state.stopwatch.isRunning ? ArrowTheme.amber : ArrowTheme.muted)
@@ -365,9 +287,90 @@ private struct CompactBar: View {
                     .foregroundStyle(ArrowTheme.bone)
                     .padding(.trailing, 10)
                     .frame(width: ear, alignment: .trailing)
-            } else if let match = state.sports.notchMatch {
+            } else if activity == .calendar, let event = state.calendar.nextEvent {
+                HStack(spacing: 5) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber)
+                    Text(Self.calendarLead(event))
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(ArrowTheme.bone)
+                        .lineLimit(1)
+                }
+                .padding(.leading, 10)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text(event.title)
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .minimumScaleFactor(0.7)
+                    .padding(.trailing, 10)
+                    .frame(width: ear, alignment: .trailing)
+            } else if activity == .keepAwake {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ArrowTheme.green)
+                    .padding(.leading, 11)
+                    .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Group {
+                    if let started = state.keepAwake.startedAt {
+                        Text(started, style: .timer)
+                    } else {
+                        Text("On")
+                    }
+                }
+                .font(.system(size: 12, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(ArrowTheme.green)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .padding(.trailing, 10)
+                .frame(width: ear, alignment: .trailing)
+            } else if activity == .agents, let live = agentUsage.snapshot.live.first {
+                // Arrowslit's strip: one breathing mark per working agent,
+                // each in its own color, and one reading on the other side.
+                let working = AgentProvider.allCases.filter { provider in
+                    agentUsage.snapshot.live.contains { $0.provider == provider }
+                }
+                let preferred = min(working.count > 1 ? 11.0 : 14.0, max(8, height - 14))
+                // Arrowslit's ear is fixed, so several marks share its width
+                // rather than widening the island as Arrowslit's wing does.
+                let count = CGFloat(max(1, working.count))
+                let inset: CGFloat = working.count > 1 ? 6 : 10
+                let room = (ear - inset - (count - 1)) / (count * 1.45)
+                let markSize = min(preferred, max(7, room))
+                HStack(spacing: 1) {
+                    ForEach(working) { provider in
+                        NotchAgentGlyph(provider: provider, size: markSize)
+                    }
+                }
+                .padding(.leading, inset)
+                .frame(width: ear, alignment: .leading)
+
+                Color.clear
+                    .frame(width: notchWidth)
+
+                Text(live.started, style: .timer)
+                    .font(.system(size: min(15, height - 7), weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(working.first?.tint ?? live.provider.tint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .padding(.trailing, 7)
+                    .frame(width: ear, alignment: .trailing)
+            } else if activity == .sports, let match = state.sports.notchMatch {
                 SportsCompactScore(match: match, ear: ear, notchWidth: notchWidth)
-            } else if let track = musicTrack {
+            } else if activity == .nowPlaying, let track = musicTrack {
                 compactArtwork
                     .padding(.leading, 10)
                     .frame(width: ear, alignment: .leading)
@@ -375,15 +378,23 @@ private struct CompactBar: View {
                 Color.clear
                     .frame(width: notchWidth)
 
-                MusicBars(
-                    isPlaying: track.isPlaying,
-                    color: state.nowPlaying.activeAccent.color,
-                    height: 15,
-                    width: 20
-                )
+                Group {
+                    if state.live.equalizer {
+                        MusicBars(
+                            isPlaying: track.isPlaying,
+                            color: state.nowPlaying.activeAccent.color,
+                            height: 15,
+                            width: 20
+                        )
+                    } else {
+                        Image(systemName: track.isPlaying ? "speaker.wave.2.fill" : "pause.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(state.nowPlaying.activeAccent.color)
+                    }
+                }
                 .padding(.trailing, 10)
                 .frame(width: ear, alignment: .trailing)
-            } else if !state.downloadProgress.items.isEmpty {
+            } else if activity == .download, !state.downloadProgress.items.isEmpty {
                 DownloadCompactIcon(fontSize: compactFontSize)
                     .padding(.leading, 10)
                     .frame(width: ear, alignment: .leading)
@@ -394,7 +405,7 @@ private struct CompactBar: View {
                 DownloadCompactValue(summary: state.downloadProgress.summary, fontSize: compactFontSize)
                     .padding(.trailing, 10)
                     .frame(width: ear, alignment: .trailing)
-            } else if state.settings.statsEnabled, state.stats.isRunning, state.stats.hasReading {
+            } else if activity == .stats, state.settings.statsEnabled, state.stats.isRunning, state.stats.hasReading {
                 HStack(spacing: 4) {
                     Image(systemName: "gauge.with.dots.needle.33percent")
                         .font(.system(size: 10, weight: .semibold))
@@ -420,7 +431,7 @@ private struct CompactBar: View {
                     .minimumScaleFactor(0.7)
                     .padding(.trailing, 9)
                     .frame(width: ear, alignment: .trailing)
-            } else if state.compactCharging {
+            } else if activity == .charging || state.compactCharging {
                 HStack(spacing: 5) {
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 11, weight: .bold))
@@ -466,7 +477,7 @@ private struct CompactBar: View {
             }
         }
         .frame(width: width, height: height)
-        .animation(NookMotion.reducing(NookMotion.quick, reduceMotion: reduceMotion), value: hud)
+        .animation(nil, value: hud)
         .background(NotchSurfaceBackground(appearance: state.settings.appearance, radius: 12, flare: 6, notchBand: geometry.notch?.height ?? 0))
         .clipShape(SlitShape(radius: 12, flare: 6))
         .overlay {
@@ -480,7 +491,13 @@ private struct CompactBar: View {
             }
         }
         .contentShape(SlitShape(radius: 12, flare: 6))
-        .onTapGesture { state.expandDefault() }
+        .onTapGesture {
+            if activity == .agents, state.settings.isTabEnabled(.agents) {
+                state.expand(.agents)
+            } else {
+                state.expandDefault()
+            }
+        }
         .onDrop(of: [.fileURL, .url], isTargeted: $isDropTargeted) { providers in
             Task { @MainActor in
                 let urls = await FileDrop.urls(from: providers)
@@ -530,6 +547,35 @@ private struct CompactBar: View {
                 ear: ear,
                 notchWidth: notchWidth
             )
+        case .clipboard(let kind):
+            HUDStatusRow(symbol: "doc.on.clipboard", tint: ArrowTheme.green,
+                         title: "Copied", detail: kind, pulses: false, ear: ear, notchWidth: notchWidth)
+        case .track(let title, let artist):
+            HUDStatusRow(symbol: "music.note", tint: ArrowTheme.blue,
+                         title: title, detail: artist, pulses: false, ear: ear, notchWidth: notchWidth)
+        case .microphone(let muted):
+            HUDStatusRow(symbol: muted ? "mic.slash.fill" : "mic.fill",
+                         tint: muted ? ArrowTheme.red : ArrowTheme.green,
+                         title: "Mic", detail: muted ? "Muted" : "On",
+                         pulses: muted, ear: ear, notchWidth: notchWidth)
+        case .inputSource(let code, let name):
+            HUDStatusRow(symbol: "keyboard", tint: ArrowTheme.blue,
+                         title: code, detail: name, pulses: false, ear: ear, notchWidth: notchWidth)
+        case .agentEvent(let provider, let title, let detail):
+            HUDStatusRow(symbol: "sparkles", tint: ArrowTheme.green, title: provider,
+                         detail: detail.isEmpty ? title : "\(title) · \(detail)",
+                         pulses: false, ear: ear, notchWidth: notchWidth)
+        case .systemNotification(let app, let title, let body):
+            HUDStatusRow(symbol: "bell.fill", tint: ArrowTheme.blue,
+                         title: app.isEmpty ? title : app,
+                         detail: title.isEmpty ? body : title,
+                         pulses: false, ear: ear, notchWidth: notchWidth)
+        case .capture(let kind):
+            HUDStatusRow(symbol: "camera.viewfinder", tint: ArrowTheme.amber,
+                         title: "Capture", detail: kind, pulses: false, ear: ear, notchWidth: notchWidth)
+        case .watch(let title, let detail):
+            HUDStatusRow(symbol: "eye", tint: ArrowTheme.green,
+                         title: title, detail: detail, pulses: false, ear: ear, notchWidth: notchWidth)
         default:
             EmptyView()
         }
@@ -582,6 +628,17 @@ private struct CompactBar: View {
             .frame(width: max(20, ear - 18), alignment: .trailing)
     }
 
+    /// A two-character-ish lead for the narrow calendar ear: "now", "12m",
+    /// "2h" or the weekday for later events.
+    private static func calendarLead(_ event: CalendarEvent) -> String {
+        let now = Date()
+        if event.isHappening(at: now) { return "Now" }
+        let minutes = max(1, Int(event.start.timeIntervalSince(now) / 60))
+        if minutes < 60 { return "\(minutes)m" }
+        if minutes < 24 * 60 { return "\(minutes / 60)h" }
+        return event.start.formatted(.dateTime.weekday(.abbreviated))
+    }
+
     private var accessibilityLabel: String {
         if let session = state.calls.session {
             return "Arrowslit. \(session.isCall ? "On call with" : "Microphone used by") \(session.appName)"
@@ -598,8 +655,28 @@ private struct CompactBar: View {
         if let hud {
             switch hud {
             case .level(let kind, let value, let muted):
-                let name = kind == .volume ? "Volume" : "Brightness"
+                let name = switch kind {
+                case .volume: "Volume"
+                case .brightness: "Brightness"
+                case .keyboardLight: "Keyboard light"
+                }
                 return muted ? "Arrowslit. \(name) muted" : "Arrowslit. \(name) \(Int((value * 100).rounded())) percent"
+            case .clipboard(let kind):
+                return "Arrowslit. Copied \(kind)"
+            case .track(let title, let artist):
+                return "Arrowslit. Now playing \(title) by \(artist)"
+            case .microphone(let muted):
+                return "Arrowslit. Microphone \(muted ? "muted" : "on")"
+            case .inputSource(let code, let name):
+                return "Arrowslit. Keyboard \(code), \(name)"
+            case .agentEvent(let provider, let title, let detail):
+                return "Arrowslit. \(provider) \(title) \(detail)"
+            case .systemNotification(let app, let title, _):
+                return "Arrowslit. \(app) \(title)"
+            case .capture(let kind):
+                return "Arrowslit. \(kind)"
+            case .watch(let title, let detail):
+                return "Arrowslit. \(title) \(detail)"
             case .charging(let level, let isCharging):
                 return "Arrowslit. \(isCharging ? "Charging" : "Connected") \(level) percent"
             case .lowBattery(let level):
@@ -612,6 +689,15 @@ private struct CompactBar: View {
         }
         if state.timer.isActive {
             return "Arrowslit. \(state.compactLabel) \(state.compactValue)"
+        }
+        if activity == .agents, let live = agentUsage.snapshot.live.first {
+            return "Arrowslit. \(live.provider.displayName) working in \(live.project)"
+        }
+        if activity == .calendar, let event = state.calendar.nextEvent {
+            return "Arrowslit. \(event.title), \(Self.calendarLead(event))"
+        }
+        if activity == .keepAwake {
+            return "Arrowslit. Keep awake on"
         }
         if let match = state.sports.notchMatch {
             return "Arrowslit. \(match.home.shortName) \(match.homeScore ?? 0), \(match.away.shortName) \(match.awayScore ?? 0), \(SportsFormat.shortStatus(match))"
@@ -705,6 +791,7 @@ private struct HUDLevelRow: View {
         switch kind {
         case .volume: muted ? "speaker.slash.fill" : "speaker.wave.2.fill"
         case .brightness: "sun.max"
+        case .keyboardLight: "keyboard"
         }
     }
 }
@@ -765,16 +852,17 @@ private struct HUDStatusRow: View {
 
             VStack(alignment: .trailing, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(tint)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 Text(detail)
                     .font(.system(size: 9, weight: .medium))
                     .foregroundStyle(ArrowTheme.muted)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.75)
             }
-            .padding(.trailing, 10)
+            .padding(.trailing, 8)
             .frame(width: ear, alignment: .trailing)
         }
     }

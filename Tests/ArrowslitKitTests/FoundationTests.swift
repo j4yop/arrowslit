@@ -185,7 +185,7 @@ struct PresentationResolverTests {
             activeActivities: [.timer, .nowPlaying, .call]
         ))
 
-        #expect(presentation == .compact(primary: .call, secondary: .timer))
+        #expect(presentation == .compact(primary: .call))
     }
 
     @Test func chargingSitsBehindMediaAndAheadOfStats() {
@@ -195,7 +195,7 @@ struct PresentationResolverTests {
             activeActivities: [.stats, .charging, .nowPlaying]
         ))
 
-        #expect(presentation == .compact(primary: .nowPlaying, secondary: .charging))
+        #expect(presentation == .compact(primary: .nowPlaying))
     }
 
     @Test func runningTimerUsesTheClockCompact strip() {
@@ -317,7 +317,7 @@ struct PresentationResolverTests {
             isHoveringNotch: true
         ))
 
-        #expect(presentation == .compact(primary: .nowPlaying, secondary: nil))
+        #expect(presentation == .compact(primary: .nowPlaying))
     }
 }
 
@@ -413,7 +413,7 @@ struct NotchPanelMetricsTests {
     )
 
     @Test func compactMatchesTheStrip() {
-        let size = NotchPanelMetrics.size(for: .compact(primary: nil, secondary: nil), geometry: geometry)
+        let size = NotchPanelMetrics.size(for: .compact(primary: nil), geometry: geometry)
         #expect(size == CGSize(width: geometry.compactWidth, height: 32))
     }
 

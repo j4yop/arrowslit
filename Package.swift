@@ -16,7 +16,9 @@ let package = Package(
         ),
         .target(
             name: "ArrowslitKit",
-            path: "Sources/ArrowslitKit"
+            path: "Sources/ArrowslitKit",
+            resources: [.process("Resources")],
+            linkerSettings: [.linkedLibrary("sqlite3")]
         ),
         .target(
             name: "ArrowslitMedia",

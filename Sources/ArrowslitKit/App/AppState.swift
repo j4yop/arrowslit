@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Foundation
 import Observation
 
@@ -16,6 +17,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
     case stats
     case sports
     case reminders
+    case agents
     case stopwatch
     case keepAwake
     case launcher
@@ -37,6 +39,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .stats: "Stats"
         case .sports: "Sports"
         case .reminders: "Reminders"
+        case .agents: "AI Agents"
         case .stopwatch: "Stopwatch"
         case .keepAwake: "Keep Awake"
         case .launcher: "All Features"
@@ -58,6 +61,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .stats: "gauge.with.dots.needle.33percent"
         case .sports: "soccerball"
         case .reminders: "checklist"
+        case .agents: "sparkles"
         case .stopwatch: "stopwatch"
         case .keepAwake: "cup.and.saucer"
         case .launcher: "square.grid.2x2"
@@ -74,6 +78,7 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
         case .calendar: "A"
         case .sports: "F"
         case .reminders: "O"
+        case .agents: "G"
         case .clipboard: "B"
         case .tray: "L"
         case .notes: "N"
@@ -102,13 +107,21 @@ public enum WorkbenchTab: String, CaseIterable, Identifiable, Sendable {
 @Observable
 public final class AppState {
     public let settings: SettingsStore
+    /// The closed notch's live feedback and activity catalogue.
+    public let live = NotchLiveSettings()
     public let calls = CallMonitor()
     public let microphone = MicrophoneMute()
+    public let inputSource = InputSourceMonitor()
     public let downloads = DownloadsWatcher()
     public let downloadProgress = DownloadProgressMonitor()
     public let todos = TodoStore()
     public let shortcuts = ShortcutsService()
     public let agents = AgentBridge()
+    @ObservationIgnored private var agentLiveObservation: AnyCancellable?
+    @ObservationIgnored private var agentEventObservation: AnyCancellable?
+    /// Keeps the compact notch observing live agent sessions without making
+    /// every caller subscribe to the reader's full snapshot.
+    public private(set) var agentLiveCount = 0
     public let nowPlaying: NowPlayingService
     public let timer: TimerService
     public let calendar: CalendarService
@@ -173,6 +186,23 @@ public final class AppState {
         nowPlaying.onAppSeen = { [weak settings] identifier in
             settings?.noteMediaApp(identifier)
         }
+        nowPlaying.onTrackChanged = { [weak self] track in
+            guard let self, track.isPlaying, !track.title.isEmpty else { return }
+            self.receive(.track(title: track.title, artist: track.artist))
+        }
+        system.live = live
+        microphone.onMuteChanged = { [weak self] muted in
+            self?.receive(.microphone(muted: muted))
+        }
+        clipboard.onCaptured = { [weak self] _ in
+            self?.receive(.clipboard(kind: "Text"))
+        }
+        inputSource.onChange = { [weak self] code, name in
+            self?.receive(.inputSource(code: code, name: name))
+        }
+        agentEventObservation = AgentUsageService.shared.events
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] event in self?.receiveAgentEvent(event) }
 
         calendar.onReminder = { [weak self] event in
             guard let self, self.settings.isTabEnabled(.calendar) else { return }
@@ -206,6 +236,7 @@ public final class AppState {
 
     public func start() {
         session.start()
+        inputSource.start()
         system.onAlert = { [weak self] alert in
             guard let self else { return }
             if self.session.isLocked, !self.settings.showOnLockScreen { return }
@@ -215,8 +246,8 @@ public final class AppState {
         system.start()
         if settings.statsEnabled { stats.start() }
         nowPlaying.start()
-        if settings.callsEnabled {
-            calls.start()
+        if settings.callsEnabled { calls.start() }
+        if settings.callsEnabled || live.isOn(NotchLiveSettings.Event.microphone) {
             microphone.start()
         }
         if settings.downloadsEnabled {
@@ -236,9 +267,19 @@ public final class AppState {
             return self.receive(.update(version: release.version.description))
         }
         if settings.checksForUpdates { updater.startAutomaticChecks() }
+        AgentUsageService.shared.syncWithPreferences()
+        agentLiveObservation = AgentUsageService.shared.$snapshot
+            .map { $0.live.count }
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] count in self?.agentLiveCount = count }
     }
 
     public func stop() {
+        agentLiveObservation?.cancel()
+        agentLiveObservation = nil
+        agentEventObservation?.cancel()
+        agentEventObservation = nil
         notes.save()
         tray.clearUnpinned()
         nowPlaying.stop()
@@ -248,6 +289,7 @@ public final class AppState {
         downloadProgress.stop()
         agents.stop()
         hotKeys.unregister()
+        inputSource.stop()
         calendar.stop()
         clipboard.stop()
         stats.stop()
@@ -543,12 +585,18 @@ public final class AppState {
         PresentationResolver.resolve(PresentationInput(
             isExpanded: isExpanded,
             activeTab: activeTab,
-            activeActivities: activeActivities,
+            activeActivities: compactActivities,
             preferredPrimary: nil,
             alert: alerts.current,
             showWhenIdle: settings.showWhenIdle,
             isHoveringNotch: isHoveringNotch
         ))
+    }
+
+    /// Expanded pages keep their own clock behaviour even when the person has
+    /// turned the matching closed strip off.
+    private var compactActivities: Set<NotchActivity> {
+        isExpanded ? activeActivities : activeActivities.filter { live.showsStrip($0) }
     }
 
     /// What a mirror panel shows while content is open elsewhere. Alerts still appear on every
@@ -558,9 +606,9 @@ public final class AppState {
         // same alert appears on every screen. Opened content stays on the active screen.
         if case .alert = presentation { return presentation }
         if case .hud = presentation { return presentation }
-        let ordered = PresentationResolver.ordered(activeActivities, preferred: nil)
+        let ordered = PresentationResolver.ordered(compactActivities, preferred: nil)
         if let primary = ordered.first {
-            return .compact(primary: primary, secondary: ordered.dropFirst().first)
+            return .compact(primary: primary)
         }
         return settings.showWhenIdle ? .idle : .hidden(peek: false)
     }
@@ -590,8 +638,8 @@ public final class AppState {
             return ParityLayout.hiddenSize(settings.appearance, geometry: geometry)
         case .idle:
             return ParityLayout.compactSize(settings.appearance, geometry: geometry)
-        case .compact(_, let secondary):
-            return ParityLayout.compactSize(settings.appearance, geometry: geometry, hasSecondary: secondary != nil)
+        case .compact:
+            return ParityLayout.compactSize(settings.appearance, geometry: geometry)
         case .expanded(let tab):
             return ParityLayout.expandedSize(
                 for: tab,
@@ -616,13 +664,9 @@ public final class AppState {
         }
     }
 
-    /// The part of the panel that should stay centred on the camera. A secondary bubble
-    /// stretches the panel to the right, so the compact shape itself remains the anchor.
+    /// The part of the panel that should stay centred on the camera.
     public func panelAnchorWidth(for presentation: NotchPresentation, geometry: ScreenGeometry) -> CGFloat {
-        if case .compact = presentation {
-            return ParityLayout.compactWidth(settings.appearance, geometry: geometry)
-        }
-        return panelSize(for: presentation, geometry: geometry).width
+        panelSize(for: presentation, geometry: geometry).width
     }
 
     public var currentAlert: NotchAlert? { alerts.current }
@@ -638,6 +682,12 @@ public final class AppState {
         if timer.isActive { active.insert(.timer) }
         if stopwatch.isActive { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
+        if agentLiveCount > 0, settings.isTabEnabled(.agents) { active.insert(.agents) }
+        if settings.isTabEnabled(.calendar), let event = calendar.nextEvent,
+           event.isHappening(at: Date()) || event.start.timeIntervalSinceNow <= 30 * 60 {
+            active.insert(.calendar)
+        }
+        if settings.isTabEnabled(.keepAwake), keepAwake.isOn { active.insert(.keepAwake) }
         if session.isLocked, settings.showOnLockScreen, system.isOnAC { active.insert(.charging) }
         // Stats is a page, not a resting activity. It stays in the menu, but
         // never takes over the closed notch when nothing else is happening.
@@ -656,10 +706,54 @@ public final class AppState {
             && !nowPlaying.isVisible
     }
 
+    private func receiveAgentEvent(_ event: AgentUsageEvent) {
+        switch event {
+        case .finished(let provider, let duration, let cost, _, _):
+            let detail = [AgentFormat.duration(duration, locale: .current),
+                          cost > 0 ? AgentFormat.cost(cost) : ""]
+                .filter { !$0.isEmpty }.joined(separator: " · ")
+            receive(.agentEvent(provider: provider.displayName, title: "Finished", detail: detail))
+        case .limitWarning(let provider, let window):
+            receive(.agentEvent(provider: provider.displayName, title: "Limit",
+                                detail: AgentFormat.percent(window.usedFraction) + " used"))
+        case .limitReset(let provider, _):
+            receive(.agentEvent(provider: provider.displayName, title: "Limit reset", detail: "Renewed"))
+        case .budgetReached(let spent, _):
+            receive(.agentEvent(provider: "AI Agents", title: "Budget", detail: AgentFormat.cost(spent)))
+        }
+    }
+
+    /// Whether the person has left this feedback event on in the Notch tab.
+    private func shows(_ alert: NotchAlert) -> Bool {
+        switch alert {
+        case .level(let kind, _, _):
+            switch kind {
+            case .volume: return live.isOn(NotchLiveSettings.Event.volume)
+            case .brightness: return live.isOn(NotchLiveSettings.Event.brightness)
+            case .keyboardLight: return live.isOn(NotchLiveSettings.Event.keyboardLight)
+            }
+        case .charging, .lowBattery: return live.isOn(NotchLiveSettings.Event.battery)
+        case .headphones: return live.isOn(NotchLiveSettings.Event.accessory)
+        case .clipboard: return live.isOn(NotchLiveSettings.Event.clipboard)
+        case .download: return live.isOn(NotchLiveSettings.Event.download)
+        case .agentEvent: return live.isOn(NotchLiveSettings.Event.agents)
+        case .track: return live.isOn(NotchLiveSettings.Event.track)
+        case .microphone: return live.isOn(NotchLiveSettings.Event.microphone)
+        case .inputSource: return live.isOn(NotchLiveSettings.Event.inputSource)
+        case .timerFinished: return live.isOn(NotchLiveSettings.Event.timer)
+        case .systemNotification: return live.isOn(NotchLiveSettings.Event.systemNotification)
+        case .capture: return live.isOn(NotchLiveSettings.Event.capture)
+        case .watch: return live.isOn(NotchLiveSettings.Event.watch)
+        case .upcomingEvent: return settings.isTabEnabled(.calendar)
+        default: return true
+        }
+    }
+
     /// Adds a heads-up. Non-urgent alerts wait while the workbench is open; urgent ones may
     /// interrupt it.
     @discardableResult
     public func receive(_ alert: NotchAlert) -> Bool {
+        guard shows(alert) else { return false }
         if session.isLocked, !settings.showOnLockScreen { return false }
         if alert.isInstant, isExpanded { return false }
         if case .sportsGoal = alert, settings.hapticFeedback {

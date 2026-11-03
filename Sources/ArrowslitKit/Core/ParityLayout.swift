@@ -38,18 +38,12 @@ public enum ParityLayout {
         notch(in: geometry).width + 2 * earWidth(appearance, geometry: geometry)
     }
 
-    public static func compactBubbleDiameter(_ appearance: NotchAppearance, geometry: ScreenGeometry) -> CGFloat {
-        max(((compactHeight(appearance, geometry: geometry) - 6) * appearance.size.scale).rounded(), 16)
-    }
-
     public static func compactSize(
         _ appearance: NotchAppearance,
-        geometry: ScreenGeometry,
-        hasSecondary: Bool = false
+        geometry: ScreenGeometry
     ) -> CGSize {
-        let bubble = hasSecondary ? 4 + compactBubbleDiameter(appearance, geometry: geometry) : 0
-        return CGSize(
-            width: compactWidth(appearance, geometry: geometry) + bubble,
+        CGSize(
+            width: compactWidth(appearance, geometry: geometry),
             height: compactHeight(appearance, geometry: geometry)
         )
     }
@@ -119,6 +113,7 @@ public enum ParityLayout {
         case .clipboard:
             IslandMetrics.Nook.body + IslandMetrics.Nook.bodyTopInset
                 + (clipboardSearching ? IslandMetrics.Nook.searchBar : 0)
+        case .agents: IslandMetrics.Nook.agentBody + IslandMetrics.Nook.bodyTopInset
         case .home, .tray, .notes, .mirror, .calendar, .reminders, .stats, .sports, .keepAwake, .timer, .stopwatch:
             IslandMetrics.Nook.body + IslandMetrics.Nook.bodyTopInset
         case .launcher: IslandMetrics.Nook.launcherBody + IslandMetrics.Nook.bodyTopInset
@@ -179,9 +174,10 @@ public enum ParityLayout {
         let scale = appearance.size.scale
 
         switch alert {
-        case .level:
+        case .level, .clipboard, .track, .microphone, .inputSource, .agentEvent,
+             .systemNotification, .capture, .watch:
             return notch.width + 2 * max(ear, (IslandMetrics.levelEarWidth * scale).rounded())
-        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut:
+        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut, .track:
             return notch.width + 2 * max(ear, (IslandMetrics.namedAlertEarWidth * scale).rounded())
         case .agentRequest:
             return 560
@@ -214,8 +210,8 @@ public enum ParityLayout {
             return hiddenSize(appearance, geometry: geometry)
         case .idle:
             return compactSize(appearance, geometry: geometry)
-        case .compact(_, let secondary):
-            return compactSize(appearance, geometry: geometry, hasSecondary: secondary != nil)
+        case .compact:
+            return compactSize(appearance, geometry: geometry)
         case .hud(let alert):
             return CGSize(
                 width: alertWidth(for: alert, appearance: appearance, geometry: geometry),

@@ -177,9 +177,37 @@ struct NotchAlertView: View {
                 tint: ArrowTheme.green
             )
         case .level(let kind, let value, let muted):
-            let label = kind == .volume ? "Volume" : "Brightness"
+            let label = switch kind {
+            case .volume: "Volume"
+            case .brightness: "Brightness"
+            case .keyboardLight: "Keyboard Light"
+            }
             let detail = muted ? "Muted" : "\(Int((min(max(value, 0), 1) * 100).rounded()))%"
-            return Presentation(symbol: kind == .volume ? "speaker.wave.2" : "sun.max", title: label, detail: detail, tint: ArrowTheme.bone)
+            let symbol = switch kind {
+            case .volume: "speaker.wave.2"
+            case .brightness: "sun.max"
+            case .keyboardLight: "keyboard"
+            }
+            return Presentation(symbol: symbol, title: label, detail: detail, tint: ArrowTheme.bone)
+        case .clipboard(let kind):
+            return Presentation(symbol: "doc.on.clipboard", title: "Copied", detail: kind, tint: ArrowTheme.green)
+        case .track(let title, let artist):
+            return Presentation(symbol: "music.note", title: title, detail: artist, tint: ArrowTheme.blue)
+        case .microphone(let muted):
+            return Presentation(symbol: muted ? "mic.slash.fill" : "mic.fill", title: "Microphone",
+                                detail: muted ? "Muted" : "On", tint: muted ? ArrowTheme.red : ArrowTheme.green)
+        case .inputSource(let code, let name):
+            return Presentation(symbol: "keyboard", title: code, detail: name, tint: ArrowTheme.blue)
+        case .agentEvent(let provider, let title, let detail):
+            return Presentation(symbol: "sparkles", title: provider,
+                                detail: detail.isEmpty ? title : "\(title) · \(detail)", tint: ArrowTheme.green)
+        case .systemNotification(let app, let title, let body):
+            return Presentation(symbol: "bell.fill", title: app.isEmpty ? title : app,
+                                detail: title.isEmpty ? body : title, tint: ArrowTheme.blue)
+        case .capture(let kind):
+            return Presentation(symbol: "camera.viewfinder", title: "Capture", detail: kind, tint: ArrowTheme.amber)
+        case .watch(let title, let detail):
+            return Presentation(symbol: "eye", title: title, detail: detail, tint: ArrowTheme.green)
         }
     }
 
@@ -254,6 +282,7 @@ private struct CompactAlertView: View {
     private var title: String {
         switch alert {
         case .upcomingEvent(let title, _, _, _): title
+        case .track(let title, _): title
         case .download(let name): name
         case .update: "Update"
         case .welcome(let name): "Welcome\(name.isEmpty ? "" : ", \(name)")"
@@ -267,6 +296,7 @@ private struct CompactAlertView: View {
         case .upcomingEvent(_, let startsAt, _, _):
             let minutes = max(0, Int((startsAt.timeIntervalSinceNow / 60).rounded()))
             return minutes <= 0 ? "Now" : "In \(minutes) min"
+        case .track(_, let artist): return artist
         case .download: return "Downloaded"
         case .update(let version): return "Version \(version)"
         case .welcome: return "Hello"
@@ -277,6 +307,7 @@ private struct CompactAlertView: View {
     private var icon: String {
         switch alert {
         case .upcomingEvent: "calendar"
+        case .track: "music.note"
         case .download: "arrow.down.circle.fill"
         case .update: "arrow.down.circle.fill"
         case .welcome: "hand.wave.fill"
@@ -288,7 +319,7 @@ private struct CompactAlertView: View {
     private var tint: Color {
         switch alert {
         case .upcomingEvent: ArrowTheme.red
-        case .download, .update: ArrowTheme.blue
+        case .track, .download, .update: ArrowTheme.blue
         case .welcome: ArrowTheme.green
         case .shortcut(_, let succeeded): succeeded ? ArrowTheme.green : ArrowTheme.red
         default: ArrowTheme.muted
