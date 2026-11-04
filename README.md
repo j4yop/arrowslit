@@ -311,4 +311,4 @@ SKIP_BUILD=1 ./Scripts/make-dmg.sh
 
 ## License
 
-Arrowslit is free software licensed under the [GNU General Public License v3.0](LICENSE) or (at your option) any later version.
+Arrowslit is free software licensed under the [GNU General Public License v3.0](LICENSE).
