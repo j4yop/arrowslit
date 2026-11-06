@@ -9,6 +9,11 @@
 #   SIGN_KEYCHAIN=$HOME/Library/Keychains/arrowslit-signing.keychain-db
 #   SIGN_PASSWORD_FILE=$HOME/Library/Application Support/Arrowslit/signing-keychain-password
 #   BUILD_NUMBER=35
+#   UNIVERSAL=1 (default; 0 builds only the host architecture)
+#   NOTARY_PROFILE=arrowslit-notary (requires a Developer ID Application identity;
+#     submitted with notarytool and stapled to the DMG)
+#   SKIP_BUILD=1 (reuse build/Arrowslit.dmg, e.g. after verifying it locally)
+#   RELEASE_NOTES="..." (release body; defaults to the standard one-liner)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
