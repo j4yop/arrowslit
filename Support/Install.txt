@@ -1,42 +1,54 @@
-Arrowslit 0.9.2
-=============
+Arrowslit __VERSION__
+==================
 
-A local-only notch utility for macOS 14 or later.
-Universal build: Apple Silicon and Intel.
+A quiet control surface for the MacBook notch.
+Requires macOS 14 (Sonoma) or later. Universal: Apple Silicon and Intel.
+
+This build is signed with a local certificate but is not notarized by Apple.
+macOS will block the first launch. That is expected: it is not a damaged
+download, and it does not mean the app is broken. Choose one of the two
+paths below.
 
 Homebrew (recommended)
------------------------
+----------------------
     brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
 
-Homebrew 7 asks you to trust a third-party tap once. The cask clears the
-quarantine flag after installation, so the app opens normally.
+The cask removes the quarantine flag after installation, so Arrowslit opens
+normally. Homebrew 7 asks you to trust the third-party tap once.
 
 Manual install
 --------------
-1. Open Arrowslit-0.9.2.dmg and drag Arrowslit into Applications.
-2. Open Applications and double-click Arrowslit. macOS will refuse the first
-   launch because Arrowslit is not notarized yet. Click Done.
-3. Open System Settings -> Privacy & Security and scroll down. Click
-   "Open Anyway" next to Arrowslit, confirm with Touch ID or your password,
-   then click "Open Anyway" once more.
-4. Settings opens automatically. Choose the features you want and close the
-   window. Arrowslit keeps running in the notch.
+1. Drag Arrowslit into Applications.
+2. Open Applications and double-click Arrowslit. macOS will say it cannot
+   verify the app. Click Done.
+3. Do one of these:
 
-If you prefer Terminal, after dragging the app into Applications:
+   a. System Settings -> Privacy & Security -> scroll to the Security
+      section -> "Open Anyway" next to Arrowslit, then confirm.
 
-    xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
-    open "/Applications/Arrowslit.app"
+   b. Terminal (works on every macOS version, including macOS 26/27):
+
+        xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
+        open "/Applications/Arrowslit.app"
+
+4. Arrowslit's Settings window opens. Choose the features you want and close
+   the window; Arrowslit stays running in the notch.
+
+If macOS says "Arrowslit is damaged and can't be opened", that is the same
+quarantine block, not a corrupt file. Use the Terminal command in step 3b.
+You can verify the download first (the .sha256 file must sit next to the DMG):
+
+    shasum -a 256 -c Arrowslit-__VERSION__.dmg.sha256
 
 Permissions
 -----------
-Calendar, Reminders and Camera are remembered by macOS for this installed
-copy. Press Connect once in Settings, allow access, and macOS keeps that choice
-across quitting and reopening. Arrowslit never asks in the background. Use one
-installed copy (Applications); a second copy or the Desktop alias is treated as
-the same installed app only when it points back to Applications.
+Calendar, Reminders and Camera permissions are remembered by macOS for this
+installed copy. Press Connect once in Settings and allow access; macOS keeps
+that choice across quitting and reopening. Arrowslit never asks in the
+background. Use one installed copy in Applications.
 
-Updating an unnotarized build can ask once more. A future notarized release
-will remove that prompt.
+Updating an unnotarized build can ask once more. A future Developer ID /
+notarized release will remove this prompt entirely.
 
 Using it
 --------
@@ -46,8 +58,8 @@ opened again from the menu bar or by reopening Arrowslit.
 
 Privacy
 -------
-Arrowslit has no account, analytics, or network access.
-Clipboard history, notes, the file tray and timers stay on this Mac.
+Arrowslit has no account, analytics, or telemetry. Clipboard history, notes,
+the file tray and timers stay on this Mac.
 
 Source
 ------

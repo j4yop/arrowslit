@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg"><b>Download Arrowslit 0.11.1 DMG</b></a>
+  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.11.2/Arrowslit-0.11.2.dmg"><b>Download Arrowslit 0.11.2 DMG</b></a>
   &nbsp;·&nbsp;
   or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
 </p>
@@ -54,27 +54,38 @@ brew install --cask j4yop/tap/arrowslit
 
 ### Method 2: Direct Download DMG
 
-1. Download **[Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg)**.
+Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certificate but is **not notarized by Apple**, so macOS blocks the first launch. That is expected — it is not a corrupt download.
+
+1. Download **[Arrowslit-0.11.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.2/Arrowslit-0.11.2.dmg)** (and the matching `.sha256` if you want to verify it).
 2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
-3. Open Applications and double-click **Arrowslit**. If macOS warns that the developer cannot be verified, click **Done**.
-4. Open **System Settings › Privacy & Security**, scroll down to the security section, and click **Open Anyway**. Enter your password or Touch ID.
+3. Open Applications and double-click **Arrowslit**. macOS will say it cannot verify the app. Click **Done**.
+4. Do one of these:
+   - **System Settings › Privacy & Security**, scroll to the **Security** section, click **Open Anyway** next to Arrowslit, and confirm. (Some macOS 26/27 builds do not show this button for unnotarized apps.)
+   - **Terminal** — works on every macOS version:
+
+     ```bash
+     xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
+     open "/Applications/Arrowslit.app"
+     ```
+
 5. Arrowslit launches and immediately docks into your notch.
 
-Alternatively, remove the Gatekeeper quarantine attribute via Terminal:
+If macOS says **“Arrowslit is damaged and can’t be opened”**, that is the same quarantine block, not a damaged file. Run the Terminal commands above. To verify the download first:
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Arrowslit.app"
-open "/Applications/Arrowslit.app"
+shasum -a 256 -c Arrowslit-0.11.2.dmg.sha256
 ```
+
+The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.11.2.dmg`, so the command works on your machine.
 
 ### Release Metadata
 
 | Detail | Value |
 | :--- | :--- |
-| **Current Release** | 0.11.1 (build 65) |
-| **Direct Download** | [Arrowslit-0.11.1.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.1/Arrowslit-0.11.1.dmg) |
+| **Current Release** | 0.11.2 (build 66) |
+| **Direct Download** | [Arrowslit-0.11.2.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.11.2/Arrowslit-0.11.2.dmg) |
 | **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
-| **SHA-256 Checksum** | `1d817f546343df219d0dbdaed20b945d47bac8ee9c15136e7545637e8afcbec8` |
+| **SHA-256 Checksum** | `d48824ba653619ff97a4c6ec91b4cf0941bba29f3b30921a1c8ec78e2e977d13` |
 | **License** | GNU General Public License v3.0 or later |
 
 ---

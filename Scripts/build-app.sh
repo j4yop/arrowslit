@@ -4,7 +4,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIG="${CONFIG:-release}"
-VERSION="${VERSION:-0.9.2}"
+VERSION="${VERSION:-$(git -C "$ROOT" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)}"
+VERSION="${VERSION:-0.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
 BUNDLE_ID="${BUNDLE_ID:-com.j4yop.arrowslit}"
 APP="${APP_OUTPUT:-$ROOT/build/Arrowslit.app}"
@@ -73,7 +74,11 @@ fi
 
 xattr -dr com.apple.FinderInfo "$APP" 2>/dev/null || true
 xattr -dr com.apple.ResourceFork "$APP" 2>/dev/null || true
-SIGN_ARGS=(--force --options runtime --timestamp=none)
+TIMESTAMP_ARG="--timestamp=none"
+if [[ "${SIGN_TIMESTAMP:-none}" == "timestamp" ]]; then
+    TIMESTAMP_ARG="--timestamp"
+fi
+SIGN_ARGS=(--force --options runtime "$TIMESTAMP_ARG")
 if [[ -n "${SIGN_IDENTITY:-}" ]]; then
     SIGN_ARGS+=(--sign "$SIGN_IDENTITY")
 else
