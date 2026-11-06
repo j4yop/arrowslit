@@ -21,7 +21,7 @@
 <p align="center">
   <a href="https://github.com/j4yop/arrowslit/releases/download/v0.11.2/Arrowslit-0.11.2.dmg"><b>Download Arrowslit 0.11.2 DMG</b></a>
   &nbsp;·&nbsp;
-  or with Homebrew: <code>brew install --cask j4yop/tap/arrowslit</code>
+  or with Homebrew 7: <code>brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
 ---
@@ -36,19 +36,13 @@
 
 ## Installation
 
-### Method 1: Homebrew (Recommended)
+### Method 1: Homebrew 7 (Recommended)
 
 ```bash
 brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit
 ```
 
-Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS quarantine flag automatically so Arrowslit opens immediately.
-
-On earlier Homebrew versions, run:
-
-```bash
-brew install --cask j4yop/tap/arrowslit
-```
+Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS quarantine flag automatically so Arrowslit opens immediately. On Homebrew 6 or earlier, use the DMG below — the tap uses Homebrew 7’s trust and postflight APIs.
 
 ---
 
