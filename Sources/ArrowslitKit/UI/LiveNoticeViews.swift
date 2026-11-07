@@ -499,17 +499,20 @@ struct LiveActivityStrip: View {
     private var inset: CGFloat { LiveNoticeMetrics.stripInset }
     private var iconSize: CGFloat { LiveNoticeMetrics.stripIconSize(height: height) }
     private var textSize: CGFloat { LiveNoticeMetrics.stripTextSize(height: height) }
+    /// A call's app mark and duration sit in the middle of each wing, like
+    /// the media and agent strips, rather than on the outer ends.
+    private var centersContent: Bool { activity == .call }
 
     var body: some View {
         HStack(spacing: 0) {
             leading
-                .padding(.leading, inset)
-                .frame(width: ear, height: height, alignment: .leading)
+                .padding(.leading, centersContent ? 0 : inset)
+                .frame(width: ear, height: height, alignment: centersContent ? .center : .leading)
                 .clipped()
             Color.clear.frame(width: notchWidth)
             trailing
-                .padding(.trailing, inset)
-                .frame(width: ear, height: height, alignment: .trailing)
+                .padding(.trailing, centersContent ? 0 : inset)
+                .frame(width: ear, height: height, alignment: centersContent ? .center : .trailing)
                 .clipped()
         }
         .frame(width: width, height: height)
@@ -564,11 +567,12 @@ struct LiveActivityStrip: View {
                 Image(nsImage: icon)
                     .resizable()
                     .interpolation(.high)
-                    .frame(width: 18, height: 18)
-                    .clipShape(RoundedRectangle(cornerRadius: 4.5, style: .continuous))
+                    .frame(width: 26, height: 26)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
             } else {
-                Image(systemName: "phone.fill")
-                    .font(.system(size: iconSize, weight: .medium))
+                Image(systemName: state.calls.session?.isCall == true ? "phone.fill" : "mic.fill")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(state.calls.session?.isCall == true ? ArrowTheme.green : ArrowTheme.amber)
             }
         case .charging:
             Image(systemName: "battery.100percent.bolt")
@@ -665,9 +669,17 @@ struct LiveActivityStrip: View {
                 .truncationMode(.tail)
         case .call:
             if let session = state.calls.session {
-                Text(session.startDate, style: .timer)
-                    .font(.system(size: textSize, weight: .medium).monospacedDigit())
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    if state.microphone.isMuted {
+                        Image(systemName: "mic.slash.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.red)
+                    }
+                    Text(session.startDate, style: .timer)
+                        .font(.system(size: 15, weight: .medium).monospacedDigit())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
             }
         case .charging:
             Text("\(state.system.batteryLevel)%")

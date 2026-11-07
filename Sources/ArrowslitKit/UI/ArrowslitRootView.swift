@@ -221,10 +221,10 @@ private struct CompactBar: View {
             if let hud {
                 LiveNoticeView(state: state, alert: hud, width: width, height: height, notchWidth: notchWidth)
             } else if activity == .nowPlaying, let track = musicTrack {
+                let side = min(30, height - 8)
                 HStack(spacing: 0) {
-                    compactArtwork
-                        .padding(.leading, 6)
-                        .frame(width: ear, alignment: .leading)
+                    mediaMark(side: side)
+                        .frame(width: ear, height: height, alignment: .center)
 
                     Color.clear
                         .frame(width: notchWidth)
@@ -234,17 +234,16 @@ private struct CompactBar: View {
                             MusicBars(
                                 isPlaying: track.isPlaying,
                                 color: state.nowPlaying.activeAccent.color,
-                                height: 14,
-                                width: 20
+                                height: 18,
+                                width: 24
                             )
                         } else {
                             Image(systemName: track.isPlaying ? "speaker.wave.2.fill" : "pause.fill")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 16, weight: .semibold))
                                 .foregroundStyle(state.nowPlaying.activeAccent.color)
                         }
                     }
-                    .padding(.trailing, 8)
-                    .frame(width: ear, alignment: .trailing)
+                    .frame(width: ear, height: height, alignment: .center)
                 }
                 .frame(width: width, height: height)
             } else if activity == .agents, let live = agentUsage.snapshot.live.first {
@@ -253,10 +252,9 @@ private struct CompactBar: View {
                 let working = AgentProvider.allCases.filter { provider in
                     agentUsage.snapshot.live.contains { $0.provider == provider }
                 }
-                let preferred = min(working.count > 1 ? 11.0 : 14.0, max(8, height - 14))
+                let preferred = min(working.count > 1 ? 13.0 : 18.0, max(8, height - 16))
                 let count = CGFloat(max(1, working.count))
-                let inset: CGFloat = working.count > 1 ? 6 : 8
-                let room = (ear - inset - (count - 1)) / (count * 1.45)
+                let room = (ear - 8 - (count - 1)) / (count * 1.45)
                 let markSize = min(preferred, max(7, room))
                 HStack(spacing: 0) {
                     HStack(spacing: 1) {
@@ -264,20 +262,18 @@ private struct CompactBar: View {
                             NotchAgentGlyph(provider: provider, size: markSize)
                         }
                     }
-                    .padding(.leading, inset)
-                    .frame(width: ear, alignment: .leading)
+                    .frame(width: ear, height: height, alignment: .center)
 
                     Color.clear
                         .frame(width: notchWidth)
 
                     Text(live.started, style: .timer)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 15, weight: .medium))
                         .monospacedDigit()
                         .foregroundStyle(working.first?.tint ?? live.provider.tint)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
-                        .padding(.trailing, 8)
-                        .frame(width: ear, alignment: .trailing)
+                        .frame(width: ear, height: height, alignment: .center)
                 }
                 .frame(width: width, height: height)
             } else {
@@ -321,7 +317,56 @@ private struct CompactBar: View {
     }
 
     @ViewBuilder
-    private var compactArtwork: some View {
+    private func mediaMark(side: CGFloat) -> some View {
+        if prefersSourceIcon, let icon = mediaSourceIcon {
+            Image(nsImage: icon)
+                .resizable()
+                .interpolation(.high)
+                .scaledToFit()
+                .frame(width: side, height: side)
+                .clipShape(RoundedRectangle(cornerRadius: side * 0.27, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: side * 0.27, style: .continuous)
+                        .strokeBorder(.white.opacity(0.12), lineWidth: 0.5)
+                }
+        } else {
+            compactArtwork(size: side)
+                .overlay(alignment: .bottomTrailing) {
+                    if let icon = mediaSourceIcon {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .interpolation(.high)
+                            .scaledToFit()
+                            .frame(width: side * 0.42, height: side * 0.42)
+                            .clipShape(RoundedRectangle(cornerRadius: side * 0.12, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: side * 0.12, style: .continuous)
+                                    .strokeBorder(.black.opacity(0.55), lineWidth: 0.5)
+                            }
+                            .offset(x: 2, y: 2)
+                    }
+                }
+        }
+    }
+
+    private var mediaSourceIcon: NSImage? {
+        if let icon = state.nowPlaying.selectedSource?.icon { return icon }
+        guard let id = state.nowPlaying.activeTrack?.bundleIdentifier,
+              let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { return nil }
+        return NSWorkspace.shared.icon(forFile: url.path)
+    }
+
+    /// A browser reports a video's page as its now-playing source. The video
+    /// thumbnail reads as a stray portrait in the strip, so the browser's own
+    /// icon stands in for it. Music apps keep their cover art.
+    private var prefersSourceIcon: Bool {
+        guard let id = state.nowPlaying.activeTrack?.bundleIdentifier?.lowercased() else { return false }
+        return ["chrome", "safari", "firefox", "edgemac", "brave", "vivaldi", "opera", "thebrowser"]
+            .contains { id.contains($0) }
+    }
+
+    @ViewBuilder
+    private func compactArtwork(size: CGFloat) -> some View {
         Group {
             if let artwork = state.nowPlaying.activeArtwork {
                 Image(nsImage: artwork)
@@ -329,11 +374,11 @@ private struct CompactBar: View {
                     .interpolation(.high)
                     .aspectRatio(contentMode: .fill)
             } else {
-                SlitMark(height: 14)
+                SlitMark(height: size * 0.54)
             }
         }
-        .frame(width: 26, height: 26)
-        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.27, style: .continuous))
     }
 
     /// A two-character-ish lead for the narrow calendar ear: "now", "12m",

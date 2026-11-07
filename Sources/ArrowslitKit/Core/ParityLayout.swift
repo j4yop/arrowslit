@@ -241,10 +241,15 @@ public enum ParityLayout {
         geometry: ScreenGeometry,
         downloadName: String? = nil
     ) -> CGSize {
-        CGSize(
+        let base = compactHeight(appearance, geometry: geometry)
+        // Media, calls and working agents carry a cover or an app mark. The
+        // extra height gives those marks room to breathe below the camera.
+        let tall: Set<NotchActivity> = [.nowPlaying, .call, .agents]
+        let height = activity.map { tall.contains($0) } == true ? max(base, 38) : base
+        return CGSize(
             width: compactActivityWidth(activity, appearance: appearance, geometry: geometry,
                                         downloadName: downloadName),
-            height: compactHeight(appearance, geometry: geometry)
+            height: height
         )
     }
 
