@@ -80,6 +80,22 @@ struct ParityLayoutTests {
         #expect(ParityLayout.compactActivitySize(.timer, appearance: large, geometry: builtIn).height == 32)
     }
 
+    @Test func compactReadingsStayClearOfMenuBarItems() {
+        let safeWidth = ParityLayout.notch(in: builtIn).width + 160
+        let wide = NotchAppearance(width: 420, height: 32)
+        for appearance in [large, wide] {
+            for activity in NotchActivity.allCases {
+                let size = ParityLayout.compactActivitySize(
+                    activity,
+                    appearance: appearance,
+                    geometry: builtIn
+                )
+                #expect(size.width <= safeWidth)
+            }
+        }
+        #expect(ParityLayout.compactActivitySize(.calendar, appearance: large, geometry: builtIn).width == safeWidth)
+    }
+
     @Test func hudStaysInsideTheCompactHeight() {
         let size = ParityLayout.size(
             for: .hud(.level(kind: .brightness, value: 0.5, muted: false)),

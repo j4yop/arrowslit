@@ -210,30 +210,38 @@ public enum ParityLayout {
     ) -> CGFloat {
         let base = compactWidth(appearance, geometry: geometry)
         let notchWidth = notch(in: geometry).width
+        // Menu-bar items live in the strip immediately beyond the camera
+        // housing. No compact reading may grow under them, even when the
+        // appearance is set wider than the physical notch. Eighty points on
+        // each side keeps the status-item hover pills clear of the shape.
+        let menuBarSafeWidth = notchWidth + 160
+        let desired: CGFloat
         switch activity {
-        case .calendar: return base + 140
+        case .calendar: desired = base + 100
         case .download:
             // Measure the file name into the left wing, with the arrow, its
             // clearance from the curve and air beside the camera.
             let maximum = max(0, (geometry.size.width - 24 - notchWidth) / 2)
             guard let name = downloadName?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !name.isEmpty else {
-                return notchWidth + 2 * min(56, maximum)
+                desired = notchWidth + 2 * min(56, maximum)
+                break
             }
             let nameWidth = (String(name.prefix(120)) as NSString)
                 .size(withAttributes: [.font: NSFont.systemFont(ofSize: 11, weight: .medium)])
                 .width.rounded(.up)
             let wing = min(160, max(64, (11 + 20 + 6 + nameWidth + 4).rounded(.up)))
-            return notchWidth + 2 * min(wing, maximum)
-        case .watch: return base + 70
-        case .stats: return base + 40
-        case .timer, .stopwatch: return base + 40
-        case .keepAwake: return notchWidth + 88
-        case .call, .agents: return base + 40
-        case .charging: return base + 20
-        case .sports: return base + 40
-        case .nowPlaying, .none: return base
+            desired = notchWidth + 2 * min(wing, maximum)
+        case .watch: desired = base + 70
+        case .stats: desired = base + 40
+        case .timer, .stopwatch: desired = base + 40
+        case .keepAwake: desired = notchWidth + 88
+        case .call, .agents: desired = base + 40
+        case .charging: desired = base + 20
+        case .sports: desired = base + 40
+        case .nowPlaying, .none: desired = base
         }
+        return min(desired, menuBarSafeWidth)
     }
 
     public static func compactActivitySize(
