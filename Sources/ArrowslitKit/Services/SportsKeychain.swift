@@ -3,7 +3,6 @@ import Security
 
 /// Small Keychain wrapper for provider tokens. Keys never enter UserDefaults,
 /// logs or the app bundle.
-@MainActor
 public enum SportsKeychain {
     #if DEBUG
     /// Development builds must not touch the release Keychain item. Besides avoiding a

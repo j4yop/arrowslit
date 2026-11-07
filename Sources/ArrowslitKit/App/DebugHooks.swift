@@ -173,6 +173,74 @@ final class DebugHooks {
             state.receive(.level(kind: .volume, value: 0.62, muted: false))
         case "alert-brightness":
             state.receive(.level(kind: .brightness, value: 0.45, muted: false))
+        case "alert-agent-finished":
+            state.receive(.agentEvent(provider: "OpenCode", title: "Finished", detail: "2m 14s · $0.03"))
+        case "alert-agent-limit":
+            state.receive(.agentEvent(provider: "Codex", title: "Session", detail: "92% used"))
+        case "alert-track":
+            state.receive(.track(title: "Low Beam", artist: "Instrumental"))
+        case "alert-clipboard":
+            state.receive(.clipboard(kind: "Text"))
+        case "alert-mic":
+            state.receive(.microphone(muted: true))
+        case "alert-input":
+            state.receive(.inputSource(code: "EN", name: "ABC"))
+        case "alert-notification":
+            state.receive(.systemNotification(app: "GitHub", title: "Review requested", body: "j4yop/arrowslit #31"))
+        case "alert-capture":
+            state.receive(.capture(kind: "Screenshot"))
+        case "alert-watch":
+            state.receive(.watch(title: "Build", detail: "Passed"))
+        case "alert-timer-done":
+            state.receive(.timerFinished)
+        case "hold-agent-finished":
+            hold { [weak self] in self?.state.receive(.agentEvent(provider: "OpenCode", title: "Finished", detail: "2m 14s · $0.03")) }
+        case "hold-clipboard":
+            hold { [weak self] in self?.state.receive(.clipboard(kind: "Text")) }
+        case "hold-track":
+            hold { [weak self] in self?.state.receive(.track(title: "Low Beam", artist: "Instrumental")) }
+        case "hold-mic":
+            hold { [weak self] in self?.state.receive(.microphone(muted: true)) }
+        case "hold-notification":
+            hold { [weak self] in self?.state.receive(.systemNotification(app: "GitHub", title: "Review requested", body: "j4yop/arrowslit #31")) }
+        case "hold-timer-done":
+            hold { [weak self] in self?.state.receive(.timerFinished) }
+        case "hold-capture":
+            hold { [weak self] in self?.state.receive(.capture(kind: "Screenshot")) }
+        case "hold-watch":
+            hold { [weak self] in self?.state.receive(.watch(title: "Build", detail: "Passed")) }
+        case "hold-agent-limit":
+            hold { [weak self] in self?.state.receive(.agentEvent(provider: "Codex", title: "Session", detail: "92% used")) }
+        case "hold-timer-pomodoro":
+            state.timer.startFocus(minutes: 1)
+            hold { [weak self] in self?.state.receive(.timerFinished) }
+        case "hold-download":
+            hold { [weak self] in self?.state.receive(.download(name: "arrowslit-demo.zip")) }
+        case "hold-input":
+            hold { [weak self] in self?.state.receive(.inputSource(code: "EN", name: "ABC")) }
+        case "music-notch":
+            state.setTabEnabled(.nowPlaying, true)
+            state.setTabEnabled(.agents, false)
+            showDemoTrack()
+            state.collapse()
+        case "timer-notch":
+            state.timer.start(minutes: 25)
+            state.collapse()
+        case "stopwatch-notch":
+            state.stopwatch.start()
+            state.collapse()
+        case "keepawake-notch":
+            state.setTabEnabled(.keepAwake, true)
+            state.setTabEnabled(.agents, false)
+            state.keepAwake.start()
+            state.collapse()
+        case "agents-on":
+            state.setTabEnabled(.agents, true)
+        case "calendar-notch":
+            state.setTabEnabled(.calendar, true)
+            state.setTabEnabled(.agents, false)
+            state.calendar.showDemoEvent()
+            state.collapse()
         case "audio-debug":
             let line = "ARROWSLIT_AUDIO \(state.system.debugAudio())\n"
             FileHandle.standardError.write(Data(line.utf8))
@@ -216,6 +284,7 @@ final class DebugHooks {
                 minute: "67'"
             )))
         case "sports-notch":
+            state.settings.setTabEnabled(.agents, false)
             state.settings.setTabEnabled(.sports, true)
             if let demo = SportsDemoData.matches().first {
                 state.sports.showDemoCompact(demo)
@@ -232,6 +301,8 @@ final class DebugHooks {
             FileHandle.standardError.write(Data("ARROWSLIT_DOWNLOADS count=\(items.count) \(text)\n".utf8))
         case "download-tab": state.expand(.download)
         case "download-progress":
+            state.setDownloadsEnabled(true)
+            state.setTabEnabled(.agents, false)
             state.downloadProgress.showDemo()
             state.collapse()
         case "download-end":
@@ -308,5 +379,13 @@ final class DebugHooks {
         image.unlockFocus()
         return image
     }
+    private func hold(_ action: @escaping @MainActor () -> Void) {
+        for step in 0..<30 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(step)) {
+                MainActor.assumeIsolated { action() }
+            }
+        }
+    }
+
 }
 #endif

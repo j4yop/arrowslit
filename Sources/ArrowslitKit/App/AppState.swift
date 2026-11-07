@@ -638,8 +638,13 @@ public final class AppState {
             return ParityLayout.hiddenSize(settings.appearance, geometry: geometry)
         case .idle:
             return ParityLayout.compactSize(settings.appearance, geometry: geometry)
-        case .compact:
-            return ParityLayout.compactSize(settings.appearance, geometry: geometry)
+        case .compact(let activity):
+            return ParityLayout.compactActivitySize(
+                activity,
+                appearance: settings.appearance,
+                geometry: geometry,
+                downloadName: activity == .download ? downloadProgress.items.first?.name : nil
+            )
         case .expanded(let tab):
             return ParityLayout.expandedSize(
                 for: tab,
@@ -657,16 +662,39 @@ public final class AppState {
                 width: 560,
                 height: 32 + 2 + IslandMetrics.ContentHeight.agentRequest(lines: lines) + 14
             )
-        case .alert(let alert) where alert.usesCompactAlert:
-            return ParityLayout.alertSize(for: alert, appearance: settings.appearance, geometry: geometry)
+        case .hud(let alert):
+            return ParityLayout.alertSize(for: alert, appearance: settings.appearance,
+                                          geometry: geometry, timerWasFocus: timer.lastWasFocus)
+        case .alert(let alert):
+            return ParityLayout.alertSize(for: alert, appearance: settings.appearance,
+                                          geometry: geometry, timerWasFocus: timer.lastWasFocus)
         default:
             return NotchPanelMetrics.size(for: presentation, geometry: geometry)
         }
     }
 
-    /// The part of the panel that should stay centred on the camera.
+    /// The part of the panel that should stay centred on the camera. A notice
+    /// reaches further toward its wider wing, so its camera gap, not the whole
+    /// island, is what stays over the housing.
     public func panelAnchorWidth(for presentation: NotchPresentation, geometry: ScreenGeometry) -> CGFloat {
-        panelSize(for: presentation, geometry: geometry).width
+        let alert: NotchAlert?
+        switch presentation {
+        case .hud(let value): alert = value
+        case .alert(let value): alert = value
+        default: alert = nil
+        }
+        guard let alert, !isAgentRequest(alert) else {
+            return panelSize(for: presentation, geometry: geometry).width
+        }
+        let notch = ParityLayout.notch(in: geometry).width
+        let wings = ParityLayout.alertWings(for: alert, timerWasFocus: timer.lastWasFocus)
+        let maximum = max(0, (geometry.size.width - 24 - notch) / 2)
+        return notch + 2 * min(wings.leading, maximum)
+    }
+
+    private func isAgentRequest(_ alert: NotchAlert) -> Bool {
+        if case .agentRequest = alert { return true }
+        return false
     }
 
     public var currentAlert: NotchAlert? { alerts.current }
@@ -714,12 +742,22 @@ public final class AppState {
                 .filter { !$0.isEmpty }.joined(separator: " · ")
             receive(.agentEvent(provider: provider.displayName, title: "Finished", detail: detail))
         case .limitWarning(let provider, let window):
-            receive(.agentEvent(provider: provider.displayName, title: "Limit",
+            receive(.agentEvent(provider: provider.displayName, title: limitWindowName(window),
                                 detail: AgentFormat.percent(window.usedFraction) + " used"))
-        case .limitReset(let provider, _):
-            receive(.agentEvent(provider: provider.displayName, title: "Limit reset", detail: "Renewed"))
+        case .limitReset(let provider, let window):
+            receive(.agentEvent(provider: provider.displayName, title: limitWindowName(window),
+                                detail: "Renewed"))
         case .budgetReached(let spent, _):
             receive(.agentEvent(provider: "AI Agents", title: "Budget", detail: AgentFormat.cost(spent)))
+        }
+    }
+
+    /// The window named in an agent's limit notice.
+    private func limitWindowName(_ window: AgentLimitWindow) -> String {
+        switch window.kind {
+        case .session: return "Session"
+        case .weekly: return window.scope.map { "Weekly · \($0)" } ?? "Weekly"
+        case .other: return "Limit"
         }
     }
 

@@ -34,9 +34,25 @@ public final class SportsService {
     public init(settings: SettingsStore, session: URLSession = .shared) {
         self.settings = settings
         self.session = session
-        self.apiKey = SportsKeychain.read(account: Self.keychainAccount)
-        if apiKey == nil {
-            loadDemo()
+        // Reading the Keychain can wait for an ACL prompt. It must never hold
+        // up launch: the island has no window yet for macOS to show it over.
+        loadStoredKey()
+    }
+
+    private func loadStoredKey() {
+        let account = Self.keychainAccount
+        Task { [weak self] in
+            let key = await Task.detached(priority: .utility) {
+                SportsKeychain.read(account: account)
+            }.value
+            guard let self else { return }
+            self.apiKey = key
+            if key == nil {
+                self.loadDemo()
+            } else {
+                self.startAppAlerts()
+                if self.settings.isTabEnabled(.sports) { self.refresh() }
+            }
         }
     }
 

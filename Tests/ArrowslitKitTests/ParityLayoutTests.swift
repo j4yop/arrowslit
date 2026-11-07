@@ -61,13 +61,15 @@ struct ParityLayoutTests {
 
     @Test func alertsUseTargetEarsAndHeight() {
         let event = NotchAlert.upcomingEvent(title: "Design review", startsAt: .now, joinURL: nil, provider: nil)
-        #expect(ParityLayout.alertSize(for: event, appearance: large, geometry: builtIn) == CGSize(width: 492, height: 38))
+        // Each wing is measured from its 11 pt reading, so the island
+        // grows toward the side that holds the longer text.
+        #expect(ParityLayout.alertSize(for: event, appearance: large, geometry: builtIn) == CGSize(width: 350, height: 32))
 
         let level = NotchAlert.level(kind: .volume, value: 0.5, muted: false)
-        #expect(ParityLayout.alertSize(for: level, appearance: large, geometry: builtIn) == CGSize(width: 372, height: 32))
+        #expect(ParityLayout.alertSize(for: level, appearance: large, geometry: builtIn) == CGSize(width: 324, height: 32))
 
         let charging = NotchAlert.charging(level: 80, isCharging: true)
-        #expect(ParityLayout.alertSize(for: charging, appearance: large, geometry: builtIn) == CGSize(width: 436, height: 38))
+        #expect(ParityLayout.alertSize(for: charging, appearance: large, geometry: builtIn) == CGSize(width: 345, height: 32))
     }
 
     @Test func hudStaysInsideTheCompactHeight() {
@@ -76,7 +78,7 @@ struct ParityLayoutTests {
             appearance: large,
             geometry: builtIn
         )
-        #expect(size == CGSize(width: 372, height: 32))
+        #expect(size == CGSize(width: 324, height: 32))
     }
 
     @Test func appearanceClampsEverything() {

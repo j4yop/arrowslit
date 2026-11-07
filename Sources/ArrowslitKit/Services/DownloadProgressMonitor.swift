@@ -36,18 +36,23 @@ public final class DownloadProgressMonitor {
 
     #if DEBUG
     /// QA only: show a realistic in-progress item without a browser.
+    @ObservationIgnored private var demoItems: [DownloadProgressItem]?
+
     public func showDemo(completed: Int64 = 16_000_000, total: Int64 = 40_000_000) {
-        items = [DownloadProgressItem(
+        let demo = DownloadProgressItem(
             id: "/tmp/arrowslit-demo.zip",
             name: "arrowslit-demo.zip",
             completed: completed,
             total: total,
             secondsLeft: 12,
             startedAt: Date()
-        )]
+        )
+        demoItems = [demo]
+        items = [demo]
     }
 
     public func endDemo() {
+        demoItems = nil
         items = []
     }
     #endif
@@ -158,6 +163,9 @@ public final class DownloadProgressMonitor {
     }
 
     func refresh(now: Date = Date()) {
+        #if DEBUG
+        if demoItems != nil { return }
+        #endif
         var next: [DownloadProgressItem] = []
         for (key, var entry) in tracked {
             let progress = entry.progress

@@ -130,6 +130,15 @@ public final class CalendarService {
         NSWorkspace.shared.open(url)
     }
 
+    #if DEBUG
+    public func refreshNow() { reload() }
+    public func showDemoEvent(title: String = "Design review") {
+        let start = Date().addingTimeInterval(15 * 60)
+        events = [CalendarEvent(id: "debug-calendar", title: title, start: start,
+                                end: start.addingTimeInterval(45 * 60))]
+    }
+    #endif
+
     private func reload() {
         access = Self.access(for: EKEventStore.authorizationStatus(for: .event))
         guard access == .granted else {

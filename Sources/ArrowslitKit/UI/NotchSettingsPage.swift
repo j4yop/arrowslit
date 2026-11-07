@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Everything the closed notch can show: feedback events, persistent strips
-/// and the Dynamic Island features Arrowslit implements. Rows whose macOS
+/// and the notch features Arrowslit implements. Rows whose macOS
 /// surface is not present are shown disabled with the reason, rather than
 /// pretending to work.
 struct NotchSettingsPage: View {
@@ -50,7 +50,7 @@ struct NotchSettingsPage: View {
             }
 
             SettingsSection(
-                title: "Dynamic Island features",
+                title: "Notch features",
                 note: "The 13 feature switches for the notch. Arrowslit wires the ones it has; the rest stay visible but disabled."
             ) {
                 ForEach(FeatureSwitch.allCases) { feature in
@@ -205,7 +205,7 @@ private enum FeatureSwitch: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .notch: "Dynamic Island"
+        case .notch: "Notch"
         case .calendar: "Calendar"
         case .notifications: "Notifications"
         case .gestures: "Hover gestures"

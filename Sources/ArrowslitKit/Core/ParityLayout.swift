@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 
 /// Turns a presentation and a display into the exact panel size.
@@ -168,33 +169,82 @@ public enum ParityLayout {
 
     // MARK: Alerts
 
-    public static func alertWidth(for alert: NotchAlert, appearance: NotchAppearance, geometry: ScreenGeometry) -> CGFloat {
-        let notch = notch(in: geometry)
-        let ear = earWidth(appearance, geometry: geometry)
-        let scale = appearance.size.scale
+    /// The two wings measured around the camera for this notice.
+    static func alertWings(for alert: NotchAlert, timerWasFocus: Bool = false) -> LiveNoticeMetrics.Wings {
+        LiveNoticeMetrics.wings(for: alert, timerWasFocus: timerWasFocus)
+    }
 
-        switch alert {
-        case .level, .clipboard, .track, .microphone, .inputSource, .agentEvent,
-             .systemNotification, .capture, .watch:
-            return notch.width + 2 * max(ear, (IslandMetrics.levelEarWidth * scale).rounded())
-        case .upcomingEvent, .download, .update, .welcome, .sportsGoal, .shortcut, .track:
-            return notch.width + 2 * max(ear, (IslandMetrics.namedAlertEarWidth * scale).rounded())
-        case .agentRequest:
-            return 560
-        case .timerFinished, .charging, .lowBattery, .headphones:
-            return notch.width + 2 * max(ear, (IslandMetrics.alertEarWidth * scale).rounded())
+    public static func alertWidth(
+        for alert: NotchAlert,
+        appearance: NotchAppearance,
+        geometry: ScreenGeometry,
+        timerWasFocus: Bool = false
+    ) -> CGFloat {
+        if case .agentRequest = alert { return 560 }
+        let notch = notch(in: geometry)
+        let wings = alertWings(for: alert, timerWasFocus: timerWasFocus)
+        // Each side is as wide as it asks, short of the display's edge.
+        let maximum = max(0, (geometry.size.width - 24 - notch.width) / 2)
+        return notch.width + min(wings.leading, maximum) + min(wings.trailing, maximum)
+    }
+
+    public static func alertSize(
+        for alert: NotchAlert,
+        appearance: NotchAppearance,
+        geometry: ScreenGeometry,
+        timerWasFocus: Bool = false
+    ) -> CGSize {
+        CGSize(
+            width: alertWidth(for: alert, appearance: appearance, geometry: geometry, timerWasFocus: timerWasFocus),
+            height: compactHeight(appearance, geometry: geometry)
+        )
+    }
+
+    /// A compact strip with room for its own reading. Music and agents keep
+    /// the resting width; the text strips grow toward their content.
+    public static func compactActivityWidth(
+        _ activity: NotchActivity?,
+        appearance: NotchAppearance,
+        geometry: ScreenGeometry,
+        downloadName: String? = nil
+    ) -> CGFloat {
+        let base = compactWidth(appearance, geometry: geometry)
+        let notchWidth = notch(in: geometry).width
+        switch activity {
+        case .calendar: return base + 120
+        case .download:
+            // Measure the file name into the left wing, with the arrow, its
+            // clearance from the curve and air beside the camera.
+            let maximum = max(0, (geometry.size.width - 24 - notchWidth) / 2)
+            guard let name = downloadName?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !name.isEmpty else {
+                return notchWidth + 2 * min(56, maximum)
+            }
+            let nameWidth = (String(name.prefix(120)) as NSString)
+                .size(withAttributes: [.font: NSFont.systemFont(ofSize: 11, weight: .medium)])
+                .width.rounded(.up)
+            let wing = min(160, max(64, (11 + 20 + 6 + nameWidth + 4).rounded(.up)))
+            return notchWidth + 2 * min(wing, maximum)
+        case .watch: return base + 70
+        case .stats: return base + 40
+        case .timer, .stopwatch: return base + 34
+        case .keepAwake: return notchWidth + 88
+        case .call, .charging: return base + 20
+        case .sports: return base + 40
+        case .nowPlaying, .agents, .none: return base
         }
     }
 
-    public static func alertSize(for alert: NotchAlert, appearance: NotchAppearance, geometry: ScreenGeometry) -> CGSize {
-        let compact = compactHeight(appearance, geometry: geometry)
-        let height: CGFloat = {
-            if case .level = alert { return compact }
-            return compact + (6 * appearance.size.scale).rounded()
-        }()
-        return CGSize(
-            width: alertWidth(for: alert, appearance: appearance, geometry: geometry),
-            height: height
+    public static func compactActivitySize(
+        _ activity: NotchActivity?,
+        appearance: NotchAppearance,
+        geometry: ScreenGeometry,
+        downloadName: String? = nil
+    ) -> CGSize {
+        CGSize(
+            width: compactActivityWidth(activity, appearance: appearance, geometry: geometry,
+                                        downloadName: downloadName),
+            height: compactHeight(appearance, geometry: geometry)
         )
     }
 
@@ -210,13 +260,10 @@ public enum ParityLayout {
             return hiddenSize(appearance, geometry: geometry)
         case .idle:
             return compactSize(appearance, geometry: geometry)
-        case .compact:
-            return compactSize(appearance, geometry: geometry)
+        case .compact(let activity):
+            return compactActivitySize(activity, appearance: appearance, geometry: geometry)
         case .hud(let alert):
-            return CGSize(
-                width: alertWidth(for: alert, appearance: appearance, geometry: geometry),
-                height: compactHeight(appearance, geometry: geometry)
-            )
+            return alertSize(for: alert, appearance: appearance, geometry: geometry)
         case .alert(let alert):
             return alertSize(for: alert, appearance: appearance, geometry: geometry)
         case .expanded(let tab):
@@ -235,9 +282,8 @@ public enum ParityLayout {
             return peek ? 11 : 9
         case .idle, .compact, .hud:
             return min(height * 0.42, 14)
-        case .alert(let alert):
-            if case .level = alert { return min(height * 0.42, 14) }
-            return min(height * 0.42, 16)
+        case .alert:
+            return min(height * 0.42, 14)
         case .expanded, .clockRunning:
             return (IslandMetrics.notchExpandedRadius * appearance.size.scale).rounded()
         }
