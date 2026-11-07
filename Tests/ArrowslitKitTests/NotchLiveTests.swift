@@ -79,5 +79,37 @@ struct NotchLiveTests {
         #expect(NotchActivity.nowPlaying.priority < NotchActivity.calendar.priority)
         #expect(NotchActivity.nowPlaying.priority < NotchActivity.keepAwake.priority)
         #expect(NotchActivity.agents.priority < NotchActivity.calendar.priority)
+        #expect(NotchActivity.agents.priority < NotchActivity.sports.priority)
+    }
+
+    @Test func agentsHoldTheStripOverLiveSports() {
+        let input = PresentationInput(
+            activeActivities: [.sports, .agents]
+        )
+        #expect(PresentationResolver.resolve(input) == .compact(primary: .agents))
+    }
+
+    @Test func aGoalInterruptsAgentsAndThenReturnsToThem() {
+        let goal = SportsGoalEvent(
+            matchID: "agents-sports",
+            teamName: "Espanyol",
+            teamShortName: "ESP",
+            homeShortName: "ESP",
+            awayShortName: "BAR",
+            homeScore: 1,
+            awayScore: 0,
+            minute: "67'"
+        )
+        let during = PresentationInput(
+            activeActivities: [.sports, .agents],
+            alert: .sportsGoal(goal)
+        )
+        #expect(PresentationResolver.resolve(during) == .alert(.sportsGoal(goal)))
+
+        let after = PresentationInput(
+            activeActivities: [.sports, .agents],
+            alert: nil
+        )
+        #expect(PresentationResolver.resolve(after) == .compact(primary: .agents))
     }
 }

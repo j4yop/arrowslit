@@ -236,6 +236,21 @@ final class DebugHooks {
             state.collapse()
         case "agents-on":
             state.setTabEnabled(.agents, true)
+        case "opencode-live":
+            state.setTabEnabled(.agents, true)
+            AgentUsageService.shared.showDemoLive(provider: .opencode)
+            state.collapse()
+        case "opencode-idle":
+            AgentUsageService.shared.endDemoLive()
+            state.collapse()
+        case "opencode-sports":
+            state.setTabEnabled(.agents, true)
+            state.setTabEnabled(.sports, true)
+            AgentUsageService.shared.showDemoLive(provider: .opencode)
+            if let demo = SportsDemoData.matches().first {
+                state.sports.showDemoCompact(demo)
+            }
+            state.collapse()
         case "calendar-notch":
             state.setTabEnabled(.calendar, true)
             state.setTabEnabled(.agents, false)

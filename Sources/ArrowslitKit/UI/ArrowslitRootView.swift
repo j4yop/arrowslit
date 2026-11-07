@@ -197,7 +197,6 @@ private struct CompactBar: View {
     /// Which live activity fills the strip; the agent strip opens its page.
     var activity: NotchActivity? = nil
     @State private var isDropTargeted = false
-    @ObservedObject private var agentUsage = AgentUsageService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var ear: CGFloat { max(0, (width - notchWidth) / 2) }
@@ -246,12 +245,12 @@ private struct CompactBar: View {
                     .frame(width: ear, height: height, alignment: .center)
                 }
                 .frame(width: width, height: height)
-            } else if activity == .agents, let live = agentUsage.snapshot.live.first {
+            } else if activity == .agents, let live = state.agentNotchSession {
                 // The compact strip: one breathing mark per working agent,
                 // each in its own color, and one reading on the other side.
-                let working = AgentProvider.allCases.filter { provider in
-                    agentUsage.snapshot.live.contains { $0.provider == provider }
-                }
+                // The session lingers briefly after a turn ends, so a goal or
+                // other alert hands the strip back to OpenCode, not sports.
+                let working = state.agentNotchProviders
                 let preferred = min(working.count > 1 ? 13.0 : 18.0, max(8, height - 16))
                 let count = CGFloat(max(1, working.count))
                 let room = (ear - 8 - (count - 1)) / (count * 1.45)
@@ -444,7 +443,7 @@ private struct CompactBar: View {
         if state.timer.isActive {
             return "Arrowslit. \(state.compactLabel) \(state.compactValue)"
         }
-        if activity == .agents, let live = agentUsage.snapshot.live.first {
+        if activity == .agents, let live = state.agentNotchSession {
             return "Arrowslit. \(live.provider.displayName) working in \(live.project)"
         }
         if activity == .calendar, let event = state.calendar.nextEvent {

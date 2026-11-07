@@ -657,6 +657,33 @@ final class AgentUsageService: ObservableObject, @unchecked Sendable {
         }
     }
 
+    #if DEBUG
+    /// QA only: put an OpenCode turn in the closed notch without running an
+    /// agent or writing to the real usage store.
+    func showDemoLive(provider: AgentProvider = .opencode) {
+        let now = Date()
+        var next = snapshot
+        next.live = [AgentLiveSession(
+            id: "demo-\(provider.rawValue)",
+            provider: provider,
+            started: now.addingTimeInterval(-219),
+            lastActivity: now,
+            model: "claude-sonnet-4",
+            project: "arrowslit",
+            tokens: AgentTokens(),
+            cost: 0
+        )]
+        snapshot = next
+    }
+
+    /// QA only: end the fake OpenCode turn and exercise the notch linger.
+    func endDemoLive() {
+        var next = snapshot
+        next.live = []
+        snapshot = next
+    }
+    #endif
+
     // MARK: Alerts
 
     /// Filters by the person's choices on the main thread, where they live.
