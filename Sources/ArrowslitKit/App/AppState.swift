@@ -125,21 +125,20 @@ public final class AppState {
     public let agents = AgentBridge()
     @ObservationIgnored private var agentLiveObservation: AnyCancellable?
     @ObservationIgnored private var agentEventObservation: AnyCancellable?
-    @ObservationIgnored private var agentRetainTask: Task<Void, Never>?
     /// Keeps the compact notch observing live agent sessions without making
     /// every caller subscribe to the reader's full snapshot.
     public private(set) var agentLiveCount = 0
-    /// The session the closed notch is showing. It stays put briefly after a
-    /// turn ends, so a goal or other alert can hand the strip back to the same
-    /// OpenCode reading instead of letting a live sports feed take over.
+    /// The session the closed notch is showing. OpenCode falls back to its
+    /// waiting session when no turn is active, so the reading lasts for the
+    /// session rather than an arbitrary retention window.
     private(set) var liveAgentSession: AgentLiveSession?
-    private(set) var retainedAgentSession: AgentLiveSession?
+    private(set) var openCodeAgentSession: AgentLiveSession?
     private(set) var liveAgentProviders: [AgentProvider] = []
 
-    var agentNotchSession: AgentLiveSession? { liveAgentSession ?? retainedAgentSession }
+    var agentNotchSession: AgentLiveSession? { liveAgentSession ?? openCodeAgentSession }
     var agentNotchProviders: [AgentProvider] {
         liveAgentProviders.isEmpty
-            ? (retainedAgentSession.map { [$0.provider] } ?? [])
+            ? (openCodeAgentSession.map { [$0.provider] } ?? [])
             : liveAgentProviders
     }
     public let nowPlaying: NowPlayingService
@@ -299,10 +298,12 @@ public final class AppState {
         agentLiveObservation = AgentUsageService.shared.$snapshot
             .map { snapshot -> AgentLiveUpdate in
                 let live = snapshot.live.sorted { $0.started < $1.started }
+                let openCode = live.first { $0.provider == .opencode }
+                    ?? snapshot.waiting.last { $0.provider == .opencode }
                 return AgentLiveUpdate(
                     providers: live.map(\.provider),
                     session: live.first,
-                    openCode: live.first { $0.provider == .opencode }
+                    openCode: openCode
                 )
             }
             .removeDuplicates()
@@ -312,31 +313,15 @@ public final class AppState {
             }
     }
 
-    /// Publishes the live agent sessions and keeps the last one briefly after
-    /// it ends. Alerts replace the compact strip while they run; this linger is
-    /// what lets the OpenCode reading come back instead of a sports score.
+    /// Publishes the agent sessions the notch should consider. OpenCode's
+    /// waiting session counts as present, so a goal or other alert can take
+    /// the strip for a moment and then hand it back for the rest of the
+    /// OpenCode session.
     private func applyAgentSnapshot(_ update: AgentLiveUpdate) {
         liveAgentProviders = update.providers
         liveAgentSession = update.session
+        openCodeAgentSession = update.openCode
         agentLiveCount = update.providers.count
-        if let openCode = update.openCode {
-            retainedAgentSession = openCode
-            agentRetainTask?.cancel()
-            agentRetainTask = nil
-        } else if !update.providers.isEmpty {
-            // Another agent is working. Do not leave an older OpenCode
-            // session waiting to reappear when that agent finishes.
-            retainedAgentSession = nil
-            agentRetainTask?.cancel()
-            agentRetainTask = nil
-        } else if retainedAgentSession != nil, agentRetainTask == nil {
-            agentRetainTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(NotchAgentSupport.idleTurn))
-                guard !Task.isCancelled else { return }
-                self?.retainedAgentSession = nil
-                self?.agentRetainTask = nil
-            }
-        }
     }
 
     public func stop() {
@@ -344,8 +329,6 @@ public final class AppState {
         agentLiveObservation = nil
         agentEventObservation?.cancel()
         agentEventObservation = nil
-        agentRetainTask?.cancel()
-        agentRetainTask = nil
         notes.save()
         tray.clearUnpinned()
         nowPlaying.stop()

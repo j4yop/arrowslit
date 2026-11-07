@@ -617,6 +617,7 @@ final class AgentUsageService: ObservableObject, @unchecked Sendable {
     private struct Inputs: Equatable {
         let records: Int
         let turns: [String: AgentLiveSession]
+        let waiting: [String: AgentLiveSession]
         let limits: [AgentProvider: AgentLimits]
         let codexPlan: String?
         let claudePlan: AgentPlan?
@@ -627,7 +628,8 @@ final class AgentUsageService: ObservableObject, @unchecked Sendable {
 
     /// Runs on `queue`.
     private var inputs: Inputs {
-        Inputs(records: store.records.count, turns: store.turns, limits: store.limits, codexPlan: store.codexPlan,
+        Inputs(records: store.records.count, turns: store.turns, waiting: store.waiting,
+               limits: store.limits, codexPlan: store.codexPlan,
                claudePlan: claudePlan, claudeOrganization: claudeOrganization, claudeIdentity: claudeIdentity,
                claudeApp: claudeAppSamples)
     }
@@ -673,12 +675,14 @@ final class AgentUsageService: ObservableObject, @unchecked Sendable {
             tokens: AgentTokens(),
             cost: 0
         )]
+        next.waiting = []
         snapshot = next
     }
 
     /// QA only: end the fake OpenCode turn and exercise the notch linger.
     func endDemoLive() {
         var next = snapshot
+        next.waiting = next.live
         next.live = []
         snapshot = next
     }

@@ -49,8 +49,9 @@ final class AgentUsageStore {
 
     func snapshot(plans: [AgentProvider: AgentPlan], providers: Set<AgentProvider>, now: Date,
                   calendar: Calendar = .current) -> AgentUsageSnapshot {
-        summary.snapshot(records: records, limits: limits, live: live, plans: plans,
-                         providers: providers, now: now, calendar: calendar)
+        summary.snapshot(records: records, limits: limits, live: live,
+                         waiting: waiting.values.sorted { $0.started < $1.started },
+                         plans: plans, providers: providers, now: now, calendar: calendar)
     }
 
     /// Applies one file's entries and returns the turns they finished.

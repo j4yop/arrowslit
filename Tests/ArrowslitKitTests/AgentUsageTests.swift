@@ -34,6 +34,31 @@ struct AgentUsageTests {
         #expect(usage.projects.first?.name == "arrowslit")
     }
 
+    @Test func waitingOpenCodeSessionStaysInTheSnapshot() {
+        let waiting = AgentLiveSession(
+            id: "opencode-session",
+            provider: .opencode,
+            started: Date().addingTimeInterval(-600),
+            lastActivity: Date(),
+            model: "claude-sonnet-4",
+            project: "arrowslit",
+            tokens: AgentTokens(input: 10, output: 5),
+            cost: 0
+        )
+        let snapshot = AgentUsageSummary.snapshot(
+            records: [],
+            limits: [:],
+            live: [],
+            waiting: [waiting],
+            plans: [:],
+            providers: [.opencode],
+            now: Date()
+        )
+        #expect(snapshot.live.isEmpty)
+        #expect(snapshot.waiting == [waiting])
+        #expect(snapshot.seen.contains(.opencode))
+    }
+
     @Test func musicOutranksLiveAgentsInTheCompactStrip() {
         #expect(NotchActivity.nowPlaying.priority < NotchActivity.agents.priority)
         #expect(NotchActivity.nowPlaying.priority < NotchActivity.sports.priority)

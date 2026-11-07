@@ -94,6 +94,10 @@ struct AgentUsageSnapshot: Equatable {
     var limits: [AgentProvider: AgentLimits] = [:]
     var plans: [AgentProvider: AgentPlan] = [:]
     var live: [AgentLiveSession] = []
+    /// Turns that have gone quiet but whose session can still resume. The
+    /// closed notch uses this to keep an OpenCode reading after its turn
+    /// ends, for as long as the session lasts.
+    var waiting: [AgentLiveSession] = []
     var claudeBlock: AgentBlock?
     /// The last half hour, scaled to an hour.
     var burnRate: [AgentProvider: AgentTotals] = [:]
@@ -113,14 +117,18 @@ enum AgentUsageSummary {
     static let burnWindow: TimeInterval = 30 * 60
 
     static func snapshot(records: [AgentUsageRecord], limits: [AgentProvider: AgentLimits],
-                         live: [AgentLiveSession], plans: [AgentProvider: AgentPlan],
+                         live: [AgentLiveSession], waiting: [AgentLiveSession] = [],
+                         plans: [AgentProvider: AgentPlan],
                          providers: Set<AgentProvider>, now: Date,
                          calendar: Calendar = .autoupdatingCurrent) -> AgentUsageSnapshot {
         var snapshot = AgentUsageSnapshot(loaded: true, now: now)
         snapshot.limits = limits.filter { providers.contains($0.key) }
         snapshot.plans = plans.filter { providers.contains($0.key) }
         snapshot.live = live.filter { providers.contains($0.provider) }.sorted { $0.started < $1.started }
-        snapshot.seen = Set(snapshot.limits.keys).union(snapshot.live.map(\.provider))
+        snapshot.waiting = waiting.filter { providers.contains($0.provider) }.sorted { $0.started < $1.started }
+        snapshot.seen = Set(snapshot.limits.keys)
+            .union(snapshot.live.map(\.provider))
+            .union(snapshot.waiting.map(\.provider))
 
         let today = calendar.startOfDay(for: now)
         let starts: [Date] = (0..<AgentUsageSnapshot.dayCount).reversed().compactMap {
@@ -284,7 +292,8 @@ final class AgentUsageSummaryCache {
     }
 
     func snapshot(records: [AgentUsageRecord], limits: [AgentProvider: AgentLimits],
-                  live: [AgentLiveSession], plans: [AgentProvider: AgentPlan],
+                  live: [AgentLiveSession], waiting: [AgentLiveSession] = [],
+                  plans: [AgentProvider: AgentPlan],
                   providers: Set<AgentProvider>, now: Date,
                   calendar: Calendar = .current) -> AgentUsageSnapshot {
         accumulatedRecords = 0
@@ -297,8 +306,9 @@ final class AgentUsageSummaryCache {
             projects.removeAll(keepingCapacity: true)
             names.removeAll(keepingCapacity: true)
             recentPositions.removeAll(keepingCapacity: true)
-            history = AgentUsageSummary.snapshot(records: [], limits: [:], live: [], plans: [:],
-                                                 providers: providers, now: now, calendar: calendar)
+            history = AgentUsageSummary.snapshot(records: [], limits: [:], live: [], waiting: [],
+                                                 plans: [:], providers: providers, now: now,
+                                                 calendar: calendar)
             starts = history!.days.map(\.start)
             hourStarts = history!.hours.map(\.start)
             let today = calendar.startOfDay(for: now)
@@ -329,8 +339,10 @@ final class AgentUsageSummaryCache {
         result.limits = limits.filter { providers.contains($0.key) }
         result.plans = plans.filter { providers.contains($0.key) }
         result.live = live.filter { providers.contains($0.provider) }.sorted { $0.started < $1.started }
+        result.waiting = waiting.filter { providers.contains($0.provider) }.sorted { $0.started < $1.started }
         result.seen.formUnion(result.limits.keys)
         result.seen.formUnion(result.live.map(\.provider))
+        result.seen.formUnion(result.waiting.map(\.provider))
         var claude: [AgentUsageRecord] = []
         // Stable store order also preserves the original accumulation order.
         for position in recentPositions.sorted() {
