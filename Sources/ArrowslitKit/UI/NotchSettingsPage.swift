@@ -260,7 +260,7 @@ private enum FeatureSwitch: String, CaseIterable, Identifiable {
         case .queue: "The up-next list in the music page."
         case .equalizer: "The animated bars in the music strip."
         case .downloads: "The download page and progress strip."
-        case .agents: "The AI Agents page and live strip."
+        case .agents: "The live agent strip. The AI Agents page always stays in the launcher."
         case .watch: "OCR monitoring of a screen area."
         case .mascot: "The animated companion."
         }

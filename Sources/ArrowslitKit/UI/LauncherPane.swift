@@ -18,7 +18,9 @@ struct LauncherPane: View {
     private var items: [WorkbenchTab] {
         [.nowPlaying, .timer, .stopwatch, .calendar, .sports, .reminders, .agents,
          .clipboard, .tray, .notes, .mirror, .keepAwake, .stats]
-            .filter { state.settings.isTabEnabled($0) }
+            // The AI Agents page always stays in the launcher. Its feature
+            // switch only turns off the live strip beside the camera.
+            .filter { $0 == .agents || state.settings.isTabEnabled($0) }
     }
 
     private var pages: [[WorkbenchTab]] {
