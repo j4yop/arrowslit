@@ -24,6 +24,10 @@
   or with Homebrew 7: <code>brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit</code>
 </p>
 
+<p align="center">
+  New here? <a href="Docs/User-Guide.md"><b>Read the User Guide</b></a> — install, every tool, settings, privacy and fixes in one page.
+</p>
+
 ---
 
 <p align="center">
@@ -208,18 +212,18 @@ Click the grid icon at the top right to access any utility instantly, with custo
 | Shortcut | Tool | Description |
 | :--- | :--- | :--- |
 | `^⌥M` | **Now Playing** | Tall music player with live lyrics and scrubber |
-| `^⌥T` | **Timer** | Sliding minute ruler with Pomodoro quick actions |
-| `^⌥S` | **Stopwatch** | Tenths-of-a-second precision timer with laps |
+| `^⌥R` | **Timer** | Sliding minute ruler with Pomodoro quick actions |
+| `^⌥S` | **Stopwatch** | Tenths-of-a-second precision stopwatch |
 | `^⌥A` | **Calendar** | Day agenda, month grid, and meeting links |
 | `^⌥F` | **Sports** | Premier League, La Liga, and Champions League live |
-| `^⌥R` | **Reminders** | Today's Apple Reminders checklist |
+| `^⌥O` | **Reminders** | Today's Apple Reminders checklist |
 | `^⌥G` | **AI Agents** | Token telemetry, spend, and prompt activity |
 | `^⌥B` | **Clipboard** | Configurable in-memory clipboard history |
 | `^⌥L` | **Files** | File shelf with drag-and-drop and AirDrop |
 | `^⌥N` | **Scratchpad** | Local notes with instant autosave |
-| `^⌥C` | **Camera Mirror** | Camera check before calls (turns sensor off when closed) |
-| `^⌥U` | **Stats** | Darwin memory, Mach CPU, disk, and network |
-| `^⌥K` | **Keep Awake** | Prevents system sleep while allowing screen dimming |
+| `^⌥W` | **Camera Mirror** | Camera check before calls (turns sensor off when closed) |
+| `^⌥P` | **Stats** | Darwin memory, Mach CPU, disk, and network |
+| `^⌥Z` | **Keep Awake** | Prevents system sleep while allowing screen dimming |
 
 ---
 
@@ -242,7 +246,7 @@ Click the grid icon at the top right to access any utility instantly, with custo
 | **Open Notch** | Hover over the top center of your screen, or click the slit icon in your menu bar |
 | **Open Full Music Player** | Click the expand arrow on the Home music card, or click the album artwork |
 | **Open Launcher Grid** | Click the 2x2 grid icon in the top right corner of the notch |
-| **Customize Top Shortcuts** | Open the launcher grid, click the pencil icon, or use **Settings › Home › Launcher shortcuts** to pick your top three tools |
+| **Customize Top Shortcuts** | Open the launcher grid, hold any tile, or use **Settings › Home › Launcher shortcuts**, and pick your top three tools |
 | **Drop Files or AirDrop** | Drag any file from Finder onto the notch and release over **Tray** or **AirDrop** |
 | **Collapse Notch** | Move your pointer away, click outside the panel, or press **Escape** |
 | **External Displays** | Select your preferred monitor in **Settings › General › Display** |
@@ -289,6 +293,14 @@ Click the grid icon at the top right to access any utility instantly, with custo
 
 ### How do I uninstall Arrowslit completely?
 **Answer:** Click the slit icon in your macOS menu bar and choose **Quit Arrowslit**. Then drag Arrowslit from your **Applications** folder to the Trash. If you wish to delete saved local configuration files and notes, remove `~/Library/Preferences/com.j4yop.arrowslit.plist` and `~/Library/Application Support/Arrowslit`.
+
+---
+
+## Documentation
+
+- **[User Guide](Docs/User-Guide.md)** — install, the notch, every tool, settings, privacy and troubleshooting.
+- [Agent approval security review](Docs/Agent-Approval-Security.md) — the trust boundary behind Allow, Deny and Ask.
+- [Architecture](ARCHITECTURE.md) — how the app is put together.
 
 ---
 
