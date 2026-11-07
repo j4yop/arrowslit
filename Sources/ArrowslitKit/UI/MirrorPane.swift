@@ -45,7 +45,12 @@ struct MirrorPane: View {
                                     .foregroundStyle(ArrowTheme.faint)
                             }
                         } else {
-                            CameraPreview()
+                            CameraPreview(
+                                deviceID: state.settings.cameraDeviceID,
+                                mirrored: state.settings.cameraMirrored,
+                                quality: state.settings.cameraQuality
+                            )
+                            .id("\(state.settings.cameraDeviceID ?? "default")-\(state.settings.cameraMirrored)-\(state.settings.cameraQuality)")
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         }
                     }

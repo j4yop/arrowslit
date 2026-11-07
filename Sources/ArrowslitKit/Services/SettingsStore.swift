@@ -46,7 +46,9 @@ public final class SettingsStore {
     public var keyboardShortcutsEnabled: Bool { didSet { defaults.set(keyboardShortcutsEnabled, forKey: Key.keyboardShortcuts) } }
     public var showOnLockScreen: Bool { didSet { defaults.set(showOnLockScreen, forKey: Key.showOnLockScreen) } }
     public var callsEnabled: Bool { didSet { defaults.set(callsEnabled, forKey: Key.calls) } }
+    public var callStripEnabled: Bool { didSet { defaults.set(callStripEnabled, forKey: Key.callStrip) } }
     public var downloadsEnabled: Bool { didSet { defaults.set(downloadsEnabled, forKey: Key.downloads) } }
+    public var downloadsFolderPath: String? { didSet { defaults.set(downloadsFolderPath, forKey: Key.downloadsFolder) } }
     public var nowPlayingAppMode: MediaAppFilter.Mode { didSet { defaults.set(nowPlayingAppMode.rawValue, forKey: Key.nowPlayingAppMode) } }
     public var nowPlayingApps: [String] { didSet { defaults.set(nowPlayingApps, forKey: Key.nowPlayingApps) } }
     public private(set) var recentMediaApps: RecentMediaApps { didSet { defaults.set(recentMediaApps.identifiers, forKey: Key.recentMediaApps) } }
@@ -61,6 +63,16 @@ public final class SettingsStore {
 
     public var mediaAppFilter: MediaAppFilter {
         MediaAppFilter(mode: nowPlayingAppMode, allowed: Set(nowPlayingApps))
+    }
+
+    /// The chosen download folder, or the standard Downloads folder.
+    public var downloadsFolderURL: URL {
+        if let path = downloadsFolderPath, !path.isEmpty {
+            let url = URL(fileURLWithPath: path, isDirectory: true)
+            if FileManager.default.fileExists(atPath: url.path) { return url }
+        }
+        return FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Downloads")
     }
 
     public static let lingerChoices: [TimeInterval] = [10, 30, 60, 300]
@@ -113,8 +125,25 @@ public final class SettingsStore {
     public var alertHeadphones: Bool { didSet { defaults.set(alertHeadphones, forKey: Key.alertHeadphones) } }
     public var alertVolumeBrightness: Bool { didSet { defaults.set(alertVolumeBrightness, forKey: Key.alertVolumeBrightness) } }
     public var timerSound: Bool { didSet { defaults.set(timerSound, forKey: Key.timerSound) } }
+    public var hudDurationScale: Double { didSet { defaults.set(hudDurationScale, forKey: Key.hudDurationScale) } }
+    public var batteryWarningLevel: Int { didSet { defaults.set(batteryWarningLevel, forKey: Key.batteryWarning) } }
+    public var batteryCriticalLevel: Int { didSet { defaults.set(batteryCriticalLevel, forKey: Key.batteryCritical) } }
     public var clipboardEnabled: Bool { didSet { defaults.set(clipboardEnabled, forKey: Key.clipboard) } }
+    public var clipboardCapacity: Int { didSet { defaults.set(clipboardCapacity, forKey: Key.clipboardCapacity) } }
+    public var clipboardIgnoreConfidential: Bool { didSet { defaults.set(clipboardIgnoreConfidential, forKey: Key.clipboardConfidential) } }
     public var statsEnabled: Bool { didSet { defaults.set(statsEnabled, forKey: Key.stats) } }
+    public var statsRefreshSeconds: Double { didSet { defaults.set(statsRefreshSeconds, forKey: Key.statsRefresh) } }
+    public var statsMetrics: [String] { didSet { defaults.set(statsMetrics, forKey: Key.statsMetrics) } }
+    public var keepAwakeMinutes: Int { didSet { defaults.set(keepAwakeMinutes, forKey: Key.keepAwakeMinutes) } }
+    public var keepAwakeAllowDisplaySleep: Bool { didSet { defaults.set(keepAwakeAllowDisplaySleep, forKey: Key.keepAwakeDisplay) } }
+    public var keepAwakeAllowDiskSleep: Bool { didSet { defaults.set(keepAwakeAllowDiskSleep, forKey: Key.keepAwakeDisk) } }
+    public var cameraDeviceID: String? { didSet { defaults.set(cameraDeviceID, forKey: Key.cameraDevice) } }
+    public var cameraMirrored: Bool { didSet { defaults.set(cameraMirrored, forKey: Key.cameraMirrored) } }
+    public var cameraQuality: String { didSet { defaults.set(cameraQuality, forKey: Key.cameraQuality) } }
+    public var calendarLeadMinutes: Int { didSet { defaults.set(calendarLeadMinutes, forKey: Key.calendarLead) } }
+    public var calendarExcludedIDs: [String] { didSet { defaults.set(calendarExcludedIDs, forKey: Key.calendarExcluded) } }
+    public var remindersShowCompleted: Bool { didSet { defaults.set(remindersShowCompleted, forKey: Key.remindersCompleted) } }
+    public var remindersExcludedIDs: [String] { didSet { defaults.set(remindersExcludedIDs, forKey: Key.remindersExcluded) } }
     public var notesEnabled: Bool { didSet { defaults.set(notesEnabled, forKey: Key.notes) } }
     public var lyricsEnabled: Bool { didSet { defaults.set(lyricsEnabled, forKey: Key.lyrics) } }
     public var checksForUpdates: Bool { didSet { defaults.set(checksForUpdates, forKey: Key.checksForUpdates) } }
@@ -155,7 +184,9 @@ public final class SettingsStore {
         keyboardShortcutsEnabled = defaults.object(forKey: Key.keyboardShortcuts) as? Bool ?? true
         showOnLockScreen = defaults.object(forKey: Key.showOnLockScreen) as? Bool ?? false
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
+        callStripEnabled = defaults.object(forKey: Key.callStrip) as? Bool ?? true
         downloadsEnabled = defaults.object(forKey: Key.downloads) as? Bool ?? false
+        downloadsFolderPath = defaults.string(forKey: Key.downloadsFolder)
         nowPlayingAppMode = defaults.string(forKey: Key.nowPlayingAppMode).flatMap(MediaAppFilter.Mode.init(rawValue:)) ?? .all
         var seenApps = Set<String>()
         nowPlayingApps = (defaults.stringArray(forKey: Key.nowPlayingApps) ?? [])
@@ -171,8 +202,25 @@ public final class SettingsStore {
         alertHeadphones = defaults.object(forKey: Key.alertHeadphones) as? Bool ?? true
         alertVolumeBrightness = defaults.object(forKey: Key.alertVolumeBrightness) as? Bool ?? true
         timerSound = defaults.object(forKey: Key.timerSound) as? Bool ?? true
+        hudDurationScale = defaults.object(forKey: Key.hudDurationScale) as? Double ?? 1
+        batteryWarningLevel = defaults.object(forKey: Key.batteryWarning) as? Int ?? 20
+        batteryCriticalLevel = defaults.object(forKey: Key.batteryCritical) as? Int ?? 10
         clipboardEnabled = defaults.object(forKey: Key.clipboard) as? Bool ?? true
+        clipboardCapacity = defaults.object(forKey: Key.clipboardCapacity) as? Int ?? 20
+        clipboardIgnoreConfidential = defaults.object(forKey: Key.clipboardConfidential) as? Bool ?? true
         statsEnabled = defaults.object(forKey: Key.stats) as? Bool ?? true
+        statsRefreshSeconds = defaults.object(forKey: Key.statsRefresh) as? Double ?? 2
+        statsMetrics = defaults.stringArray(forKey: Key.statsMetrics) ?? ["cpu", "memory", "disk", "network"]
+        keepAwakeMinutes = defaults.object(forKey: Key.keepAwakeMinutes) as? Int ?? 0
+        keepAwakeAllowDisplaySleep = defaults.object(forKey: Key.keepAwakeDisplay) as? Bool ?? false
+        keepAwakeAllowDiskSleep = defaults.object(forKey: Key.keepAwakeDisk) as? Bool ?? false
+        cameraDeviceID = defaults.string(forKey: Key.cameraDevice)
+        cameraMirrored = defaults.object(forKey: Key.cameraMirrored) as? Bool ?? true
+        cameraQuality = defaults.string(forKey: Key.cameraQuality) ?? "high"
+        calendarLeadMinutes = defaults.object(forKey: Key.calendarLead) as? Int ?? 5
+        calendarExcludedIDs = defaults.stringArray(forKey: Key.calendarExcluded) ?? []
+        remindersShowCompleted = defaults.object(forKey: Key.remindersCompleted) as? Bool ?? false
+        remindersExcludedIDs = defaults.stringArray(forKey: Key.remindersExcluded) ?? []
         notesEnabled = defaults.object(forKey: Key.notes) as? Bool ?? true
         lyricsEnabled = defaults.object(forKey: Key.lyrics) as? Bool ?? false
         checksForUpdates = defaults.object(forKey: Key.checksForUpdates) as? Bool ?? true
@@ -288,7 +336,9 @@ public final class SettingsStore {
         static let keyboardShortcuts = "arrowslit.keyboardShortcuts"
         static let showOnLockScreen = "arrowslit.showOnLockScreen"
         static let calls = "arrowslit.callsEnabled"
+        static let callStrip = "arrowslit.callStripEnabled"
         static let downloads = "arrowslit.downloadsEnabled"
+        static let downloadsFolder = "arrowslit.downloads.folder"
         static let nowPlayingAppMode = "arrowslit.nowPlaying.appMode"
         static let nowPlayingApps = "arrowslit.nowPlaying.apps"
         static let recentMediaApps = "arrowslit.nowPlaying.recentApps"
@@ -301,8 +351,25 @@ public final class SettingsStore {
         static let alertHeadphones = "arrowslit.alertHeadphones"
         static let alertVolumeBrightness = "arrowslit.alertVolumeBrightness"
         static let timerSound = "arrowslit.timerSound"
+        static let hudDurationScale = "arrowslit.hud.durationScale"
+        static let batteryWarning = "arrowslit.battery.warningLevel"
+        static let batteryCritical = "arrowslit.battery.criticalLevel"
         static let clipboard = "arrowslit.clipboardEnabled"
+        static let clipboardCapacity = "arrowslit.clipboard.capacity"
+        static let clipboardConfidential = "arrowslit.clipboard.ignoreConfidential"
         static let stats = "arrowslit.statsEnabled"
+        static let statsRefresh = "arrowslit.stats.refreshSeconds"
+        static let statsMetrics = "arrowslit.stats.metrics"
+        static let keepAwakeMinutes = "arrowslit.keepAwake.minutes"
+        static let keepAwakeDisplay = "arrowslit.keepAwake.allowDisplaySleep"
+        static let keepAwakeDisk = "arrowslit.keepAwake.allowDiskSleep"
+        static let cameraDevice = "arrowslit.camera.device"
+        static let cameraMirrored = "arrowslit.camera.mirrored"
+        static let cameraQuality = "arrowslit.camera.quality"
+        static let calendarLead = "arrowslit.calendar.leadMinutes"
+        static let calendarExcluded = "arrowslit.calendar.excludedIDs"
+        static let remindersCompleted = "arrowslit.reminders.showCompleted"
+        static let remindersExcluded = "arrowslit.reminders.excludedIDs"
         static let notes = "arrowslit.notesEnabled"
         static let lyrics = "arrowslit.lyricsEnabled"
         static let checksForUpdates = "arrowslit.checksForUpdates"

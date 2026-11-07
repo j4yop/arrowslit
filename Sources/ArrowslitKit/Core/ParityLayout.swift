@@ -211,7 +211,7 @@ public enum ParityLayout {
         let base = compactWidth(appearance, geometry: geometry)
         let notchWidth = notch(in: geometry).width
         switch activity {
-        case .calendar: return base + 120
+        case .calendar: return base + 140
         case .download:
             // Measure the file name into the left wing, with the arrow, its
             // clearance from the curve and air beside the camera.
@@ -227,11 +227,12 @@ public enum ParityLayout {
             return notchWidth + 2 * min(wing, maximum)
         case .watch: return base + 70
         case .stats: return base + 40
-        case .timer, .stopwatch: return base + 34
+        case .timer, .stopwatch: return base + 40
         case .keepAwake: return notchWidth + 88
-        case .call, .charging: return base + 20
+        case .call, .agents: return base + 40
+        case .charging: return base + 20
         case .sports: return base + 40
-        case .nowPlaying, .agents, .none: return base
+        case .nowPlaying, .none: return base
         }
     }
 
@@ -241,11 +242,7 @@ public enum ParityLayout {
         geometry: ScreenGeometry,
         downloadName: String? = nil
     ) -> CGSize {
-        let base = compactHeight(appearance, geometry: geometry)
-        // Media, calls and working agents carry a cover or an app mark. The
-        // extra height gives those marks room to breathe below the camera.
-        let tall: Set<NotchActivity> = [.nowPlaying, .call, .agents]
-        let height = activity.map { tall.contains($0) } == true ? max(base, 38) : base
+        let height = compactHeight(appearance, geometry: geometry)
         return CGSize(
             width: compactActivityWidth(activity, appearance: appearance, geometry: geometry,
                                         downloadName: downloadName),

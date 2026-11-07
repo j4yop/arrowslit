@@ -15,6 +15,8 @@ public final class StatsService {
     public private(set) var networkOut: Double = 0
     public private(set) var hasReading = false
     public private(set) var isRunning = false
+    /// Seconds between samples; changed from Settings.
+    public var refreshInterval: TimeInterval = 2
 
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var lastCPU: CPUSample?
@@ -38,12 +40,20 @@ public final class StatsService {
         lastNetwork = nil
         lastDiskCheck = .distantPast
         sample()
-        let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: max(1, refreshInterval), repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.sample() }
         }
         timer.tolerance = 0.5
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+    }
+
+    public func setRefreshInterval(_ value: TimeInterval) {
+        refreshInterval = max(1, value)
+        if isRunning {
+            stop()
+            start()
+        }
     }
 
     public func stop() {

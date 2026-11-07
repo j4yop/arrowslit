@@ -159,7 +159,7 @@ static void refreshNow(void) {
     }
 
     dispatch_async(mediaQueue, ^{
-        dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
+        dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, 400 * NSEC_PER_MSEC));
         NSNumber *rate = finiteNumber(info[@"kMRMediaRemoteNowPlayingInfoPlaybackRate"]);
         BOOL isPlaying = playing || (rate != nil && rate.doubleValue > 0);
         publish(info ?: @{}, isPlaying, pid, bundleID);
@@ -304,9 +304,9 @@ void arrowslit_media_stream(void *interpreter, void *cv) {
         scheduleRefresh();
 
         dispatch_source_t poll = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, mediaQueue);
-        dispatch_source_set_timer(poll, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), 5 * NSEC_PER_SEC, NSEC_PER_SEC);
+        dispatch_source_set_timer(poll, dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), 1 * NSEC_PER_SEC, 200 * NSEC_PER_MSEC);
         dispatch_source_set_event_handler(poll, ^{
-            refreshNow();
+            scheduleRefresh();
         });
         dispatch_resume(poll);
         static dispatch_source_t retainedPoll;

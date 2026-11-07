@@ -3,8 +3,12 @@ import AVFoundation
 import SwiftUI
 
 struct CameraPreview: NSViewRepresentable {
+    var deviceID: String? = nil
+    var mirrored = true
+    var quality = "high"
+
     func makeNSView(context: Context) -> CameraPreviewView {
-        CameraPreviewView()
+        CameraPreviewView(deviceID: deviceID, mirrored: mirrored, quality: quality)
     }
 
     func updateNSView(_ nsView: CameraPreviewView, context: Context) {}
@@ -19,14 +23,14 @@ final class CameraPreviewView: NSView {
     private let previewLayer: AVCaptureVideoPreviewLayer
     private let queue = DispatchQueue(label: "com.j4yop.arrowslit.camera")
 
-    init() {
+    init(deviceID: String?, mirrored: Bool, quality: String) {
         previewLayer = AVCaptureVideoPreviewLayer(session: session)
         super.init(frame: .zero)
         wantsLayer = true
         layer = CALayer()
         previewLayer.videoGravity = .resizeAspectFill
         layer?.addSublayer(previewLayer)
-        configure()
+        configure(deviceID: deviceID, mirrored: mirrored, quality: quality)
     }
 
     @available(*, unavailable)
@@ -61,18 +65,24 @@ final class CameraPreviewView: NSView {
         }
     }
 
-    private func configure() {
-        guard let camera = AVCaptureDevice.default(for: .video),
-              let input = try? AVCaptureDeviceInput(device: camera) else { return }
+    private func configure(deviceID: String?, mirrored: Bool, quality: String) {
+        let devices = AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInWideAngleCamera, .externalUnknown],
+            mediaType: .video,
+            position: .unspecified
+        ).devices
+        let camera = devices.first(where: { $0.uniqueID == deviceID })
+            ?? AVCaptureDevice.default(for: .video)
+        guard let camera, let input = try? AVCaptureDeviceInput(device: camera) else { return }
         session.beginConfiguration()
-        session.sessionPreset = .high
+        session.sessionPreset = quality == "low" ? .low : quality == "medium" ? .medium : .high
         if session.canAddInput(input) {
             session.addInput(input)
         }
         session.commitConfiguration()
         if let connection = previewLayer.connection, connection.isVideoMirroringSupported {
             connection.automaticallyAdjustsVideoMirroring = false
-            connection.isVideoMirrored = true
+            connection.isVideoMirrored = mirrored
         }
     }
 }

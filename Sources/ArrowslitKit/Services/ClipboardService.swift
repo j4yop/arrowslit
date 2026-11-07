@@ -22,13 +22,19 @@ public final class ClipboardService {
     @ObservationIgnored private var lastChangeCount: Int
     @ObservationIgnored private var pollTimer: Timer?
     @ObservationIgnored private var feedbackTask: Task<Void, Never>?
+    @ObservationIgnored private var ignoreConfidential: Bool
 
     private static let pinsKey = "arrowslit.clipboard.pins"
+    private static let capacityKey = "arrowslit.clipboard.capacity"
+    private static let confidentialKey = "arrowslit.clipboard.ignoreConfidential"
 
     public init(pasteboard: NSPasteboard = .general, defaults: UserDefaults = .standard) {
         self.pasteboard = pasteboard
         self.defaults = defaults
+        let capacity = defaults.object(forKey: Self.capacityKey) as? Int ?? ClipboardHistory.capacity
+        self.ignoreConfidential = defaults.object(forKey: Self.confidentialKey) as? Bool ?? true
         lastChangeCount = pasteboard.changeCount
+        history = ClipboardHistory(capacity: capacity)
         loadPins()
     }
 
@@ -55,6 +61,17 @@ public final class ClipboardService {
     public func clear() {
         history.removeAll()
         savePins()
+    }
+
+    public func setCapacity(_ value: Int) {
+        history.setCapacity(value)
+        defaults.set(history.capacity, forKey: Self.capacityKey)
+        savePins()
+    }
+
+    public func setIgnoreConfidential(_ value: Bool) {
+        ignoreConfidential = value
+        defaults.set(value, forKey: Self.confidentialKey)
     }
 
     public func togglePin(_ entry: ClipboardEntry) {
@@ -91,7 +108,7 @@ public final class ClipboardService {
         guard count != lastChangeCount else { return }
         lastChangeCount = count
         let types = (pasteboard.types ?? []).map(\.rawValue)
-        guard ClipboardRules.isRecordable(types: types),
+        guard (!ignoreConfidential || ClipboardRules.isRecordable(types: types)),
               let text = pasteboard.string(forType: .string) else { return }
         promote(text, appName: NSWorkspace.shared.frontmostApplication?.localizedName)
     }
@@ -109,7 +126,7 @@ public final class ClipboardService {
               let pinned = try? JSONDecoder().decode([ClipboardEntry].self, from: data) else {
             return
         }
-        history = ClipboardHistory(pinned: pinned)
+        history = ClipboardHistory(pinned: pinned, capacity: history.capacity)
     }
 
     private func savePins() {

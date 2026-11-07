@@ -9,6 +9,10 @@ struct NotchSettingsPage: View {
 
     var body: some View {
         Group {
+            HudDurationSettingsSection(state: state)
+
+            BatteryThresholdsSettingsSection(state: state)
+
             SettingsSection(
                 title: "Live feedback",
                 note: "A brief heads-up in the notch. These configure the 15 live feedback events; rows without a macOS source are disabled."

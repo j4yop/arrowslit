@@ -72,10 +72,11 @@ struct ParityLayoutTests {
         #expect(ParityLayout.alertSize(for: charging, appearance: large, geometry: builtIn) == CGSize(width: 345, height: 32))
     }
 
-    @Test func mediaCallAndAgentStripsGetTheTallerRow() {
+    @Test func mediaCallAndAgentStripsFitTheMenuBar() {
         for activity in [NotchActivity.nowPlaying, .call, .agents] {
-            #expect(ParityLayout.compactActivitySize(activity, appearance: large, geometry: builtIn).height == 38)
+            #expect(ParityLayout.compactActivitySize(activity, appearance: large, geometry: builtIn).height == 32)
         }
+        #expect(ParityLayout.compactActivitySize(.agents, appearance: large, geometry: builtIn).width > ParityLayout.compactSize(large, geometry: builtIn).width)
         #expect(ParityLayout.compactActivitySize(.timer, appearance: large, geometry: builtIn).height == 32)
     }
 

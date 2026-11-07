@@ -27,11 +27,13 @@ public struct PowerAlertRules {
     public mutating func observe(
         _ snapshot: PowerSnapshot,
         chargingAlerts: Bool,
-        lowBatteryAlerts: Bool
+        lowBatteryAlerts: Bool,
+        warningLevel: Int = 20,
+        criticalLevel: Int = 10
     ) -> [NotchAlert] {
         guard let previous else {
             self.previous = snapshot
-            rearm(for: snapshot)
+            rearm(for: snapshot, warningLevel: warningLevel, criticalLevel: criticalLevel)
             return []
         }
 
@@ -45,7 +47,9 @@ public struct PowerAlertRules {
         }
 
         if lowBatteryAlerts, !snapshot.isOnAC, !snapshot.isCharging {
-            for threshold in [20, 10] where snapshot.level <= threshold
+            let thresholds = Set([warningLevel, criticalLevel].filter { (0..<100).contains($0) })
+                .sorted(by: >)
+            for threshold in thresholds where snapshot.level <= threshold
                 && previous.level > threshold
                 && !announced.contains(threshold) {
                 alerts.append(.lowBattery(level: snapshot.level))
@@ -53,16 +57,17 @@ public struct PowerAlertRules {
             }
         }
 
-        rearm(for: snapshot)
+        rearm(for: snapshot, warningLevel: warningLevel, criticalLevel: criticalLevel)
         return alerts
     }
 
-    private mutating func rearm(for snapshot: PowerSnapshot) {
-        if snapshot.isOnAC || snapshot.isCharging || snapshot.level > 20 {
-            announced.remove(20)
+    private mutating func rearm(for snapshot: PowerSnapshot, warningLevel: Int = 20, criticalLevel: Int = 10) {
+        if snapshot.isOnAC || snapshot.isCharging {
+            announced.removeAll()
+            return
         }
-        if snapshot.isOnAC || snapshot.isCharging || snapshot.level > 10 {
-            announced.remove(10)
+        for threshold in [warningLevel, criticalLevel] where snapshot.level > threshold {
+            announced.remove(threshold)
         }
     }
 }

@@ -19,14 +19,16 @@ public enum NotchActivity: String, CaseIterable, Sendable, Equatable {
     public var priority: Int {
         switch self {
         case .call: 0
-        case .timer: 1
-        case .stopwatch: 2
-        case .agents: 3
-        case .calendar: 4
+        // A song or video is the thing the notch is for; only a call and a
+        // user-started clock come before it.
+        case .nowPlaying: 1
+        case .timer: 2
+        case .stopwatch: 3
+        case .agents: 4
         case .keepAwake: 5
         case .watch: 6
         case .sports: 7
-        case .nowPlaying: 8
+        case .calendar: 8
         case .download: 9
         case .charging: 10
         case .stats: 11

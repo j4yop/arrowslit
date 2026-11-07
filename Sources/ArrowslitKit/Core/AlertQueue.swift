@@ -6,6 +6,8 @@ public struct AlertQueue: Equatable, Sendable {
     public private(set) var current: NotchAlert?
     public private(set) var shownAt: Date?
     public private(set) var pending: [NotchAlert] = []
+    /// Multiplier for compact HUD time, set from Settings.
+    public var durationScale: Double = 1
 
     public init() {}
 
@@ -53,7 +55,7 @@ public struct AlertQueue: Equatable, Sendable {
 
     public var expiry: Date? {
         guard let current, let shownAt else { return nil }
-        return shownAt.addingTimeInterval(current.displayDuration)
+        return shownAt.addingTimeInterval(current.displayDuration * max(0.25, durationScale))
     }
 
     @discardableResult

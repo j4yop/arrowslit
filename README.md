@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.6/Arrowslit-0.12.6.dmg"><b>Download Arrowslit 0.12.6 DMG</b></a>
+  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.7/Arrowslit-0.12.7.dmg"><b>Download Arrowslit 0.12.7 DMG</b></a>
   &nbsp;·&nbsp;
   or with Homebrew 7: <code>brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit</code>
 </p>
@@ -50,7 +50,7 @@ Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS
 
 Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certificate but is **not notarized by Apple**, so macOS blocks the first launch. That is expected — it is not a corrupt download.
 
-1. Download **[Arrowslit-0.12.6.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.6/Arrowslit-0.12.6.dmg)** (and the matching `.sha256` if you want to verify it).
+1. Download **[Arrowslit-0.12.7.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.7/Arrowslit-0.12.7.dmg)** (and the matching `.sha256` if you want to verify it).
 2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
 3. Open Applications and double-click **Arrowslit**. macOS will say it cannot verify the app. Click **Done**.
 4. Do one of these:
@@ -67,20 +67,20 @@ Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certif
 If macOS says **“Arrowslit is damaged and can’t be opened”**, that is the same quarantine block, not a damaged file. Run the Terminal commands above. To verify the download first:
 
 ```bash
-shasum -a 256 -c Arrowslit-0.12.6.dmg.sha256
+shasum -a 256 -c Arrowslit-0.12.7.dmg.sha256
 ```
 
-The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.12.6.dmg`, so the command works on your machine.
+The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.12.7.dmg`, so the command works on your machine.
 
 ### Release Metadata
 
 | Detail | Value |
 | :--- | :--- |
-| **Current Release** | 0.12.6 (build 96) |
+| **Current Release** | 0.12.7 (build 103) |
 | **Release Type** | Stable |
-| **Direct Download** | [Arrowslit-0.12.6.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.6/Arrowslit-0.12.6.dmg) |
+| **Direct Download** | [Arrowslit-0.12.7.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.7/Arrowslit-0.12.7.dmg) |
 | **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
-| **SHA-256 Checksum** | `b67954fd54a529be1d266874eef41239faec450e6f37e623019d82f9de8b2d5a` |
+| **SHA-256 Checksum** | `356d19ad326d77bc176dba5be7b537451d846c6342027a89e115193afa1262e7` |
 | **License** | GNU General Public License v3.0 or later |
 
 ---
@@ -154,7 +154,7 @@ A full player featuring album artwork, synchronized lyrics, a scrubbable timelin
 ---
 
 <p align="center">
-  <img src="Docs/Images/arrowslit-clipboard-twenty.jpg" width="100%" alt="Clipboard: Twenty clips in memory only">
+  <img src="Docs/Images/arrowslit-clipboard-twenty.jpg" width="100%" alt="Clipboard: configurable in-memory history">
 </p>
 
 ### Private Clipboard History
@@ -214,7 +214,7 @@ Click the grid icon at the top right to access any utility instantly, with custo
 | `^⌥F` | **Sports** | Premier League, La Liga, and Champions League live |
 | `^⌥R` | **Reminders** | Today's Apple Reminders checklist |
 | `^⌥G` | **AI Agents** | Token telemetry, spend, and prompt activity |
-| `^⌥B` | **Clipboard** | 20-item in-memory clipboard history |
+| `^⌥B` | **Clipboard** | Configurable in-memory clipboard history |
 | `^⌥L` | **Files** | File shelf with drag-and-drop and AirDrop |
 | `^⌥N` | **Scratchpad** | Local notes with instant autosave |
 | `^⌥C` | **Camera Mirror** | Camera check before calls (turns sensor off when closed) |
@@ -242,7 +242,7 @@ Click the grid icon at the top right to access any utility instantly, with custo
 | **Open Notch** | Hover over the top center of your screen, or click the slit icon in your menu bar |
 | **Open Full Music Player** | Click the expand arrow on the Home music card, or click the album artwork |
 | **Open Launcher Grid** | Click the 2x2 grid icon in the top right corner of the notch |
-| **Customize Top Shortcuts** | Open the launcher grid, click the pencil icon, and pick your top three tools |
+| **Customize Top Shortcuts** | Open the launcher grid, click the pencil icon, or use **Settings › Home › Launcher shortcuts** to pick your top three tools |
 | **Drop Files or AirDrop** | Drag any file from Finder onto the notch and release over **Tray** or **AirDrop** |
 | **Collapse Notch** | Move your pointer away, click outside the panel, or press **Escape** |
 | **External Displays** | Select your preferred monitor in **Settings › General › Display** |
@@ -283,7 +283,7 @@ Click the grid icon at the top right to access any utility instantly, with custo
 ---
 
 ### Does Arrowslit store what I copy?
-**Answer:** Only while the application is active, and only the latest 20 plain-text items. History is stored exclusively in volatile system RAM and is never written to disk or sent to any server. Content flagged as sensitive or concealed by password managers is automatically skipped. You can disable the clipboard monitor entirely in Settings at any time.
+**Answer:** Only while the application is active, and up to the history length you choose in Settings (20 by default). History is stored exclusively in volatile system RAM and is never written to disk or sent to any server. Content flagged as sensitive or concealed by password managers is skipped by default, and you can change that or clear the history in Settings.
 
 ---
 

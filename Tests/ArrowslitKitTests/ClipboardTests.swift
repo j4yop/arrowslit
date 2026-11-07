@@ -36,6 +36,18 @@ struct ClipboardHistoryTests {
         #expect(history.matching("").count == 2)
     }
 
+    @Test func changingCapacityDropsTheOldestUnpinnedClips() {
+        var history = ClipboardHistory(capacity: 2)
+        _ = history.add("one")
+        _ = history.add("two")
+        _ = history.add("three")
+        #expect(history.entries.map(\.text) == ["three", "two"])
+
+        history.setCapacity(1)
+        #expect(history.entries.map(\.text) == ["three"])
+        #expect(history.capacity == 1)
+    }
+
     @Test func unpinnedHistoryIsCapped() {
         var history = ClipboardHistory()
         for index in 0..<(ClipboardHistory.capacity + 5) {

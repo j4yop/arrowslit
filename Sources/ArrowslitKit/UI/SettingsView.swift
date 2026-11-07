@@ -70,6 +70,7 @@ struct SettingsView: View {
             Form {
                 tabContent
             }
+            .id(tab)
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
         }
@@ -157,6 +158,14 @@ struct SettingsView: View {
                         set: { state.setMenuBarIconVisible($0) }
                     )
                 )
+                SettingsToggle(
+                    title: "Open Settings on launch",
+                    detail: "Show this window when Arrowslit starts.",
+                    isOn: Binding(
+                        get: { state.settings.openSettingsOnLaunch },
+                        set: { state.settings.openSettingsOnLaunch = $0 }
+                    )
+                )
                 Picker("Display", selection: Binding(
                     get: { state.settings.displayChoice },
                     set: { state.settings.displayChoice = $0 }
@@ -241,15 +250,7 @@ struct SettingsView: View {
                 )
             }
 
-            SettingsSection(title: "Timer") {
-                SettingsToggle(
-                    title: "Play a sound when a timer ends",
-                    isOn: Binding(
-                        get: { state.settings.timerSound },
-                        set: { state.setTimerSound($0) }
-                    )
-                )
-            }
+            TimerDefaultsSettingsSection(state: state)
         }
     }
 
@@ -271,9 +272,19 @@ struct SettingsView: View {
                         set: { state.setCallsEnabled($0) }
                     )
                 )
+                SettingsToggle(
+                    title: "Show the call strip",
+                    detail: "The compact strip beside the camera while a call is running.",
+                    isOn: Binding(
+                        get: { state.settings.callStripEnabled },
+                        set: { state.settings.callStripEnabled = $0 }
+                    )
+                )
             }
 
             CodingAssistantSection(state: state)
+
+            AIAgentsSettingsSection()
 
             NowPlayingAppsSection(state: state)
 
@@ -303,6 +314,8 @@ struct SettingsView: View {
             }
 
             SportsSettingsSection(state: state)
+
+            SportsFollowSettingsSection(state: state)
 
             SettingsSection(
                 title: "Music",
@@ -342,9 +355,11 @@ struct SettingsView: View {
                 FileTraySettingsRow(state: state)
             }
 
+            LauncherShortcutsSettingsSection(state: state)
+
             SettingsSection(
                 title: "Downloads",
-                note: "A heads-up when a file lands in Downloads. macOS asks for access once."
+                note: "A heads-up when a file lands in the watched folder. macOS asks for access once."
             ) {
                 SettingsToggle(
                     title: "Download progress & finished downloads",
@@ -355,6 +370,20 @@ struct SettingsView: View {
                     )
                 )
             }
+
+            DownloadsFolderSettingsSection(state: state)
+
+            ClipboardSettingsSection(state: state)
+
+            CameraSettingsSection(state: state)
+
+            StatsSettingsSection(state: state)
+
+            KeepAwakeSettingsSection(state: state)
+
+            RemindersSettingsSection(state: state)
+
+            CalendarSettingsSection(state: state)
 
             SettingsSection(
                 title: "Shortcuts",
@@ -1450,7 +1479,7 @@ private struct AccessStatusRow: View {
     }
 }
 
-private struct SettingsToggle: View {
+struct SettingsToggle: View {
     let title: String
     var detail: String? = nil
     @Binding var isOn: Bool

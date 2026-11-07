@@ -10,6 +10,11 @@ public struct ReminderItem: Identifiable, Equatable, Sendable {
     public let completed: Bool
 }
 
+public struct ReminderCalendar: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let title: String
+}
+
 public enum RemindersAccess: Sendable, Equatable {
     case notAsked
     case denied
@@ -21,6 +26,8 @@ public enum RemindersAccess: Sendable, Equatable {
 public final class RemindersService {
     public private(set) var access: RemindersAccess
     public private(set) var items: [ReminderItem] = []
+    public private(set) var showCompleted = false
+    public private(set) var excludedIDs: Set<String> = []
 
     @ObservationIgnored private let store = EKEventStore()
     @ObservationIgnored private var observer: NSObjectProtocol?
@@ -34,6 +41,18 @@ public final class RemindersService {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }
+    }
+
+    public func calendars() -> [ReminderCalendar] {
+        store.calendars(for: .reminder)
+            .map { ReminderCalendar(id: $0.calendarIdentifier, title: $0.title) }
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
+    public func configure(showCompleted: Bool, excludedIDs: [String]) {
+        self.showCompleted = showCompleted
+        self.excludedIDs = Set(excludedIDs)
+        refresh()
     }
 
     public func requestAccess() {
@@ -56,14 +75,17 @@ public final class RemindersService {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: Date())
         guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return }
-        let predicate = store.predicateForIncompleteReminders(
-            withDueDateStarting: start,
-            ending: end,
-            calendars: nil
-        )
+        let calendars = store.calendars(for: .reminder).filter { !excludedIDs.contains($0.calendarIdentifier) }
+        let showingCompleted = showCompleted
+        let predicate = showingCompleted
+            ? store.predicateForReminders(in: calendars)
+            : store.predicateForIncompleteReminders(withDueDateStarting: start, ending: end, calendars: calendars)
         Self.fetch(store: store, predicate: predicate) { [weak self] items in
             Task { @MainActor in
-                self?.items = items
+                self?.items = items.filter { item in
+                    guard let due = item.due else { return showingCompleted && item.completed }
+                    return due >= start && due < end
+                }
             }
         }
     }

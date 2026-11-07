@@ -100,7 +100,9 @@ public final class SystemMonitorService {
         let alerts = powerRules.observe(
             snapshot,
             chargingAlerts: settings.alertCharging,
-            lowBatteryAlerts: settings.alertLowBattery
+            lowBatteryAlerts: settings.alertLowBattery,
+            warningLevel: settings.batteryWarningLevel,
+            criticalLevel: settings.batteryCriticalLevel
         )
         alerts.forEach { onAlert?($0) }
     }

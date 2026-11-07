@@ -316,6 +316,11 @@ public final class NowPlayingService {
             self.input = input.fileHandleForWriting
             isAvailable = true
             send("refresh")
+            // The helper's stdin reader may not be attached when the process
+            // starts; ask again once it is listening.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                MainActor.assumeIsolated { self?.send("refresh") }
+            }
         } catch {
             isAvailable = false
         }

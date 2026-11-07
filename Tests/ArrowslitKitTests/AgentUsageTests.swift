@@ -34,10 +34,10 @@ struct AgentUsageTests {
         #expect(usage.projects.first?.name == "arrowslit")
     }
 
-    @Test func liveAgentsOutrankMusicInTheCompactStrip() {
-        #expect(NotchActivity.agents.priority < NotchActivity.nowPlaying.priority)
-        #expect(NotchActivity.agents.priority < NotchActivity.sports.priority)
-        #expect(PresentationResolver.ordered([.nowPlaying, .agents], preferred: nil) == [.agents, .nowPlaying])
+    @Test func musicOutranksLiveAgentsInTheCompactStrip() {
+        #expect(NotchActivity.nowPlaying.priority < NotchActivity.agents.priority)
+        #expect(NotchActivity.nowPlaying.priority < NotchActivity.sports.priority)
+        #expect(PresentationResolver.ordered([.nowPlaying, .agents], preferred: nil) == [.nowPlaying, .agents])
         #expect(PresentationResolver.ordered([.sports, .agents], preferred: nil) == [.agents, .sports])
     }
 

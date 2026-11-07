@@ -15,6 +15,19 @@ public final class CameraAccess {
     public private(set) var state: State = CameraAccess.current()
     public var isCameraOff = false
 
+    public struct Device: Identifiable, Hashable {
+        public let id: String
+        public let name: String
+    }
+
+    public static var devices: [Device] {
+        AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInWideAngleCamera, .externalUnknown],
+            mediaType: .video,
+            position: .unspecified
+        ).devices.map { Device(id: $0.uniqueID, name: $0.localizedName) }
+    }
+
     public init() {}
 
     public func refresh() {

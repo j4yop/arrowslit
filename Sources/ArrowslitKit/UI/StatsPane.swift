@@ -18,34 +18,49 @@ struct StatsGrid: View {
 
     var body: some View {
         let stats = state.stats
+        let metrics = Set(state.settings.statsMetrics)
         HStack(spacing: 10) {
-            StatsTile(
-                symbol: "memorychip",
-                title: "Memory",
-                value: stats.memoryTotal > 0 ? StatsMath.percent(stats.memoryShare) : "–",
-                detail: stats.memoryTotal > 0
-                    ? "\(StatsMath.bytes(stats.memoryUsed)) of \(StatsMath.bytes(stats.memoryTotal))"
-                    : "",
-                share: stats.memoryTotal > 0 ? stats.memoryShare : nil,
-                level: stats.pressure
-            )
-            StatsTile(
-                symbol: "cpu",
-                title: "CPU",
-                value: stats.hasReading ? StatsMath.percent(stats.cpu) : "–",
-                detail: "\(ProcessInfo.processInfo.activeProcessorCount) cores",
-                share: stats.hasReading ? stats.cpu : nil,
-                level: StatsMath.level(stats.cpu)
-            )
-            StatsTile(
-                symbol: "internaldrive",
-                title: "Disk",
-                value: stats.diskTotal > 0 ? StatsMath.bytes(stats.diskFree) : "–",
-                detail: stats.diskTotal > 0 ? "free of \(StatsMath.bytes(stats.diskTotal))" : "",
-                share: stats.diskTotal > 0 ? stats.diskShare : nil,
-                level: StatsMath.level(stats.diskShare)
-            )
-            NetworkTile(stats: stats)
+            if metrics.contains("memory") {
+                StatsTile(
+                    symbol: "memorychip",
+                    title: "Memory",
+                    value: stats.memoryTotal > 0 ? StatsMath.percent(stats.memoryShare) : "–",
+                    detail: stats.memoryTotal > 0
+                        ? "\(StatsMath.bytes(stats.memoryUsed)) of \(StatsMath.bytes(stats.memoryTotal))"
+                        : "",
+                    share: stats.memoryTotal > 0 ? stats.memoryShare : nil,
+                    level: stats.pressure
+                )
+            }
+            if metrics.contains("cpu") {
+                StatsTile(
+                    symbol: "cpu",
+                    title: "CPU",
+                    value: stats.hasReading ? StatsMath.percent(stats.cpu) : "–",
+                    detail: "\(ProcessInfo.processInfo.activeProcessorCount) cores",
+                    share: stats.hasReading ? stats.cpu : nil,
+                    level: StatsMath.level(stats.cpu)
+                )
+            }
+            if metrics.contains("disk") {
+                StatsTile(
+                    symbol: "internaldrive",
+                    title: "Disk",
+                    value: stats.diskTotal > 0 ? StatsMath.bytes(stats.diskFree) : "–",
+                    detail: stats.diskTotal > 0 ? "free of \(StatsMath.bytes(stats.diskTotal))" : "",
+                    share: stats.diskTotal > 0 ? stats.diskShare : nil,
+                    level: StatsMath.level(stats.diskShare)
+                )
+            }
+            if metrics.contains("network") {
+                NetworkTile(stats: stats)
+            }
+            if metrics.isEmpty {
+                Text("Choose at least one metric in Settings.")
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .onAppear { stats.start() }
         .onDisappear { stats.stop() }

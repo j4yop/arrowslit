@@ -187,6 +187,23 @@ struct ClockServiceTests {
         #expect(timer.countdown?.total == 420)
     }
 
+    @Test func timerDefaultsPersistAcrossRelaunch() {
+        let suite = "ArrowslitTimerTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+
+        let timer = TimerService(defaults: defaults)
+        timer.panelMinutes = 33
+        timer.focusMinutes = 45
+        timer.breakMinutes = 9
+
+        let reloaded = TimerService(defaults: defaults)
+        #expect(reloaded.panelMinutes == 33)
+        #expect(reloaded.focusMinutes == 45)
+        #expect(reloaded.breakMinutes == 9)
+        defaults.removePersistentDomain(forName: suite)
+    }
+
     @Test func stopwatchBecomesActiveWhenStarted() {
         let stopwatch = StopwatchService()
         defer { stopwatch.reset() }

@@ -112,8 +112,8 @@ public final class AppState {
     public let calls = CallMonitor()
     public let microphone = MicrophoneMute()
     public let inputSource = InputSourceMonitor()
-    public let downloads = DownloadsWatcher()
-    public let downloadProgress = DownloadProgressMonitor()
+    public private(set) var downloads: DownloadsWatcher
+    public private(set) var downloadProgress: DownloadProgressMonitor
     public let todos = TodoStore()
     public let shortcuts = ShortcutsService()
     public let agents = AgentBridge()
@@ -169,6 +169,8 @@ public final class AppState {
         reminders: RemindersService = RemindersService()
     ) {
         self.settings = settings
+        self.downloads = DownloadsWatcher(folder: settings.downloadsFolderURL)
+        self.downloadProgress = DownloadProgressMonitor(folder: settings.downloadsFolderURL)
         self.nowPlaying = nowPlaying
         self.timer = timer
         self.calendar = calendar
@@ -180,6 +182,12 @@ public final class AppState {
         self.reminders = reminders
         self.system = SystemMonitorService(settings: settings)
         self.timer.playsSound = settings.timerSound
+        alerts.durationScale = settings.hudDurationScale
+        self.calendar.configure(leadMinutes: settings.calendarLeadMinutes,
+                                excludedIDs: settings.calendarExcludedIDs)
+        self.reminders.configure(showCompleted: settings.remindersShowCompleted,
+                                 excludedIDs: settings.remindersExcludedIDs)
+        self.stats.refreshInterval = settings.statsRefreshSeconds
         NookMotion.liquidAnimations = settings.liquidAnimations
         nowPlaying.appFilter = settings.mediaAppFilter
         nowPlaying.lingerDuration = settings.pausedMediaLinger
@@ -445,6 +453,71 @@ public final class AppState {
         nowPlaying.lingerDuration = seconds
     }
 
+    public func setCalendarLeadMinutes(_ minutes: Int) {
+        settings.calendarLeadMinutes = min(60, max(0, minutes))
+        calendar.configure(leadMinutes: settings.calendarLeadMinutes,
+                           excludedIDs: settings.calendarExcludedIDs)
+    }
+
+    public func setCalendarExcluded(_ ids: [String]) {
+        settings.calendarExcludedIDs = ids
+        calendar.configure(leadMinutes: settings.calendarLeadMinutes,
+                           excludedIDs: settings.calendarExcludedIDs)
+    }
+
+    public func setHudDurationScale(_ value: Double) {
+        settings.hudDurationScale = value
+        alerts.durationScale = value
+    }
+
+    public func setStatsRefreshSeconds(_ value: Double) {
+        settings.statsRefreshSeconds = value
+        stats.setRefreshInterval(value)
+    }
+
+    public func setStatsMetrics(_ values: [String]) {
+        settings.statsMetrics = values
+    }
+
+    public func setClipboardCapacity(_ value: Int) {
+        settings.clipboardCapacity = max(1, value)
+        clipboard.setCapacity(settings.clipboardCapacity)
+    }
+
+    public func setClipboardIgnoreConfidential(_ value: Bool) {
+        settings.clipboardIgnoreConfidential = value
+        clipboard.setIgnoreConfidential(value)
+    }
+
+    public func setRemindersShowCompleted(_ value: Bool) {
+        settings.remindersShowCompleted = value
+        reminders.configure(showCompleted: settings.remindersShowCompleted,
+                            excludedIDs: settings.remindersExcludedIDs)
+    }
+
+    public func setRemindersExcluded(_ ids: [String]) {
+        settings.remindersExcludedIDs = ids
+        reminders.configure(showCompleted: settings.remindersShowCompleted,
+                            excludedIDs: settings.remindersExcludedIDs)
+    }
+
+    public func setDownloadsFolder(_ path: String?) {
+        let wasRunning = settings.downloadsEnabled
+        downloads.stop()
+        downloadProgress.stop()
+        settings.downloadsFolderPath = path
+        downloads = DownloadsWatcher(folder: settings.downloadsFolderURL)
+        downloadProgress = DownloadProgressMonitor(folder: settings.downloadsFolderURL)
+        downloads.onFinished = { [weak self] url in
+            guard let self, self.settings.downloadsEnabled else { return }
+            self.receive(.download(name: url.lastPathComponent))
+        }
+        if wasRunning {
+            downloads.start()
+            downloadProgress.start()
+        }
+    }
+
     public func setDownloadsEnabled(_ enabled: Bool) {
         settings.downloadsEnabled = enabled
         if enabled {
@@ -705,13 +778,13 @@ public final class AppState {
 
     public var activeActivities: Set<NotchActivity> {
         var active = Set<NotchActivity>()
-        if calls.session != nil { active.insert(.call) }
+        if calls.session != nil, settings.callStripEnabled { active.insert(.call) }
         if !downloadProgress.items.isEmpty { active.insert(.download) }
         if timer.isActive { active.insert(.timer) }
         if stopwatch.isActive { active.insert(.stopwatch) }
         if nowPlaying.isVisible { active.insert(.nowPlaying) }
         if agentLiveCount > 0, settings.isTabEnabled(.agents) { active.insert(.agents) }
-        if settings.isTabEnabled(.calendar), let event = calendar.nextEvent,
+        if !calendarYieldsToLiveActivity, settings.isTabEnabled(.calendar), let event = calendar.nextEvent,
            event.isHappening(at: Date()) || event.start.timeIntervalSinceNow <= 30 * 60 {
             active.insert(.calendar)
         }
@@ -721,6 +794,12 @@ public final class AppState {
         // never takes over the closed notch when nothing else is happening.
         if sports.notchMatch != nil { active.insert(.sports) }
         return active
+    }
+
+    /// A calendar reminder must never cover a live call, a playing song or
+    /// video, or the sports feed. The calendar page stays available.
+    private var calendarYieldsToLiveActivity: Bool {
+        calls.session != nil || nowPlaying.isVisible || sports.notchMatch != nil
     }
 
     /// The lock screen has no media or timer to show, so lead with charging instead of the clock.
@@ -782,7 +861,7 @@ public final class AppState {
         case .systemNotification: return live.isOn(NotchLiveSettings.Event.systemNotification)
         case .capture: return live.isOn(NotchLiveSettings.Event.capture)
         case .watch: return live.isOn(NotchLiveSettings.Event.watch)
-        case .upcomingEvent: return settings.isTabEnabled(.calendar)
+        case .upcomingEvent: return settings.isTabEnabled(.calendar) && !calendarYieldsToLiveActivity
         default: return true
         }
     }

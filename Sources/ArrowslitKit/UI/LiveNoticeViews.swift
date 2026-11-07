@@ -618,36 +618,56 @@ struct LiveActivityStrip: View {
                 .font(.system(size: textSize, weight: .medium).monospacedDigit())
                 .foregroundStyle(.orange)
                 .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .allowsTightening(true)
         case .stopwatch:
             Text(ClockFormat.clock(state.stopwatch.elapsed, tenths: true))
                 .font(.system(size: textSize, weight: .medium).monospacedDigit())
                 .foregroundStyle(.orange)
                 .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .allowsTightening(true)
         case .calendar:
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 if let event = state.calendar.nextEvent {
                     let ongoing = event.isHappening(at: context.date)
                     let target = ongoing ? event.end : event.start
-                    HStack(spacing: 4) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 4) {
+                            Text(Self.countdownText(until: target, now: context.date))
+                                .font(.system(size: 13, weight: .medium).monospacedDigit())
+                                .foregroundStyle(ongoing ? .mint : .white)
+                                .lineLimit(1)
+                            Text(Self.eventTimeText(event, ongoing: ongoing))
+                                .font(.system(size: 11, weight: .medium).monospacedDigit())
+                                .foregroundStyle(.white.opacity(0.55))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
                         Text(Self.countdownText(until: target, now: context.date))
                             .font(.system(size: 13, weight: .medium).monospacedDigit())
                             .foregroundStyle(ongoing ? .mint : .white)
                             .lineLimit(1)
-                        Text(Self.eventTimeText(event, ongoing: ongoing))
-                            .font(.system(size: 11, weight: .medium).monospacedDigit())
-                            .foregroundStyle(.white.opacity(0.55))
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
+                            .minimumScaleFactor(0.7)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         case .keepAwake:
-            // An open session runs until it is switched off, so it reads as
-            // infinity; a timed one would show the time left.
-            Image(systemName: "infinity")
-                .font(.system(size: textSize, weight: .medium))
-                .foregroundStyle(.yellow)
+            if let end = state.keepAwake.endDate {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    Text(ClockFormat.clock(max(0, end.timeIntervalSince(context.date)), roundingUp: true))
+                        .font(.system(size: textSize, weight: .medium).monospacedDigit())
+                        .foregroundStyle(.yellow)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+            } else {
+                // An open session runs until it is switched off.
+                Image(systemName: "infinity")
+                    .font(.system(size: textSize, weight: .medium))
+                    .foregroundStyle(.yellow)
+            }
         case .download:
             if let fraction = state.downloadProgress.summary.fraction {
                 HStack(spacing: 6) {

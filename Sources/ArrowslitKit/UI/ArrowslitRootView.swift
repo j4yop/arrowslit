@@ -272,7 +272,8 @@ private struct CompactBar: View {
                         .monospacedDigit()
                         .foregroundStyle(working.first?.tint ?? live.provider.tint)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.6)
+                        .minimumScaleFactor(0.5)
+                        .allowsTightening(true)
                         .frame(width: ear, height: height, alignment: .center)
                 }
                 .frame(width: width, height: height)

@@ -451,6 +451,16 @@ public final class SportsService {
         )
     }
 
+    public func setPinnedMatch(_ id: String?) {
+        settings.sportsPinnedMatchID = id
+        matches = SportsRanking.rank(
+            matches,
+            followedTeamIDs: Set(settings.sportsFollowedTeams),
+            followedCompetitionIDs: followedCompetitionIDs,
+            pinnedID: id
+        )
+    }
+
     public func togglePin(_ match: SportsMatch) {
         if settings.sportsPinnedMatchID == match.id {
             settings.sportsPinnedMatchID = nil

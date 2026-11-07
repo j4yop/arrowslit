@@ -101,6 +101,22 @@ struct AlertQueueTests {
     }
 }
 
+@Suite("Alert queue")
+struct AlertQueueDurationTests {
+    @Test func durationScaleStretchesTheTimeAnAlertStays() {
+        var queue = AlertQueue()
+        queue.durationScale = 2
+        let alert = NotchAlert.lowBattery(level: 20)
+        let base = Date()
+        queue.enqueue(alert, now: base)
+        let presented = queue.present(now: base, allowNonUrgent: true)
+        #expect(presented)
+        #expect(queue.expiry != nil)
+        let shown = queue.expiry!.timeIntervalSince(base)
+        #expect(abs(shown - alert.displayDuration * 2) < 0.001)
+    }
+}
+
 @Suite("Power alerts")
 struct PowerAlertRulesTests {
     private let battery80 = PowerSnapshot(level: 80, isCharging: false, isOnAC: false)
@@ -163,6 +179,38 @@ struct PowerAlertRulesTests {
         #expect(rules.observe(PowerSnapshot(level: 19, isCharging: false, isOnAC: false), chargingAlerts: true, lowBatteryAlerts: true) == [
             .lowBattery(level: 19)
         ])
+    }
+
+    @Test func customWarningAndCriticalThresholdsFireInOrder() {
+        var rules = PowerAlertRules()
+        _ = rules.observe(
+            PowerSnapshot(level: 31, isCharging: false, isOnAC: false),
+            chargingAlerts: true,
+            lowBatteryAlerts: true,
+            warningLevel: 30,
+            criticalLevel: 15
+        )
+        #expect(rules.observe(
+            PowerSnapshot(level: 29, isCharging: false, isOnAC: false),
+            chargingAlerts: true,
+            lowBatteryAlerts: true,
+            warningLevel: 30,
+            criticalLevel: 15
+        ) == [.lowBattery(level: 29)])
+        #expect(rules.observe(
+            PowerSnapshot(level: 14, isCharging: false, isOnAC: false),
+            chargingAlerts: true,
+            lowBatteryAlerts: true,
+            warningLevel: 30,
+            criticalLevel: 15
+        ) == [.lowBattery(level: 14)])
+        #expect(rules.observe(
+            PowerSnapshot(level: 13, isCharging: false, isOnAC: false),
+            chargingAlerts: true,
+            lowBatteryAlerts: true,
+            warningLevel: 30,
+            criticalLevel: 15
+        ).isEmpty)
     }
 
     @Test func disabledWarningsStayQuiet() {
@@ -374,6 +422,18 @@ struct CalendarRulesTests {
         ]
 
         #expect(CalendarRules.nextEvent(in: events, at: base)?.title == "Next")
+    }
+
+    @Test func customLeadTimeChangesWhenTheReminderIsDue() {
+        let next = calendarEvent("Stand-up", startsIn: 20)
+        let reminder = CalendarRules.nextReminder(
+            in: [next],
+            after: base,
+            reminded: [],
+            lead: 15 * 60
+        )
+
+        #expect(reminder?.at == next.start.addingTimeInterval(-900))
     }
 
     @Test func reminderIsFiveMinutesBeforeAndOnlyOnce() {

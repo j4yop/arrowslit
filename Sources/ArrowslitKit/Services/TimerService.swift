@@ -11,19 +11,38 @@ public final class TimerService {
     public private(set) var lastWasFocus = false
 
     /// The value under the Timer ruler. It survives a reset so the panel opens where it left off.
-    public var panelMinutes = 25
+    public var panelMinutes: Int {
+        didSet { defaults.set(panelMinutes, forKey: Key.panelMinutes) }
+    }
     /// The value under the Pomodoro ruler.
-    public var focusMinutes = 25
+    public var focusMinutes: Int {
+        didSet { defaults.set(focusMinutes, forKey: Key.focusMinutes) }
+    }
     /// The break shown under the Pomodoro time.
-    public var breakMinutes = 5
+    public var breakMinutes: Int {
+        didSet { defaults.set(breakMinutes, forKey: Key.breakMinutes) }
+    }
     /// Whether the Glass sound plays when a countdown finishes.
     public var playsSound = true
 
     @ObservationIgnored private var ticker: Timer?
     @ObservationIgnored private var activity: NSObjectProtocol?
     @ObservationIgnored private var finishTask: Task<Void, Never>?
+    @ObservationIgnored private let defaults: UserDefaults
 
-    public init() {}
+    private enum Key {
+        static let panelMinutes = "arrowslit.timer.panelMinutes"
+        static let focusMinutes = "arrowslit.timer.focusMinutes"
+        static let breakMinutes = "arrowslit.timer.breakMinutes"
+    }
+
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        panelMinutes = defaults.object(forKey: Key.panelMinutes) as? Int ?? 25
+        focusMinutes = defaults.object(forKey: Key.focusMinutes) as? Int ?? 25
+        breakMinutes = defaults.object(forKey: Key.breakMinutes) as? Int ?? 5
+        lastMinutes = panelMinutes
+    }
 
     public var isActive: Bool { countdown != nil && !(countdown?.isFinished ?? true) }
     public var isPaused: Bool { countdown?.isPaused ?? false }

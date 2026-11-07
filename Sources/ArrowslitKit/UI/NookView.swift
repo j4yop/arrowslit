@@ -833,7 +833,13 @@ private struct CompactMirror: View {
                     if camera.isCameraOff {
                         ZStack { RoundedRectangle(cornerRadius: 10).fill(ArrowTheme.panel); Image(systemName: "camera.slash").font(.system(size: 20)).foregroundStyle(ArrowTheme.faint) }
                     } else {
-                        CameraPreview().clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        CameraPreview(
+                            deviceID: state.settings.cameraDeviceID,
+                            mirrored: state.settings.cameraMirrored,
+                            quality: state.settings.cameraQuality
+                        )
+                        .id("\(state.settings.cameraDeviceID ?? "default")-\(state.settings.cameraMirrored)-\(state.settings.cameraQuality)")
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }
                 .aspectRatio(16 / 9, contentMode: .fit)

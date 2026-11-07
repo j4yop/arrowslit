@@ -75,9 +75,9 @@ struct NotchLiveTests {
         #expect(NotchAlert.watch(title: "Done", detail: "Terminal").displayDuration == 6)
     }
 
-    @Test func calendarAndKeepAwakeSitAheadOfMusic() {
-        #expect(NotchActivity.calendar.priority < NotchActivity.nowPlaying.priority)
-        #expect(NotchActivity.keepAwake.priority < NotchActivity.nowPlaying.priority)
+    @Test func musicSitsAheadOfCalendarAndKeepAwake() {
+        #expect(NotchActivity.nowPlaying.priority < NotchActivity.calendar.priority)
+        #expect(NotchActivity.nowPlaying.priority < NotchActivity.keepAwake.priority)
         #expect(NotchActivity.agents.priority < NotchActivity.calendar.priority)
     }
 }

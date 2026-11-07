@@ -32,8 +32,11 @@ public struct ClipboardHistory: Equatable, Sendable {
     public static let capacity = 20
     public static let pinnedCapacity = 20
     public static let maximumLength = 20_000
+    /// This history's unpinned limit; Settings can change it.
+    public var capacity: Int
 
-    public init(pinned: [Entry] = []) {
+    public init(pinned: [Entry] = [], capacity: Int = ClipboardHistory.capacity) {
+        self.capacity = max(1, capacity)
         entries = Array(pinned.filter(\.isPinned).prefix(Self.pinnedCapacity))
     }
 
@@ -52,10 +55,7 @@ public struct ClipboardHistory: Equatable, Sendable {
         }
         entries.removeAll { $0.text == kept }
         entries.insert(Entry(text: kept, appName: appName, copiedAt: now), at: pinnedCount)
-        let unpinned = entries.count - pinnedCount
-        if unpinned > Self.capacity {
-            entries.removeLast(unpinned - Self.capacity)
-        }
+        trimUnpinned()
         return true
     }
 
@@ -68,8 +68,7 @@ public struct ClipboardHistory: Equatable, Sendable {
         if entry.isPinned {
             entry.isPinned = false
             entries.insert(entry, at: pinnedCount)
-            let unpinned = entries.count - pinnedCount
-            if unpinned > Self.capacity { entries.removeLast(unpinned - Self.capacity) }
+            trimUnpinned()
             return true
         }
         guard canPin else {
@@ -83,6 +82,19 @@ public struct ClipboardHistory: Equatable, Sendable {
 
     public mutating func remove(_ id: UUID) {
         entries.removeAll { $0.id == id }
+    }
+
+    /// Applies a new unpinned limit, dropping the oldest copies.
+    public mutating func setCapacity(_ value: Int) {
+        capacity = max(1, value)
+        trimUnpinned()
+    }
+
+    private mutating func trimUnpinned() {
+        let unpinned = entries.count - pinnedCount
+        if unpinned > capacity {
+            entries.removeLast(unpinned - capacity)
+        }
     }
 
     /// Clears the history. Pinned clips stay unless `includingPinned`.

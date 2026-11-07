@@ -17,12 +17,13 @@ public enum CalendarRules {
     public static func nextReminder(
         in events: [CalendarEvent],
         after date: Date,
-        reminded: Set<String>
+        reminded: Set<String>,
+        lead: TimeInterval = reminderLead
     ) -> (event: CalendarEvent, at: Date)? {
         events
             .filter { !$0.isAllDay && !reminded.contains($0.id) && $0.start > date }
             .map { event in
-                (event: event, at: max(date, event.start.addingTimeInterval(-reminderLead)))
+                (event: event, at: max(date, event.start.addingTimeInterval(-lead)))
             }
             .min { $0.at < $1.at }
     }

@@ -2,6 +2,11 @@ import AppKit
 @preconcurrency import EventKit
 import Observation
 
+public struct CalendarChoice: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let title: String
+}
+
 public struct CalendarEvent: Identifiable, Equatable, Sendable {
     public let id: String
     public let title: String
@@ -47,6 +52,8 @@ public final class CalendarService {
     public private(set) var access: Access = .notAsked
     public private(set) var events: [CalendarEvent] = []
     public private(set) var isRunning = false
+    public private(set) var leadMinutes = 5
+    public private(set) var excludedIDs: Set<String> = []
 
     /// Called five minutes before an event starts, once per event per launch.
     @ObservationIgnored public var onReminder: ((CalendarEvent) -> Void)?
@@ -63,6 +70,18 @@ public final class CalendarService {
 
     public var nextEvent: CalendarEvent? {
         CalendarRules.nextEvent(in: events, at: Date())
+    }
+
+    public func calendars() -> [CalendarChoice] {
+        store.calendars(for: .event)
+            .map { CalendarChoice(id: $0.calendarIdentifier, title: $0.title) }
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
+    public func configure(leadMinutes: Int, excludedIDs: [String]) {
+        self.leadMinutes = min(60, max(0, leadMinutes))
+        self.excludedIDs = Set(excludedIDs)
+        if isRunning { reload() }
     }
 
     public func start() {
@@ -149,7 +168,8 @@ public final class CalendarService {
 
         let now = Date()
         let range = CalendarRules.loadRange(at: now)
-        let predicate = store.predicateForEvents(withStart: range.start, end: range.end, calendars: nil)
+        let calendars = store.calendars(for: .event).filter { !excludedIDs.contains($0.calendarIdentifier) }
+        let predicate = store.predicateForEvents(withStart: range.start, end: range.end, calendars: calendars)
         let fresh = store.events(matching: predicate)
             .filter { $0.status != .canceled && !Self.isDeclined($0) && $0.endDate > range.start }
             .sorted { $0.startDate < $1.startDate }
@@ -179,7 +199,12 @@ public final class CalendarService {
         reminderTask?.cancel()
         reminderTask = nil
         guard isRunning,
-              let next = CalendarRules.nextReminder(in: events, after: Date(), reminded: reminded) else {
+              let next = CalendarRules.nextReminder(
+                in: events,
+                after: Date(),
+                reminded: reminded,
+                lead: TimeInterval(leadMinutes * 60)
+              ) else {
             return
         }
         let delay = max(0, next.at.timeIntervalSinceNow)
