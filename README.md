@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.8/Arrowslit-0.12.8.dmg"><b>Download Arrowslit 0.12.8 DMG</b></a>
+  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.9/Arrowslit-0.12.9.dmg"><b>Download Arrowslit 0.12.9 DMG</b></a>
   &nbsp;·&nbsp;
   or with Homebrew 7: <code>brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit</code>
 </p>
@@ -54,7 +54,7 @@ Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS
 
 Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certificate but is **not notarized by Apple**, so macOS blocks the first launch. That is expected — it is not a corrupt download.
 
-1. Download **[Arrowslit-0.12.8.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.8/Arrowslit-0.12.8.dmg)** (and the matching `.sha256` if you want to verify it).
+1. Download **[Arrowslit-0.12.9.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.9/Arrowslit-0.12.9.dmg)** (and the matching `.sha256` if you want to verify it).
 2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
 3. Open Applications and double-click **Arrowslit**. macOS will say it cannot verify the app. Click **Done**.
 4. Do one of these:
@@ -71,20 +71,20 @@ Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certif
 If macOS says **“Arrowslit is damaged and can’t be opened”**, that is the same quarantine block, not a damaged file. Run the Terminal commands above. To verify the download first:
 
 ```bash
-shasum -a 256 -c Arrowslit-0.12.8.dmg.sha256
+shasum -a 256 -c Arrowslit-0.12.9.dmg.sha256
 ```
 
-The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.12.8.dmg`, so the command works on your machine.
+The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.12.9.dmg`, so the command works on your machine.
 
 ### Release Metadata
 
 | Detail | Value |
 | :--- | :--- |
-| **Current Release** | 0.12.8 (build 104) |
+| **Current Release** | 0.12.9 (build 105) |
 | **Release Type** | Stable |
-| **Direct Download** | [Arrowslit-0.12.8.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.8/Arrowslit-0.12.8.dmg) |
+| **Direct Download** | [Arrowslit-0.12.9.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.9/Arrowslit-0.12.9.dmg) |
 | **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
-| **SHA-256 Checksum** | `a80f410dd5eb5e0abd7db4c56979c49e04416ff11ac23320ee0427fdf6d7de01` |
+| **SHA-256 Checksum** | `13aa13862737fba9980180d00f1eb6c92facd64985c66b2f1619ef7b8292fb93` |
 | **License** | GNU General Public License v3.0 or later |
 
 ---
