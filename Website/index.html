@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrowslit — Quiet control for your MacBook notch</title>
+<meta name="description" content="Arrowslit is a free, open-source notch app for macOS. Timers, media, calendar, AI agents and approvals, clipboard, files and system stats — right at the edge.">
+<link rel="canonical" href="https://github.com/j4yop/arrowslit">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arrowslit">
+<meta property="og:url" content="https://github.com/j4yop/arrowslit">
+<meta property="og:title" content="Arrowslit: quiet control for your MacBook notch">
+<meta property="og:description" content="Timers, media, calendar, AI agents and approvals, clipboard, files and system stats — right at the edge. Free and open source, GPL-3.0.">
+<meta property="og:image" content="https://raw.githubusercontent.com/j4yop/arrowslit/main/Docs/Images/arrowslit-brand-title.jpg">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta property="og:image:alt" content="Arrowslit: quiet control for your MacBook notch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arrowslit: quiet control for your MacBook notch">
+<meta name="twitter:description" content="Timers, media, calendar, AI agents and approvals, clipboard, files and system stats — right at the edge. Free and open source, GPL-3.0.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/j4yop/arrowslit/main/Docs/Images/arrowslit-brand-title.jpg">
+<meta name="twitter:image:alt" content="Arrowslit: quiet control for your MacBook notch.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Arrowslit",
+  "description": "A free, open-source notch app for macOS. Timers, media, calendar, AI agents and approvals, clipboard, files and system stats, right at the edge.",
+  "url": "https://github.com/j4yop/arrowslit",
+  "image": "https://raw.githubusercontent.com/j4yop/arrowslit/main/Docs/Images/arrowslit-brand-title.jpg",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "macOS 14 or later",
+  "processorRequirements": "Apple silicon or Intel",
+  "softwareVersion": "0.12.10",
+  "downloadUrl": "https://github.com/j4yop/arrowslit/releases/download/v0.12.10/Arrowslit-0.12.10.dmg",
+  "license": "https://github.com/j4yop/arrowslit/blob/main/LICENSE",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "sameAs": "https://github.com/j4yop/arrowslit"
+}
+</script>
+<!-- Gives search results the site name Arrowslit instead of the domain. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Arrowslit",
+  "alternateName": "arrowslit",
+  "url": "https://github.com/j4yop/arrowslit"
+}
+</script>
+<meta name="theme-color" content="#86cbf2">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preload" href="fonts/shantell-sans-display.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/atkinson-hyperlegible-next.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=1794112658">
+<script>
+const root = document.documentElement;
+root.dataset.mode = localStorage.getItem("mode") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+root.classList.add("js");
+// the landing film: on every load, reloads too, with motion allowed; a link to a section goes straight there
+// (?intro plays it anyway). It starts at night, the lighthouse asleep; the day comes with the page, and then it
+// wakes (see land() in main.js). A reload starts from the top, where it plays, rather than where the page was left.
+try {
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches && (new URLSearchParams(location.search).has("intro") || !location.hash)) {
+    root.classList.add("intro", "asleep"); root.dataset.mode = "dark"; history.scrollRestoration = "manual";
+  }
+} catch {}
+</script>
+<script src="scene.js?v=1794110825" defer></script>
+<script src="styles/clay.js" defer></script>
+<script src="styles/cartoon.js" defer></script>
+<script src="styles/vector.js" defer></script>
+<script src="styles/papercut.js" defer></script>
+<script src="styles/poster.js" defer></script>
+<script src="styles/swiss.js" defer></script>
+<script src="main.js?v=1794110825" defer></script>
+<script type="module" src="menubar/menubar.js?v=1794110825"></script>
+<script type="module" src="slit/arrowslit-slit.js?v=1794110825"></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- bar glyphs, 16 grid -->
+  <symbol id="i-cal" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M5 1.8v2.4M11 1.8v2.4" stroke="currentColor" stroke-width="1.3"/><path d="M5 9h1.5M7.8 9h1.5M10.5 9H12M5 11.5h1.5M7.8 11.5h1.5" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="6" y="6" width="4" height="4" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M6 1.5v2M10 1.5v2M6 12.5v2M10 12.5v2M1.5 6h2M1.5 10h2M12.5 6h2M12.5 10h2" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-mem" viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4 12v1.6M8 12v1.6M12 12v1.6" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-bat" viewBox="0 0 20 16"><rect x="1" y="4" width="16" height="8" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="2.8" y="5.8" width="10.4" height="4.4" rx="1" fill="currentColor"/><path d="M18.6 6.8v2.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-snd" viewBox="0 0 16 16"><path d="M2.5 6h2.4L8.5 3v10L4.9 10H2.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10.6 5.6a3.4 3.4 0 0 1 0 4.8M12.4 3.8a6 6 0 0 1 0 8.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-disk" viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="7" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="11.6" cy="8" r=".9" fill="currentColor"/><path d="M4 8h4" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M8 4.2v6.6M5.2 8.2 8 11l2.8-2.8" fill="none" stroke="var(--hi)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-apple" viewBox="0 0 15 18"><path d="M12.5 9.6c0-2 1.6-2.9 1.7-3a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7A3.9 3.9 0 0 0 2.4 7c-1.4 2.4-.4 6 1 7.9.7 1 1.4 2 2.4 2 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6c1 0 1.7-1 2.3-1.9.7-1 1-2 1-2.1 0 0-2-.8-2-3.3ZM10.6 3.6c.5-.7.9-1.6.8-2.6-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.8 2.5.9.1 1.8-.5 2.4-1.1Z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 20 20"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 20 20"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.8v1.8M10 16.4v1.8M1.8 10h1.8M16.4 10h1.8M4.2 4.2l1.3 1.3M14.5 14.5l1.3 1.3M4.2 15.8l1.3-1.3M14.5 5.5l1.3-1.3"/></g></symbol>
+
+  <symbol id="i-note" viewBox="0 0 16 16"><path d="M6 12.2V3.6l7-1.6v8.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="4.4" cy="12.2" r="1.9" fill="currentColor"/><circle cx="11.4" cy="10.4" r="1.9" fill="currentColor"/></symbol>
+  <symbol id="i-open" viewBox="0 0 16 16"><path d="M5 11 11 5M6 4.6h5.4V10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 16 16"><path d="M1.5 4.5h2.6c3.4 0 4.4 7 7.8 7h2.6M1.5 11.5h2.6c1.4 0 2.3-1.2 3-2.6M8.9 7.1c.7-1.4 1.6-2.6 3-2.6h2.6M12.6 2.8l1.9 1.7-1.9 1.7M12.6 9.8l1.9 1.7-1.9 1.7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 16 16"><path d="M2.5 8V6.8a2.3 2.3 0 0 1 2.3-2.3h8.5M11.4 2.6l1.9 1.9-1.9 1.9M13.5 8v1.2a2.3 2.3 0 0 1-2.3 2.3H2.7M4.6 13.4l-1.9-1.9 1.9-1.9" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 16 16"><path d="M8 8 14.5 3.5v9zM1.5 8 8 3.5v9z" fill="currentColor"/></symbol>
+  <symbol id="i-next" viewBox="0 0 16 16"><path d="M8 8 1.5 3.5v9zM14.5 8 8 3.5v9z" fill="currentColor"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 16 16"><rect x="3.8" y="2.8" width="3" height="10.4" rx=".8" fill="currentColor"/><rect x="9.2" y="2.8" width="3" height="10.4" rx=".8" fill="currentColor"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 16 16"><path d="M2.5 6h2.4L8.5 3v10L4.9 10H2.5z" fill="currentColor"/></symbol>
+
+  <!-- Add here picker, 16 grid -->
+  <symbol id="i-plus" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-get" viewBox="0 0 16 16"><path d="M8 2.5v10M4 8.8 8 12.8l4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.4V8l2.4 1.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-window" viewBox="0 0 16 16"><rect x="1.8" y="2.8" width="12.4" height="10.4" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.8 6.2h12.4" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-menubar" viewBox="0 0 16 16"><rect x="1.5" y="2.8" width="13" height="10.4" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6.4h13M4 4.6h2.2M7.4 4.6h2.2" stroke="currentColor" stroke-width="1.1"/></symbol>
+  <symbol id="i-switch" viewBox="0 0 16 16"><rect x="1.8" y="2.4" width="12.4" height="4.6" rx="2.3" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="4.4" cy="4.7" r="1.4" fill="currentColor"/><rect x="1.8" y="9" width="12.4" height="4.6" rx="2.3" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="11.6" cy="11.3" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="8" cy="8" rx="2.7" ry="6.2" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M1.8 8h12.4" stroke="currentColor" stroke-width="1.1"/></symbol>
+  <symbol id="i-group" viewBox="0 0 16 16"><rect x="1.5" y="3" width="6.2" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9.2" y="3" width="5.3" height="4.3" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9.2" y="8.7" width="5.3" height="4.3" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-text" viewBox="0 0 16 16"><path d="M1.8 12.2 4.9 3.8h.4l3.1 8.4M3 9.4h4.2M13.6 7.6v4.6M13.6 9.9c0-1.6-.9-2.4-2.1-2.4s-2.1 1-2.1 2.4.9 2.4 2.1 2.4 2.1-.8 2.1-2.4Z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-spacer" viewBox="0 0 16 16"><path d="M2 8h12M4.6 5.4 2 8l2.6 2.6M11.4 5.4 14 8l-2.6 2.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-term" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="m4.6 6.2 2.2 1.8-2.2 1.8M8.6 10.4h3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-box" viewBox="0 0 16 16"><path d="M8 1.8 14 5v6l-6 3.2L2 11V5zM2 5l6 3.2L14 5M8 8.2v6M5 3.4l6 3.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-weather" viewBox="0 0 16 16"><path d="M5.6 1.8v1.1M1.9 5.5H3M2.9 2.8l.8.8M8.3 2.8l-.8.8M3.5 7.4a2.3 2.3 0 1 1 4.3-1.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5 13.6h6.6a2.4 2.4 0 0 0 .2-4.8 3.3 3.3 0 0 0-6.3-.4A2.6 2.6 0 0 0 5 13.6Z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 16 16"><path d="M3.8 11.2V7.4a4.2 4.2 0 0 1 8.4 0v3.8l1.2 1.4H2.6zM6.5 14.2h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-server" viewBox="0 0 16 16"><rect x="2" y="2.4" width="12" height="4.8" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="8.8" width="12" height="4.8" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="4.7" cy="4.8" r=".9" fill="currentColor"/><circle cx="4.7" cy="11.2" r=".9" fill="currentColor"/></symbol>
+  <symbol id="i-badge" viewBox="0 0 16 16"><rect x="1.8" y="4" width="10.2" height="10.2" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="12.4" cy="3.6" r="2.4" fill="currentColor"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 16 16"><path d="M6.4 2.2 7.6 5.6 11 6.8 7.6 8 6.4 11.4 5.2 8 1.8 6.8l3.4-1.2zM12 9.6l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
+  <symbol id="i-asterisk" viewBox="0 0 16 16"><path d="M8 2.6v10.8M3.3 5.3l9.4 5.4M12.7 5.3l-9.4 5.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 16 16"><g transform="rotate(-40 8 8)"><rect x="1.6" y="5.6" width="12.8" height="4.8" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 5.6v4.8" stroke="currentColor" stroke-width="1.2"/></g></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.3 7V5a2.7 2.7 0 0 1 5.4 0v2" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 16 16"><path d="M9.8 2.4a3.4 3.4 0 0 0-3.6 4.5L2.4 10.7a1.4 1.4 0 0 0 2 2l3.8-3.8a3.4 3.4 0 0 0 4.5-3.6l-2 2-1.8-.3-.3-1.8z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+
+  <symbol id="p-check" viewBox="0 0 12 12"><path d="m2 6.4 2.6 2.6L10 3.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+
+  <!-- the key's drawings, in the felt pen -->
+  <symbol id="k-sheep" viewBox="0 0 32 24"><g stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20v3M13 20.5v2.8M18 20.5v2.8M22 20v3" fill="none"/><path d="M6.4 16.4c-3-.4-3.6-4.4-.8-5.4-.2-3.2 3.6-4.6 5.4-2.6 1.4-3 6-3 7.2-.2 2.8-1.2 5.6 1.2 4.6 3.8 2.4 1 1.8 5-1.2 5 .2 2.6-4.4 3.4-6 1.4-1.6 2-6.4 1.8-7-.8-.8.2-1.6.1-2.2-.2Z" fill="#fff"/><path d="M23.4 9.2c1.6-1.4 4.4-1 5.4.8 1 1.8.2 4.4-1.8 5-1.8.6-3.6-.2-4.2-1.8" fill="#111"/><path d="M24 9.4c-.8-.9-2.2-1-2.8-.2" fill="none"/></g><circle cx="26.6" cy="11.2" r=".9" fill="#fff"/></symbol>
+  <symbol id="k-duck" viewBox="0 0 32 24"><g stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 13.4c.6 5 5 7.6 11.4 7.6 6.6 0 10.8-2.6 11.2-6.6.2-2.2-1.6-3.2-3.6-2.4-1.6.6-3.2.2-4.2-1.2-1.6 2-5.2 2.8-8.4 2.4-2.6-.4-4.8-.8-6.4.2Z" fill="#ffe04a"/><circle cx="19.4" cy="7.4" r="4.6" fill="#ffe04a"/><path d="M23.6 7.6c1.8-.6 3.8 0 4.8 1.2-1.3 1-3.3 1.3-4.9.7" fill="#ff8a3d"/><path d="M9.6 14.6c2 1.6 5.2 1.5 6.8-.4" fill="none"/></g><circle cx="20.6" cy="6.4" r="1" fill="#111"/></symbol>
+  <symbol id="k-moon" viewBox="0 0 32 24"><g stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3A9 9 0 1 0 24.2 15.8 7.5 7.5 0 0 1 16.5 3Z" fill="#ffe04a"/><path d="M11.6 11.4q1.4 1.2 2.8 0M12.4 16.4q1.6.9 3 0" fill="none"/></g><path d="M26.5 4.5v3M25 6h3M28.5 10.5v2M27.5 11.5h2" stroke="#111" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="k-ball" viewBox="0 0 32 24"><g stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9.4h6M3.6 13.6h5.6M5.4 17.6h4.2" fill="none"/><path d="M28.7 11.6Q28.7 12.8 28.4 13.3Q28.1 13.8 27.8 14.3Q27.5 14.8 27.5 15.4Q27.4 16 27.1 16.5Q26.7 17 26.2 17.3Q25.7 17.6 25.2 17.9Q24.7 18.1 24.3 18.6Q23.9 19 23.4 19.3Q22.8 19.5 22.2 19.5Q21.6 19.5 21.1 19.4Q20.5 19.3 19.9 19.5Q19.3 19.7 18.8 19.6Q18.2 19.5 17.7 19.2Q17.2 18.8 16.8 18.5Q16.3 18.1 15.7 17.9Q15.1 17.8 14.7 17.4Q14.3 17 14 16.5Q13.8 15.9 13.6 15.4Q13.5 14.8 13.1 14.4Q12.7 13.9 12.5 13.3Q12.3 12.8 12.4 12.2Q12.5 11.6 12.7 11Q12.8 10.5 12.7 9.9Q12.7 9.3 12.8 8.7Q13 8.2 13.4 7.7Q13.8 7.3 14.2 6.9Q14.6 6.5 14.9 6Q15.1 5.4 15.6 5Q16 4.6 16.6 4.5Q17.2 4.4 17.8 4.3Q18.3 4.2 18.8 3.8Q19.3 3.5 19.9 3.4Q20.5 3.3 21.1 3.5Q21.6 3.7 22.2 3.9Q22.7 4.2 23.3 4.2Q23.9 4.2 24.4 4.4Q25 4.6 25.3 5.1Q25.7 5.6 26 6.1Q26.4 6.5 26.9 6.9Q27.4 7.2 27.7 7.7Q28 8.2 28.1 8.8Q28.1 9.4 28.2 9.9Q28.2 10.5 28.4 11Q28.7 11.6 28.7 12.2Z" fill="#fff"/><path d="M24.4 12.9A3.2 2.7 0 0 1 20.3 15M16.9 8.8A1.6 1.6 0 0 1 18.5 7.2" fill="none" stroke-width="1.3"/></g></symbol>
+  <symbol id="k-arrow" viewBox="0 0 160 40"><path d="M150 37C138 8 52 0 16 31" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="M10 19.5 15.5 32l12-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+<div class="scene" id="scene" aria-hidden="true"></div>
+<span class="op-z" id="snore" aria-hidden="true"><i>z</i><i>z</i><i>z</i></span>
+<div class="opening" id="opening" aria-hidden="true" data-theme="built-in">
+  <p class="op-mark"><span class="op-w1">Arrow</span><span class="op-w2">slit</span></p>
+  <p class="op-line">Quiet control for your MacBook notch.</p>
+</div>
+
+<header class="dock" id="dock" data-theme="built-in">
+  <div class="bar ws-fill" id="bar" role="toolbar" aria-label="Arrowslit">
+    <div class="g" id="gl">
+      <div class="w apple" data-key="apple" data-pri="1" role="img" aria-label="Apple menu"><svg style="width:13px;height:15px;fill:currentColor"><use href="#i-apple"/></svg></div>
+      <div class="w ws" data-key="ws" data-pri="never">
+        <span class="ind"></span>
+        <button class="wsi" data-ws="1" aria-label="Workspace 1" aria-pressed="false">1 <img class="ai" src="images/apps/ghostty.webp" alt="" width="14" height="14"></button>
+        <button class="wsi on" data-ws="2" aria-label="Workspace 2" aria-pressed="true">2 <img class="ai" src="images/apps/t3-code.webp" alt="" width="14" height="14"><img class="ai" src="images/apps/finder.svg" alt="" width="14" height="14"></button>
+        <button class="wsi" data-ws="3" aria-label="Workspace 3" aria-pressed="false">3 <img class="ai" src="images/apps/vscodium.webp" alt="" width="14" height="14"><img class="ai" src="images/apps/chromium.webp" alt="" width="14" height="14"></button>
+        <button class="wsi" data-ws="4" aria-label="Workspace 4" aria-pressed="false">4 <img class="ai" src="images/apps/ollama.webp" alt="" width="14" height="14"></button>
+      </div>
+      <div class="w app finder" data-key="app" data-pri="2"><span class="name">Finder</span><span class="menus"><span><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span></span></span></div>
+      <div class="w app site" data-key="site" data-pri="8" data-pop="site"><button type="button" class="name" aria-expanded="false">Arrowslit</button><span class="menus"><span><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md">Guide</a><a href="#store">AI Agents</a><a href="https://github.com/j4yop/arrowslit/releases/latest">Releases</a><a href="https://github.com/j4yop/arrowslit">GitHub</a></span></span></div>
+    </div>
+    <div class="g" id="gc"></div>
+    <div class="g" id="gr">
+      <button class="w more" data-key="more" data-pop="more" aria-expanded="false" aria-label="More widgets" hidden>•••</button>
+      <button class="w np" data-key="np" data-pri="3" data-pop="np" aria-expanded="false" aria-label="Now playing: Midnight City · M83"><i class="art"></i><span class="track">Midnight City · M83</span><span class="eq"><i></i><i></i><i></i><i></i></span></button>
+      <button class="w" data-key="meeting" data-pri="1" data-pop="agenda" aria-expanded="false"><svg><use href="#i-cal"/></svg>Design review&nbsp;&nbsp;10:30</button>
+      <button class="w" data-key="system" data-pri="0" data-pop="system" aria-expanded="false"><svg><use href="#i-cpu"/></svg><span class="vh">CPU </span>18%<span class="vh">,</span>&nbsp;&nbsp;<svg><use href="#i-mem"/></svg><span class="vh">memory </span>54%</button>
+      <div class="w snd" data-key="sound" data-pri="0"><span class="slide"><span><input type="range" min="0" max="100" value="64" aria-label="Volume"><span class="pct num">64%</span></span></span><svg role="img" aria-label="Sound"><use href="#i-snd"/></svg></div>
+      <div class="w" data-key="battery" data-pri="1"><svg style="width:19px"><use href="#i-bat"/></svg><span class="vh">Battery </span>82%</div>
+      <div class="w num clock" data-key="clock" data-pri="5" data-format="full">Thu 22 Oct&nbsp;&nbsp;09:41</div>
+      <a class="w dl" data-key="dl" data-pri="9" href="https://github.com/j4yop/arrowslit/releases/download/v0.12.10/Arrowslit-0.12.10.dmg"><span><svg><use href="#i-down"/></svg>Download</span></a>
+      <button class="w moon" data-key="moon" data-pri="never" id="night" aria-label="Night" aria-pressed="false"><svg class="off" aria-hidden="true"><use href="#i-sun"/></svg><svg class="on" aria-hidden="true"><use href="#i-moon"/></svg></button>
+    </div>
+  </div>
+
+  <div class="pop" id="pop">
+    <div class="pane menu" data-id="more">
+      <p>More widgets</p>
+      <button data-for="np" data-open="np"><i class="art"></i>Midnight City · M83</button>
+      <button data-for="meeting" data-open="agenda"><svg><use href="#i-cal"/></svg>Design review&nbsp;&nbsp;10:30</button>
+      <button data-for="system" data-open="system"><svg><use href="#i-cpu"/></svg>CPU 18%&nbsp;&nbsp;Memory 54%</button>
+      <button data-for="sound"><svg><use href="#i-snd"/></svg>Sound</button>
+      <button data-for="battery"><svg><use href="#i-bat"/></svg>Battery 82%</button>
+      <button data-for="clock" class="clock" data-format="full">Thu 22 Oct&nbsp;&nbsp;09:41</button>
+      <button data-for="app">Finder</button>
+      <button data-for="apple">Apple menu</button>
+    </div>
+    <div class="pane menu" data-id="site">
+      <a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md">User guide</a>
+      <a href="#store">AI Agents</a>
+      <a href="https://github.com/j4yop/arrowslit">Releases</a>
+      <a href="https://github.com/j4yop/arrowslit/releases/latest">Releases</a>
+      <a href="https://github.com/j4yop/arrowslit">GitHub</a>
+    </div>
+    <div class="pane np-pop" data-id="np">
+      <div class="src"><svg><use href="#i-note"/></svg>Music<svg class="go"><use href="#i-open"/></svg></div>
+      <div class="now"><i class="art"></i><div><b>Midnight City</b><b>M83</b><span>Hurry Up, We’re Dreaming</span></div></div>
+      <div class="meter"><i id="np-bar"></i></div>
+      <div class="times num"><span id="np-at">1:27</span><span>4:03</span></div>
+      <div class="ctrl">
+        <button aria-label="Shuffle"><svg><use href="#i-shuffle"/></svg></button>
+        <button aria-label="Previous"><svg><use href="#i-prev"/></svg></button>
+        <button class="play" id="np-play" aria-label="Pause"><svg class="pause"><use href="#i-pause"/></svg><svg class="resume"><use href="#i-play"/></svg></button>
+        <button aria-label="Next"><svg><use href="#i-next"/></svg></button>
+        <button aria-label="Repeat"><svg><use href="#i-repeat"/></svg></button>
+      </div>
+      <label class="vol"><svg><use href="#i-vol"/></svg><input type="range" min="0" max="100" value="64" aria-label="Volume"><svg><use href="#i-snd"/></svg></label>
+    </div>
+    <div class="pane" data-id="agenda">
+      <p class="hd">Today</p>
+      <div class="row"><span>09:15</span><span>Standup</span></div>
+      <div class="row"><span>10:30</span><span>Design review</span></div>
+      <div class="row"><span>12:30</span><span>Lunch with Ana</span></div>
+      <div class="row"><span>15:00</span><span>1:1 with Sam</span></div>
+      <div class="row"><span>16:30</span><span>Release planning</span></div>
+      <div class="sep"></div>
+      <div>Calendar</div>
+    </div>
+    <div class="pane" data-id="system" style="width:260px">
+      <p class="hd">System</p>
+      <svg class="graph" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline points="0,30 14,27 28,31 42,24 56,26 70,22 84,29 98,25 112,27 126,18 140,23 154,13 168,28 182,24 196,26 210,20 220,22"/></svg>
+      <div class="kv"><span>CPU</span><span>18 %</span></div>
+      <div class="meter"><i style="width:18%"></i></div>
+      <div class="kv"><span>Memory</span><span>54 %</span></div>
+      <div class="meter"><i style="width:54%"></i></div>
+      <div class="sep"></div>
+      <div>Activity Monitor</div>
+    </div>
+  </div>
+
+  <div class="edit-ctl" id="edit-ctl">
+    <span class="hint">Drag to move · − removes · + adds</span>
+    <button class="b" id="edit-undo" aria-label="Undo bar change" title="Undo (⌘Z)" disabled>Undo</button>
+    <button class="b done" id="edit-done" aria-label="Finish editing the bar" title="Finish editing the bar (Esc)">Done</button>
+  </div>
+  <div class="lamp-tag" id="lamp-tag" aria-hidden="true" hidden><span class="lt-p"><span class="lt-t"></span></span><svg class="lt-s"><path class="h"/><path class="k"/></svg></div>
+  <div class="addpop" id="addpop" role="dialog" aria-label="Add here" hidden></div>
+  <div class="ctx" id="ctx" role="menu" hidden></div>
+  <p class="vh" id="edit-help">Drag it, or use the Left and Right arrow keys, to move it. Delete removes it.</p>
+  <p class="vh" id="edit-live" aria-live="polite"></p>
+</header>
+
+<main id="main">
+  <section class="hero" id="hero" data-state="hero" data-dusk="0" aria-labelledby="h-hero">
+    <div class="note hero-note" data-ink>
+      <h1 id="h-hero"><span class="lumen">Quiet</span> <span class="lumen">control</span> <span class="lumen">for</span> <span class="lumen">your</span> <span class="lumen">MacBook</span> <span class="lumen">notch.</span></h1>
+      <p class="lede">Timers, media, calendar, agents and stats. Live in the notch, out of your way.</p>
+      <div class="get">
+        <a class="cta" data-ink="pill" href="https://github.com/j4yop/arrowslit/releases/download/v0.12.10/Arrowslit-0.12.10.dmg"><svg aria-hidden="true"><use href="#i-apple"/></svg>Download Arrowslit <span class="ver">v0.12.10</span></a>
+        <p class="req">macOS 14 or later, Apple silicon or Intel.<br>Free and open source, GPL-3.0.</p>
+      </div>
+      <div class="hero-foot">
+        <p class="cap">Everything at the edge* <small>*of your screen.</small></p>
+        <p class="quiet"><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md">User guide</a><a href="https://github.com/j4yop/arrowslit">GitHub</a></p>
+      </div>
+    </div>
+
+    <div class="note key" data-ink role="group" aria-labelledby="key-t">
+      <p class="key-t" id="key-t"><span class="mouse">The light follows your pointer.</span><span class="touch">Drag sideways to steer the light.</span></p>
+      <div class="keys">
+        <button type="button" data-drop="sheep"><svg aria-hidden="true"><use href="#k-sheep"/></svg>Drop a sheep</button>
+        <button type="button" data-drop="duck"><svg aria-hidden="true"><use href="#k-duck"/></svg>Drop a duck</button>
+        <button type="button" class="night" aria-pressed="false"><svg aria-hidden="true"><use href="#k-moon"/></svg>Night</button>
+        <button type="button" data-play><svg aria-hidden="true"><use href="#k-ball"/></svg>Play ball</button>
+      </div>
+      <p class="key-or"><span class="mouse">Or click the hill or the sea.</span><span class="touch">Or tap the hill or the sea.</span></p>
+    </div>
+  </section>
+
+  <section class="sec edit" id="edit" data-state="edit" data-dusk="0.18" aria-labelledby="h-edit">
+    <div class="note taped" data-ink>
+      <i class="tape2" aria-hidden="true"></i>
+      <h2 id="h-edit">Make the notch yours.</h2>
+      <p>Choose the theme, size and width, the tools in the launcher, and the live activities beside the camera. Set whether the notch opens on hover or click — every change lands on it immediately.</p>
+      <figure class="fig-edit screen notch-fig" data-theme="built-in" role="img" aria-label="The Arrowslit notch sitting in the menu bar, showing album artwork, the camera and live music bars.">
+        <div class="mb">
+          <span class="notch">
+            <span class="n-ear n-ear--l"><span class="n-art"></span></span>
+            <span class="n-cam"></span>
+            <span class="n-ear n-ear--r"><span class="n-eq n-eq--right" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span>
+          </span>
+        </div>
+      </figure>
+      <button class="try" id="try-edit" type="button">Try the notch settings</button>
+      <p>Everything the notch shows is a setting: Black or Glass, Small to Large, the launcher's tools, live activities, and how it opens. Changes apply as you make them, and Restore Defaults brings the original look back.</p>
+      <p class="cap">The notch stays put. Everything else is yours.</p>
+    </div>
+  </section>
+
+  <section class="sec widgets" id="widgets" data-state="widgets" data-dusk="0.6" aria-labelledby="h-widgets">
+    <div class="note notebook" data-ink="torn">
+      <h2 id="h-widgets">Any tool is a tile.</h2>
+      <p>The launcher holds all thirteen tools in two rows per page. Hold a tile to pin it beside Home, or choose the set in Settings › Home. Three shortcuts stay one click away.</p>
+      <div class="script">
+        <div class="code">
+          <div class="fn"><span>launcher/shortcuts</span><span>keys</span></div>
+<pre tabindex="0" aria-label="launcher shortcuts"><span class="c"># hold a tile to pin it</span>
+⌃⌥M  now playing
+⌃⌥R  timer
+⌃⌥S  stopwatch
+⌃⌥G  ai agents</pre>
+        </div>
+        <div class="result pinned" data-theme="built-in" role="group" aria-label="Pinned tools beside the camera: Timer 24:57 and AI Agents 42%">
+          <span class="pin"><svg><use href="#i-clock"/></svg>Timer <b>24:57</b></span>
+          <span class="pin-cam" aria-hidden="true"></span>
+          <span class="pin"><svg><use href="#i-sparkles"/></svg>Agents <b>42%</b></span>
+        </div>
+      </div>
+      <p class="links"><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md#every-tool">See all 13 tools</a></p>
+
+      <div class="store" id="store">
+        <h3>Or watch your agents work.</h3>
+        <p>Arrowslit reads each assistant’s local usage — plan meters, token spend and reset countdowns — and surfaces approval requests in the notch. Hooks are opt-in per assistant in Settings, and nothing is auto-allowed.</p>
+        <div class="store-fig">
+          <div class="win store-win" data-theme="built-in" role="group" aria-label="Arrowslit AI Agents dashboard">
+            <div class="tb"><span class="tl"><i></i><i></i><i></i></span><span class="tabs" aria-hidden="true"><span>Overview</span><span class="on">Agents</span></span><span class="find" aria-hidden="true">Local data only</span></div>
+            <div class="pkgs">
+              <div class="pkg" data-id="claude"><div class="pv"><div class="w"><svg><use href="#i-asterisk"/></svg><span class="gauge"><i style="--p:42%"></i><i style="--p:64%"></i></span>42%</div></div><b>Claude Code</b><p>Plan meter, token spend and the next reset, read from local usage.</p><div class="by"><span>Agent · local data</span><span class="state"><svg viewBox="0 0 12 12" aria-hidden="true"><use href="#p-check"/></svg>Reading</span></div></div>
+              <div class="pkg" data-id="codex"><div class="pv"><div class="w"><svg><use href="#i-term"/></svg><span class="gauge"><i style="--p:64%"></i><i style="--p:30%"></i></span>64%</div></div><b>Codex</b><p>Live turns, cache efficiency and spend for Codex sessions.</p><div class="by"><span>Agent · local data</span><span class="state"><svg viewBox="0 0 12 12" aria-hidden="true"><use href="#p-check"/></svg>Reading</span></div></div>
+              <div class="pkg" data-id="opencode"><div class="pv"><div class="w"><svg><use href="#i-sparkles"/></svg><span class="gauge"><i style="--p:18%"></i><i style="--p:30%"></i></span>18%</div></div><b>OpenCode</b><p>Sessions, tokens and spend from OpenCode, read on this Mac.</p><div class="by"><span>Agent · local data</span><span class="state"><svg viewBox="0 0 12 12" aria-hidden="true"><use href="#p-check"/></svg>Reading</span></div></div>
+              <div class="pkg" data-id="copilot"><div class="pv"><div class="w"><svg><use href="#i-tool"/></svg><span class="gauge"><i style="--p:30%"></i><i style="--p:50%"></i></span>30%</div></div><b>GitHub Copilot</b><p>Monthly requests and remaining usage for Copilot.</p><div class="by"><span>Agent · local data</span><span class="state"><svg viewBox="0 0 12 12" aria-hidden="true"><use href="#p-check"/></svg>Reading</span></div></div>
+              <div class="pkg" data-id="approvals"><div class="pv"><div class="w"><svg><use href="#i-lock"/></svg>Allow / Deny</div></div><b>Approvals</b><p>When an agent wants to run a command or change a file, allow or deny it from the notch.</p><div class="by"><span>Opt-in · six assistants</span><span class="state"><svg viewBox="0 0 12 12" aria-hidden="true"><use href="#p-check"/></svg>On</span></div></div>
+              <div class="pkg" data-id="live"><div class="pv"><div class="w"><i class="art"></i>Claude · 0:42</div></div><b>Live activity</b><p>A working agent stays beside the camera with its turn time.</p><div class="by"><span>Notch · live</span><span class="state"><svg viewBox="0 0 12 12" aria-hidden="true"><use href="#p-check"/></svg>On</span></div></div>
+            </div>
+          </div>
+          <div class="addpop review pkg-review" id="pkg-review" role="dialog" aria-label="Review package" hidden></div>
+        </div>
+        <p class="links"><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md#agent-approvals">Agent approvals in the guide</a></p>
+      </div>
+      <p class="cap">Thirteen tools. Three shortcuts. One notch.</p>
+    </div>
+  </section>
+
+  <section class="sec tiling" id="tiling" data-state="tiling" data-dusk="0.8" aria-labelledby="h-tiling">
+    <div class="note postcard" data-ink>
+      <div class="pc-msg">
+        <h2 id="h-tiling">Live, right at the edge.</h2>
+        <p>A call, a timer, a working agent, the next meeting, a track, a download — the notch keeps the one that matters most beside the camera while you work, then tucks back into the bezel when it is done. It reads the apps you already use; there is nothing new to sign into.</p>
+      </div>
+      <div class="pc-addr" aria-hidden="true">
+        <span class="stamp"><img src="images/lighthouse-stamp.svg" width="40" height="48" alt=""></span>
+        <svg class="postmark" viewBox="0 0 74 50"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="22" cy="25" r="17"/><circle cx="22" cy="25" r="12.5" stroke-dasharray="2 3"/><path d="M42 13c5-3 9 3 14 0s9-3 14 0M42 25c5-3 9 3 14 0s9-3 14 0M42 37c5-3 9 3 14 0s9-3 14 0"/></g></svg>
+        <span class="to">To</span>
+        <span class="addr">FaceTime</span>
+        <span class="addr">Music</span>
+        <span class="addr">Calendar</span>
+      </div>
+      <div class="pc-ws screen" data-theme="built-in">
+        <div class="ws-big ws-fill live-big" role="group" aria-label="Live activities beside the camera: a FaceTime call, Music playing and the next Calendar event">
+          <span class="wsi"><svg><use href="#i-group"/></svg>8:42</span>
+          <span class="wsi on"><i class="art"></i>Starboy<span class="livebars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span>
+          <span class="wsi"><svg><use href="#i-cal"/></svg>10:30</span>
+        </div>
+      </div>
+      <div class="pc-foot">
+        <p class="cap">One notch, whatever is live.</p>
+        <p class="links"><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md#live-activities">Live activities in the guide</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec guide" id="guide" data-state="guide" data-dusk="0.9" aria-labelledby="h-guide">
+    <div class="note recipe" data-ink>
+      <h2 id="h-guide">The Arrowslit guide, in one note.</h2>
+      <p>The notch on this page is a working replica of <strong>Arrowslit</strong>, Jay Gopal’s free, open-source utility for the MacBook notch. The full guide lives with the source.</p>
+      <ol class="steps">
+        <li><strong>Open it</strong> with a hover over the top centre, or a click. <strong>Escape</strong> or moving away closes it.</li>
+        <li><strong>Find a tool</strong> in the grid at the top right: thirteen tools, two rows per page. Scroll for page two, or hold a tile to pin it beside Home.</li>
+        <li><strong>Keep it running</strong>: timers, calls, media, downloads and agent work stay beside the camera when the notch is closed.</li>
+        <li><strong>Make it yours</strong> in Settings: Black or Glass, size and width, what stays live, and hover or click.</li>
+      </ol>
+      <div class="get">
+        <a class="cta" data-ink="pill" href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md">Read the user guide</a>
+        <p class="req">Install, every tool and shortcut, settings, privacy and fixes.<br>Free · GPL-3.0 · macOS 14 or later.</p>
+      </div>
+      <p class="links"><a href="https://github.com/j4yop/arrowslit/releases/latest">Download Arrowslit</a><a href="https://github.com/j4yop/arrowslit">GitHub</a><a href="https://github.com/j4yop/arrowslit/issues">Report an issue</a></p>
+    </div>
+  </section>
+
+  <section class="sec install" id="install" data-state="install" data-dusk="1" aria-labelledby="h-install">
+    <div class="note recipe" data-ink>
+      <h2 id="h-install">See it on your own notch.</h2>
+      <ol class="steps">
+        <li>Download Arrowslit.</li>
+        <li>Open it from Applications. macOS asks once; allow it in <strong>Privacy &amp; Security</strong>.</li>
+        <li>Hover the top centre or click the slit icon. Calendar, Reminders and Camera ask only when you use them.</li>
+        <li>Make it yours in Settings: theme, size, launcher tools and live activities.</li>
+      </ol>
+      <div class="get">
+        <a class="cta" data-ink="pill" href="https://github.com/j4yop/arrowslit/releases/download/v0.12.10/Arrowslit-0.12.10.dmg"><svg aria-hidden="true"><use href="#i-apple"/></svg>Download Arrowslit <span class="ver">v0.12.10</span></a>
+        <p class="req">macOS 14 or later, Apple silicon or Intel.<br>Free and open source, GPL-3.0.</p>
+      </div>
+      <p class="brew">Or with Homebrew 7: <code class="wrap">brew trust j4yop/tap &amp;&amp; brew install --cask j4yop/tap/arrowslit</code></p>
+      <p class="cap">The notch is open. Come in.</p>
+    </div>
+  </section>
+</main>
+<!-- Out at sea, each [data-sign] is a signpost on an island, in this order: the title its plank, a board for each link
+     (data-board, or the link's text). See setSigns in scene.js. -->
+<footer class="foot" id="foot">
+  <div class="note" data-ink>
+    <p data-sign="Made by">Arrowslit is made by <a href="https://github.com/j4yop" data-board="Jay Gopal">Jay Gopal</a>.</p>
+    <p data-sign="Open source">Arrowslit is free software under the <a href="https://github.com/j4yop/arrowslit/blob/main/LICENSE" data-board="GPL-3.0 License">GPL-3.0 License</a>, with its source in the <a href="https://github.com/j4yop/arrowslit" data-board="GitHub repo">Arrowslit repository</a>.</p>
+    <p>Local-first by design: no account, no telemetry. Clipboard history and notes stay on your Mac.</p>
+    <p class="links">
+      <span data-sign=""><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md" data-board="Arrowslit guide">Arrowslit guide</a> <a href="https://github.com/j4yop/arrowslit" data-board="GitHub repo">GitHub repo</a></span>
+      <span data-sign=""><a href="https://github.com/j4yop/arrowslit/releases/latest">Releases</a> <a href="https://github.com/j4yop/arrowslit/issues">Issues</a></span>
+      <span data-sign=""><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md#privacy-and-permissions">Privacy</a> <a href="https://github.com/j4yop/arrowslit/blob/main/LICENSE" data-board="GPL-3.0">License</a></span>
+      <span data-sign=""><a href="#" data-board="Back to the lighthouse">Back to the top</a></span>
+    </p>
+  </div>
+</footer>
+<div class="dive" id="dive" aria-hidden="true" hidden></div>
+</body>
+</html>

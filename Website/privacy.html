@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · Arrowslit</title>
+<meta name="description" content="Arrowslit privacy: no account, no analytics, local-first data, and macOS permissions only when you use a tool.">
+<meta name="theme-color" content="#86cbf2">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="style.css">
+<script>
+document.documentElement.dataset.mode = localStorage.getItem("mode") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+if (document.documentElement.dataset.mode === "dark") document.querySelector('meta[name="theme-color"]').content = "#232662";
+</script>
+</head>
+<body class="doc">
+<a class="skip" href="#main">Skip to content</a>
+<div class="page">
+  <header class="top">
+    <a class="brand" href="./"><img src="images/arrowslit-icon.png" alt="">Arrowslit</a>
+    <nav class="nav">
+      <a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md">Guide</a>
+      <a href="https://github.com/j4yop/arrowslit">GitHub</a>
+    </nav>
+  </header>
+  <main id="main" class="legal">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated on 8 November 2026.</p>
+    <p>Arrowslit is a free, open-source notch app for macOS by <a href="https://github.com/j4yop">Jay Gopal</a>. There is no account, no analytics and no telemetry; we do not collect personal data.</p>
+
+    <h2>On your Mac</h2>
+    <p>Arrowslit keeps your settings, clipboard history and scratchpad on your Mac. Clipboard history lives in memory; only clips you pin are written to disk. Scratchpad notes and agent usage stay local too.</p>
+    <p>Arrowslit asks for macOS permissions only when you use a feature:</p>
+    <ul>
+      <li><strong>Camera</strong> — for Camera Mirror. The sensor turns off when the panel closes.</li>
+      <li><strong>Calendars</strong> — when you connect Calendar for the agenda and the meeting heads-up.</li>
+      <li><strong>Reminders</strong> — when you open Reminders.</li>
+    </ul>
+    <p>Declining a permission disables only that tool.</p>
+
+    <h2>What the app connects to</h2>
+    <ul>
+      <li><strong>Updates.</strong> Arrowslit checks GitHub for a signed release at launch and once a day. The check is anonymous; an update is downloaded only when you choose to install it.</li>
+      <li><strong>Lyrics (optional).</strong> Off by default. When on, the song title, artist, album and length are sent to lrclib.net.</li>
+      <li><strong>Sports (optional).</strong> Preview matches are generated locally; live scores use your own BigBallsData key.</li>
+    </ul>
+    <p>GitHub receives your IP address with update checks; its privacy statement covers how GitHub handles it. Nothing else leaves your Mac.</p>
+
+    <h2>Agent approvals</h2>
+    <p>When you switch on a coding assistant, Arrowslit installs its local hook. Requests travel over a user-only local socket and nothing is auto-allowed. The trust model is documented in the <a href="https://github.com/j4yop/arrowslit/blob/main/Docs/Agent-Approval-Security.md">agent approval security review</a>.</p>
+
+    <h2>This website</h2>
+    <p>This landing page is a static Arrowslit demo. It has no cookies, analytics or third-party scripts; the light or dark choice is saved in your browser. Fonts are served locally. Following a GitHub link sends a request to GitHub.</p>
+
+    <h2>Changes and contact</h2>
+    <p>Updates to this policy appear on this page with a new date. Questions or reports are welcome on the <a href="https://github.com/j4yop/arrowslit/issues">Arrowslit issue tracker</a>.</p>
+  </main>
+  <footer>
+    <a href="./">Home</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">License &amp; Terms</a>
+    <a href="https://github.com/j4yop/arrowslit">Source on GitHub</a>
+  </footer>
+</div>
+</body>
+</html>
