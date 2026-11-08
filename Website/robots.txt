@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /docs/
+Disallow: /THIRD-PARTY-NOTICES.md
+Disallow: /README.md
+Disallow: /scripts/
+Disallow: /.github/
