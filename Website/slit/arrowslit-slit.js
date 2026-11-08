@@ -231,6 +231,7 @@ const fmtClock = (s) => {
 
 /* -------------------------------------------------------------- geometry */
 function box(w, hgt, radius, flare) {
+  slit.style.setProperty("--nook-scale", Math.min(1, (innerWidth - 16) / w));
   slit.style.setProperty("--w", w + "px");
   slit.style.setProperty("--h", hgt + "px");
   slit.style.setProperty("--r", radius + "px");
@@ -1072,14 +1073,14 @@ const CSS = `
 .slit.elongated { --elongate: 1; }
 
 /* settings window */
-.slit-settings { position: fixed; top: 196px; left: 50%; transform: translateX(-50%) translateY(10px) scale(.98); width: 392px;
+.slit-settings { position: fixed; top: 196px; left: 50%; transform: translateX(-50%) translateY(10px) scale(.98); width: min(392px, calc(100vw - 16px));
   background: rgba(22,22,24,.98); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; z-index: 340;
   box-shadow: 0 24px 64px rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .2s ease-out, transform .25s cubic-bezier(.34,1.4,.44,1);
   font-size: 12px; color: #fff; overflow: hidden; }
 .slit-settings.is-on { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
 .shead { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.1); }
-.stabs { display: flex; gap: 2px; }
-.stab { border: 0; background: none; color: rgba(255,255,255,.55); font: 600 11.5px/1 inherit; padding: 6px 9px; border-radius: 7px; cursor: pointer; }
+.stabs { display: flex; flex-wrap: wrap; gap: 2px; min-width: 0; }
+.stab { flex: 0 0 auto; border: 0; background: none; color: rgba(255,255,255,.55); font: 600 11.5px/1 inherit; padding: 6px 9px; border-radius: 7px; cursor: pointer; }
 .stab.is-on { background: rgba(255,255,255,.12); color: #fff; }
 .sx { border: 0; background: none; color: rgba(255,255,255,.5); font: 500 16px/1 inherit; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
 .sx:hover { color: #fff; background: rgba(255,255,255,.08); }
@@ -1461,6 +1462,12 @@ const CSS = `
 .trrow { gap: 14px; }
 .bigread { font-size: 30px; }
 
+@media (max-width: 700px) {
+  .slit[data-open] { zoom: var(--nook-scale, 1); }
+}
+@media (max-width: 340px) {
+  .slit:not([data-open]) { zoom: 0.915; }
+}
 @media (prefers-reduced-motion: reduce) {
   .slit, .slit__nook, .slit-ctx, .slit-settings, .slit-coach { transition: none; }
   .bars i, .ring, .mark { animation: none !important; }
@@ -1702,7 +1709,7 @@ function boot() {
 
   // the page's menubar gets a notch gap so the slit sits inside it, centered
   const gap = h("div.mb-notch-gap");
-  gap.style.width = "292px";
+  gap.style.width = "min(282px, calc(100vw - 62px))";
   const tryGap = () => {
     const mb = document.getElementById("arrowslit-menubar-host")?.shadowRoot?.querySelector(".menubar") || document.querySelector(".menubar");
     if (!mb) return false;
@@ -1784,5 +1791,6 @@ pageStyle.textContent = `
 `;
 document.head.appendChild(pageStyle);
 
+addEventListener("resize", () => { if (expanded) apply(); });
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();
