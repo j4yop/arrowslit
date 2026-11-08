@@ -1,4 +1,8 @@
 <p align="center">
+  <a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener"><img src="https://macnative.io/badge?kind=listed&theme=default&slug=arrowslit&small=1&rounded=1" alt="Listed on MacNative" width="168" height="44" /></a>
+</p>
+
+<p align="center">
   <img src="Docs/Images/arrowslit-brand-title.jpg" width="100%" alt="Arrowslit: Quiet control for your MacBook notch">
 </p>
 
@@ -16,15 +20,6 @@
   <img src="https://img.shields.io/badge/architecture-universal-orange" alt="Universal Apple Silicon + Intel">
   <img src="https://img.shields.io/badge/privacy-local--first-2ea44f" alt="Zero telemetry. No accounts.">
   <img src="https://img.shields.io/badge/price-free-2ea44f" alt="Free">
-</p>
-
-<p align="center">
-  <a href="https://macnative.io/apps/arrowslit" target="_blank" rel="noopener">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://macnative.io/badge?slug=arrowslit&theme=dark&small=1&rounded=1">
-      <img src="https://macnative.io/badge?slug=arrowslit&theme=default&small=1&rounded=1" alt="Listed on MacNative.io" width="167" height="43">
-    </picture>
-  </a>
 </p>
 
 <p align="center">
