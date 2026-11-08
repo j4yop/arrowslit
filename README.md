@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener"><img src="https://macnative.io/badge?kind=listed&theme=default&slug=arrowslit&small=1&rounded=1" alt="Listed on MacNative" width="168" height="44" /></a>
+  <a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener"><img src="https://macnative.io/badge?kind=listed&theme=default&slug=arrowslit" alt="Listed on MacNative" width="212" height="58" /></a>
 </p>
 
 <p align="center">
