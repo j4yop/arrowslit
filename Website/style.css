@@ -967,3 +967,16 @@ h3 { font: 800 22px/1.2 var(--display); font-variation-settings: "INFM" 70, "BNC
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; }
 }
+
+
+/* Phones: keep the download button and live strip inside the screen. */
+@media (max-width: 390px) {
+  .cta {
+    width: 100%; max-width: 100%; justify-content: center; flex-wrap: wrap;
+    white-space: normal; text-align: center; font-size: 16px; padding: 12px 14px;
+  }
+  .cta .ver { margin-left: 0; }
+}
+@media (max-width: 340px) {
+  .pc-ws .ws-big { zoom: 1; }
+}

@@ -1417,7 +1417,15 @@ body.is-resizing-window .window { transition: none; }
   .mb-item { padding: 0 6px; }
 }
 @media (max-width: 520px) {
+  .menubar { position: relative; justify-content: center; }
+  .mb-left, .mb-right { position: absolute; top: 0; height: 100%; }
+  .mb-left { left: 6px; }
+  .mb-right { right: 6px; }
+  .mb-status-area { display: none; }
   .mb-appname { display: none; }
+}
+@media (max-width: 460px) {
+  .mb-clock { display: none; }
 }
 
 /* Shell do desktop: fitas no papel de parede, véu de brilho, HUD clássico,
