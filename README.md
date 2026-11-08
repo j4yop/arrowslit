@@ -19,6 +19,15 @@
 </p>
 
 <p align="center">
+  <a href="https://macnative.io/apps/arrowslit" target="_blank" rel="noopener">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://macnative.io/badge?slug=arrowslit&theme=dark&small=1&rounded=1">
+      <img src="https://macnative.io/badge?slug=arrowslit&theme=default&small=1&rounded=1" alt="Listed on MacNative.io" width="167" height="43">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
   <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.10/Arrowslit-0.12.10.dmg"><b>Download Arrowslit 0.12.10 DMG</b></a>
   &nbsp;·&nbsp;
   or with Homebrew 7: <code>brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit</code>
