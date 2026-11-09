@@ -990,3 +990,13 @@ h3 { font: 800 22px/1.2 var(--display); font-variation-settings: "INFM" 70, "BNC
 .mn-listed .mn-dark { display: none; }
 [data-mode="dark"] .mn-listed .mn-light { display: none; }
 [data-mode="dark"] .mn-listed .mn-dark { display: block; }
+
+
+/* Badge row: MacNative + MacBase */
+.badge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; margin-top: 18px; }
+.badge-row .mn-listed, .badge-row .mb-listed { margin-top: 0; }
+.mb-listed a { display: inline-flex; }
+.mb-listed img { display: block; height: 58px; width: auto; }
+.mb-listed .mb-dark { display: none; }
+[data-mode="dark"] .mb-listed .mb-light { display: none; }
+[data-mode="dark"] .mb-listed .mb-dark { display: block; }
