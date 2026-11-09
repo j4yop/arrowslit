@@ -1,8 +1,4 @@
 <p align="center">
-  <a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener"><img src="https://macnative.io/badge?kind=listed&theme=default&slug=arrowslit" alt="Listed on MacNative" width="212" height="58" /></a>
-</p>
-
-<p align="center">
   <img src="Docs/Images/arrowslit-brand-title.jpg" width="100%" alt="Arrowslit: Quiet control for your MacBook notch">
 </p>
 
