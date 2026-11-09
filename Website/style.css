@@ -986,7 +986,7 @@ h3 { font: 800 22px/1.2 var(--display); font-variation-settings: "INFM" 70, "BNC
 .note > .featured-wrap { margin-top: 30px; }
 .featured-wrap { display: flex; align-items: center; gap: 12px; padding: 4px 0; background-image: radial-gradient(rgba(20,18,15,.14) 1.15px, transparent 1.15px); background-size: 28px 28px; }
 .featured-marquee { flex: 1; min-width: 0; overflow: hidden; padding-block: 4px; mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
-.featured-track { display: flex; width: max-content; animation: featured-scroll 73s linear infinite; will-change: transform; }
+.featured-track { display: flex; width: max-content; animation: featured-scroll 81s linear infinite; will-change: transform; }
 .featured-set { display: flex; flex-shrink: 0; align-items: center; gap: 2rem; padding: 0 2rem 0 0; margin: 0; list-style: none; }
 .featured-set li { flex-shrink: 0; }
 .featured-set img { display: block; height: 50px; width: auto; }
