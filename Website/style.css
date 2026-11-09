@@ -982,21 +982,25 @@ h3 { font: 800 22px/1.2 var(--display); font-variation-settings: "INFM" 70, "BNC
 }
 
 
-/* MacNative listing badge */
-.mn-listed { margin-top: 16px; }
-.mn-hero { margin-top: 18px; }
-.mn-listed a { display: inline-flex; }
-.mn-listed img { display: block; width: 212px; height: 58px; }
-.mn-listed .mn-dark { display: none; }
-[data-mode="dark"] .mn-listed .mn-light { display: none; }
-[data-mode="dark"] .mn-listed .mn-dark { display: block; }
-
-
-/* Badge row: MacNative + MacBase */
-.badge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; margin-top: 18px; }
-.badge-row .mn-listed, .badge-row .mb-listed { margin-top: 0; }
-.mb-listed a { display: inline-flex; }
-.mb-listed img { display: block; height: 58px; width: auto; }
-.mb-listed .mb-dark { display: none; }
-[data-mode="dark"] .mb-listed .mb-light { display: none; }
-[data-mode="dark"] .mb-listed .mb-dark { display: block; }
+/* Featured on marquee — matches the Tucket footer animation */
+.note > .featured-wrap { margin-top: 30px; }
+.featured-wrap { display: flex; align-items: center; gap: 12px; padding: 4px 0; background-image: radial-gradient(rgba(20,18,15,.14) 1.15px, transparent 1.15px); background-size: 28px 28px; }
+.featured-marquee { flex: 1; min-width: 0; overflow: hidden; padding-block: 4px; mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+.featured-track { display: flex; width: max-content; animation: featured-scroll 18s linear infinite; will-change: transform; }
+.featured-set { display: flex; flex-shrink: 0; align-items: center; gap: 2rem; padding: 0 2rem 0 0; margin: 0; list-style: none; }
+.featured-set li { flex-shrink: 0; }
+.featured-set img { display: block; height: 50px; width: auto; }
+.featured-marquee:hover .featured-track, .featured-marquee:focus-within .featured-track, .featured-marquee[data-paused] .featured-track { animation-play-state: paused; }
+@keyframes featured-scroll { 0% { transform: translateZ(0); } 100% { transform: translate3d(-50%, 0, 0); } }
+.featured-pause { flex: 0 0 auto; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: transparent; color: rgba(20,18,15,.45); cursor: pointer; }
+.featured-pause:hover { background: rgba(0,0,0,.05); color: #141414; }
+.featured-pause:focus-visible { outline: 2px solid #141414; outline-offset: 2px; }
+.featured-pause svg { width: 14px; height: 14px; fill: currentColor; }
+@media (max-width: 640px), (prefers-reduced-motion: reduce) {
+  .featured-marquee { mask-image: none; overflow: visible; }
+  .featured-track { display: block; animation: none; width: auto; }
+  .featured-set { flex-shrink: 1; flex-wrap: wrap; gap: .75rem 1rem; padding-right: 0; }
+  .featured-set-copy { display: none; }
+  .featured-pause { display: none; }
+  .featured-set img { height: 44px; }
+}

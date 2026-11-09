@@ -56,7 +56,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" href="fonts/shantell-sans-display.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/atkinson-hyperlegible-next.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=1794197455">
+<link rel="stylesheet" href="style.css?v=1794208503">
 <script>
 const root = document.documentElement;
 root.dataset.mode = localStorage.getItem("mode") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -256,20 +256,6 @@ try {
         <p class="cap">Everything at the edge* <small>*of your screen.</small></p>
         <p class="quiet"><a href="https://github.com/j4yop/arrowslit/blob/main/Docs/User-Guide.md">User guide</a><a href="https://github.com/j4yop/arrowslit">GitHub</a></p>
       </div>
-      <div class="badge-row">
-        <p class="mn-listed mn-hero">
-          <a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&amp;utm_medium=referral" target="_blank" rel="noopener">
-            <img class="mn-light" src="https://macnative.io/badge?kind=listed&amp;theme=default&amp;slug=arrowslit" alt="Listed on MacNative" width="212" height="58">
-            <img class="mn-dark" src="https://macnative.io/badge?kind=listed&amp;theme=dark&amp;slug=arrowslit" alt="Listed on MacNative" width="212" height="58">
-          </a>
-        </p>
-        <p class="mb-listed">
-          <a href="https://macbase.app/apps/arrowslit?ref=badge" target="_blank" rel="noopener">
-            <img class="mb-light" src="https://macbase.app/badge/featured-on-macbase.svg" alt="Arrowslit is featured on MacBase" height="58" style="width:auto">
-            <img class="mb-dark" src="https://macbase.app/badge/featured-on-macbase-dark.svg" alt="Arrowslit is featured on MacBase" height="58" style="width:auto">
-          </a>
-        </p>
-      </div>
     </div>
 
     <div class="note key" data-ink role="group" aria-labelledby="key-t">
@@ -409,6 +395,23 @@ try {
       </div>
       <p class="brew">Or with Homebrew 7: <code class="wrap">brew trust j4yop/tap &amp;&amp; brew install --cask j4yop/tap/arrowslit</code></p>
       <p class="cap">The notch is open. Come in.</p>
+      <div class="featured-wrap">
+        <div class="featured-marquee">
+          <div class="featured-track">
+              <ul class="featured-set" aria-label="Arrowslit is featured on">
+                <li><a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&amp;utm_medium=referral" target="_blank" rel="noopener"><img src="images/badges/macnative.svg" alt="Listed on MacNative" width="212" height="58"></a></li>
+                <li><a href="https://macbase.app/apps/arrowslit?ref=badge" target="_blank" rel="noopener"><img src="images/badges/macbase.svg" alt="Arrowslit is featured on MacBase" width="313" height="100"></a></li>
+              </ul>
+              <ul class="featured-set featured-set-copy" aria-hidden="true" inert>
+                <li><a href="https://macnative.io/apps/arrowslit?utm_source=macnative-badge&amp;utm_medium=referral" target="_blank" rel="noopener"><img src="images/badges/macnative.svg" alt="Listed on MacNative" width="212" height="58"></a></li>
+                <li><a href="https://macbase.app/apps/arrowslit?ref=badge" target="_blank" rel="noopener"><img src="images/badges/macbase.svg" alt="Arrowslit is featured on MacBase" width="313" height="100"></a></li>
+              </ul>
+          </div>
+        </div>
+        <button type="button" class="featured-pause" aria-label="Pause featured badges carousel" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,48V208a16,16,0,0,1-16,16H160a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h40A16,16,0,0,1,216,48ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Z"></path></svg>
+        </button>
+      </div>
     </div>
   </section>
 </main>
@@ -428,5 +431,21 @@ try {
   </div>
 </footer>
 <div class="dive" id="dive" aria-hidden="true" hidden></div>
+<script>
+(() => {
+  const marquee = document.querySelector('.featured-marquee');
+  const btn = document.querySelector('.featured-pause');
+  if (!marquee || !btn) return;
+  const pauseIcon = btn.innerHTML;
+  const playIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true"><path d="M232.4,114.5,88.2,22.4A15.9,15.9,0,0,0,64,36V220a15.9,15.9,0,0,0,24.2,13.6l144.2-92.1a15.9,15.9,0,0,0,0-27Z"></path></svg>';
+  btn.addEventListener('click', () => {
+    const paused = marquee.hasAttribute('data-paused');
+    if (paused) marquee.removeAttribute('data-paused'); else marquee.setAttribute('data-paused', '');
+    btn.setAttribute('aria-pressed', String(!paused));
+    btn.setAttribute('aria-label', paused ? 'Pause featured badges carousel' : 'Play featured badges carousel');
+    btn.innerHTML = paused ? pauseIcon : playIcon;
+  });
+})();
+</script>
 </body>
 </html>
