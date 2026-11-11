@@ -339,6 +339,9 @@ final class DebugHooks {
                 title: "Run a command",
                 detail: "swift test --build-system native"
             )))
+        case "tour":
+            state.collapse()
+            state.onOpenTour?()
         case "settings":
             state.collapse()
             state.onOpenSettings?()
