@@ -173,6 +173,7 @@ public final class AppState {
     public var isEditingShortcuts = false
 
     @ObservationIgnored public var onOpenSettings: (() -> Void)?
+    @ObservationIgnored public var onOpenTour: (() -> Void)?
     @ObservationIgnored private var alertTask: Task<Void, Never>?
 
     public init(
