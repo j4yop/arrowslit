@@ -35,7 +35,22 @@ hdiutil attach -readwrite -nobrowse -noautoopen -mountpoint "$MOUNT" "$RW" >/dev
 SetFile -a C "$MOUNT"
 hdiutil detach "$MOUNT" >/dev/null
 hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -o "$DMG" >/dev/null
-hdiutil verify "$DMG" >/dev/null
+# hdiutil occasionally returns "Resource temporarily unavailable" on CI
+# runners immediately after conversion. Retry before failing a release build.
+verified=0
+for attempt in 1 2 3; do
+    if hdiutil verify "$DMG" >/dev/null 2>&1; then
+        verified=1
+        break
+    fi
+    echo "hdiutil verify failed (attempt $attempt of 3), retrying..." >&2
+    sleep 2
+done
+if [[ "$verified" -ne 1 ]]; then
+    echo "hdiutil verify failed after 3 attempts" >&2
+    hdiutil verify "$DMG"
+    exit 1
+fi
 # Keep the checksum portable: `shasum -a 256 -c` must work on a user's machine.
 ( cd "$ROOT/build" && shasum -a 256 "$(basename "$DMG")" > "$(basename "$DMG").sha256" )
 echo "✓ $DMG"
