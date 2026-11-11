@@ -517,6 +517,33 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
             }
+
+            SettingsSection(
+                title: "Welcome tour",
+                note: "The guided tour that runs the first time Arrowslit opens."
+            ) {
+                Button {
+                    state.onOpenTour?()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.amber)
+                            .frame(width: 20)
+                        Text("Replay welcome tour")
+                            .font(ArrowTheme.settingsBody)
+                            .foregroundStyle(ArrowTheme.bone)
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(ArrowTheme.faint)
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 38)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(NookPressStyle())
+            }
         }
     }
 

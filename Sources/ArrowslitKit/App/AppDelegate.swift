@@ -6,6 +6,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PanelManager?
     private var statusItem: StatusItemController?
     private var settingsWindow: SettingsWindowController?
+    private var tourWindow: OnboardingWindowController?
     #if DEBUG
     private var debugHooks: DebugHooks?
     #endif
@@ -22,12 +23,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("Arrowslit", isDirectory: true)
+        let isFirstLaunch = support.map { !FileManager.default.fileExists(atPath: $0.path) } ?? false
+
         let state = AppState()
         let settingsWindow = SettingsWindowController(state: state)
         state.onOpenSettings = { [weak settingsWindow] in settingsWindow?.show() }
+        let tourWindow = OnboardingWindowController(state: state)
+        state.onOpenTour = { [weak tourWindow] in tourWindow?.show() }
 
         self.state = state
         self.settingsWindow = settingsWindow
+        self.tourWindow = tourWindow
         panel = PanelManager(state: state)
         statusItem = StatusItemController(state: state) { [weak settingsWindow] in settingsWindow?.show() }
         #if DEBUG
@@ -38,6 +46,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         if state.settings.openSettingsOnLaunch {
             DispatchQueue.main.async { [weak settingsWindow] in
                 settingsWindow?.show()
+            }
+        }
+
+        if isFirstLaunch, !UserDefaults.standard.bool(forKey: "arrowslit.onboarding.completed") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak tourWindow] in
+                tourWindow?.show()
             }
         }
     }
