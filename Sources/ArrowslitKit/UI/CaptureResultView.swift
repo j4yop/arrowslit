@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Droppy-style floating capture card. The screenshot is the card; controls fade in on hover,
+/// Floating capture card. The screenshot is the card; controls fade in on hover,
 /// exactly like the reference. Copy, Save, Pin, Annotate, OCR and Close live around the image.
 struct CaptureResultView: View {
     @Bindable var state: AppState

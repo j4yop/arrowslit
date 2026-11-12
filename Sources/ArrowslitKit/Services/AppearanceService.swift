@@ -3,7 +3,7 @@ import Foundation
 import Observation
 
 /// Switches macOS between light and dark appearance. The change goes through System Events so
-/// every app, the menu bar and the desktop follow, exactly like the appearance tile in Droppy.
+/// the menu bar and the desktop follow the appearance tile.
 @MainActor
 @Observable
 public final class AppearanceService {

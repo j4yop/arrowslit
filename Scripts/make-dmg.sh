@@ -28,7 +28,7 @@ cp "$ROOT/Support/Dmg/background.tiff" "$STAGING/.background.tiff"
 cp "$ROOT/Support/Dmg/VolumeIcon.icns" "$STAGING/.VolumeIcon.icns"
 cp "$ROOT/Support/Dmg/DS_Store" "$STAGING/.DS_Store"
 rm -f "$DMG"
-# Build a writable image first so the volume can carry Droppy-style Finder
+# Build a writable image first so the volume can carry custom Finder
 # metadata: the background alias, icon positions and custom volume icon.
 hdiutil create -volname "$VOLNAME" -srcfolder "$STAGING" -fs HFS+ -format UDRW -ov -quiet "$RW"
 hdiutil attach -readwrite -nobrowse -noautoopen -mountpoint "$MOUNT" "$RW" >/dev/null

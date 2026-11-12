@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.13/Arrowslit-0.12.13.dmg"><b>Download Arrowslit 0.12.13 DMG</b></a>
+  <a href="https://github.com/j4yop/arrowslit/releases/download/v0.12.14/Arrowslit-0.12.14.dmg"><b>Download Arrowslit 0.12.14 DMG</b></a>
   &nbsp;·&nbsp;
   or with Homebrew 7: <code>brew trust j4yop/tap && brew install --cask j4yop/tap/arrowslit</code>
 </p>
@@ -54,7 +54,7 @@ Homebrew 7 prompts you once to trust third-party taps. The cask clears the macOS
 
 Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certificate but is **not notarized by Apple**, so macOS blocks the first launch. That is expected — it is not a corrupt download.
 
-1. Download **[Arrowslit-0.12.13.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.13/Arrowslit-0.12.13.dmg)** (and the matching `.sha256` if you want to verify it).
+1. Download **[Arrowslit-0.12.14.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.14/Arrowslit-0.12.14.dmg)** (and the matching `.sha256` if you want to verify it).
 2. Open the disk image and drag **Arrowslit** into your **Applications** folder.
 3. Open Applications and double-click **Arrowslit**. macOS will say it cannot verify the app. Click **Done**.
 4. Do one of these:
@@ -71,20 +71,20 @@ Requires **macOS 14 (Sonoma) or later**. The build is signed with a local certif
 If macOS says **“Arrowslit is damaged and can’t be opened”**, that is the same quarantine block, not a damaged file. Run the Terminal commands above. To verify the download first:
 
 ```bash
-shasum -a 256 -c Arrowslit-0.12.13.dmg.sha256
+shasum -a 256 -c Arrowslit-0.12.14.dmg.sha256
 ```
 
-The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.12.13.dmg`, so the command works on your machine.
+The `.sha256` file must be in the same folder as the DMG. The file lists only `Arrowslit-0.12.14.dmg`, so the command works on your machine.
 
 ### Release Metadata
 
 | Detail | Value |
 | :--- | :--- |
-| **Current Release** | 0.12.13 (build 109) |
+| **Current Release** | 0.12.14 (build 110) |
 | **Release Type** | Stable |
-| **Direct Download** | [Arrowslit-0.12.13.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.13/Arrowslit-0.12.13.dmg) |
+| **Direct Download** | [Arrowslit-0.12.14.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.14/Arrowslit-0.12.14.dmg) |
 | **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
-| **SHA-256 Checksum** | `bd0839c6a5818c04f5daf59dc4645cd93265b8f87ed1f12b6e2087abcd6a2e83` |
+| **SHA-256 Checksum** | `89eac0a500b79ed39df6fbc76f7650f9fb9163ed08c70783a48454c419bac09c` |
 | **License** | GNU General Public License v3.0 or later |
 
 ---
