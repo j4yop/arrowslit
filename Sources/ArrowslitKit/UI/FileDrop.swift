@@ -183,24 +183,24 @@ struct NookDropDelegate: DropDelegate {
     let onAirDrop: ([NSItemProvider]) -> Void
 
     func dropEntered(info: DropInfo) {
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             point = info.location
             isTargeted = true
         }
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        MainActor.assumeIsolated { point = info.location }
+        Task { @MainActor in point = info.location }
         return DropProposal(operation: .copy)
     }
 
     func dropExited(info: DropInfo) {
-        MainActor.assumeIsolated { isTargeted = false }
+        Task { @MainActor in isTargeted = false }
     }
 
     func performDrop(info: DropInfo) -> Bool {
         let providers = info.itemProviders(for: [.fileURL, .url])
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             isTargeted = false
             if info.location.x < split {
                 onFiles(providers)

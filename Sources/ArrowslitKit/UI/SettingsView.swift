@@ -188,6 +188,8 @@ struct SettingsView: View {
 
             LockScreenSection(state: state)
 
+            PermissionsSettingsSection(state: state)
+
             SettingsSection(title: "Behavior") {
                 SettingsToggle(
                     title: "Show when idle",
@@ -376,6 +378,10 @@ struct SettingsView: View {
             ClipboardSettingsSection(state: state)
 
             CameraSettingsSection(state: state)
+
+            CaptureSettingsSection(state: state)
+
+            CommandCenterSettingsSection(state: state)
 
             StatsSettingsSection(state: state)
 
@@ -906,6 +912,35 @@ private struct AppearanceSettingsSection: View {
 
     var body: some View {
         Group {
+            SettingsSection(
+                title: "System Appearance",
+                note: "Switch macOS itself between light and dark. The Command Center and clipboard shelf follow the system, and the appearance tile does the same thing."
+            ) {
+                SettingsToggle(
+                    title: "Dark Mode",
+                    detail: state.systemAppearance.isDark ? "macOS is using the dark appearance." : "macOS is using the light appearance.",
+                    isOn: Binding(
+                        get: { state.systemAppearance.isDark },
+                        set: { state.systemAppearance.setDark($0) }
+                    )
+                )
+                if let error = state.systemAppearance.errorMessage {
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text(error)
+                            .font(ArrowTheme.caption)
+                            .foregroundStyle(ArrowTheme.red)
+                        Button("Open Automation Settings") {
+                            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation")!)
+                        }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(ArrowTheme.bone)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
+                }
+            }
+
             SettingsSection(
                 note: "Elongated stretches Home, Tray and Clipboard across the top of the screen, with your widgets in one long row you can scroll sideways."
             ) {

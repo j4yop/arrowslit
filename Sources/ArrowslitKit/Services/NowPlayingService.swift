@@ -288,20 +288,20 @@ public final class NowPlayingService {
             }
             reader.append(data) { messages in
                 DispatchQueue.main.async {
-                    MainActor.assumeIsolated { self?.apply(messages) }
+                    Task { @MainActor in self?.apply(messages) }
                 }
             }
         }
         process.terminationHandler = { [weak self] finished in
             DispatchQueue.main.async {
-                MainActor.assumeIsolated {
+                Task { @MainActor in
                     guard let self, self.process === finished else { return }
                     self.process = nil
                     self.input = nil
                     guard !self.isStopping else { return }
                     self.isAvailable = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        MainActor.assumeIsolated {
+                        Task { @MainActor in
                             guard !self.isStopping, self.process == nil else { return }
                             self.launch()
                         }
@@ -319,7 +319,7 @@ public final class NowPlayingService {
             // The helper's stdin reader may not be attached when the process
             // starts; ask again once it is listening.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                MainActor.assumeIsolated { self?.send("refresh") }
+                Task { @MainActor in self?.send("refresh") }
             }
         } catch {
             isAvailable = false

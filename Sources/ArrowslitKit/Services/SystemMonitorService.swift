@@ -43,7 +43,7 @@ public final class SystemMonitorService {
         pollBrightness()
 
         let timer = Timer(timeInterval: 0.4, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.tick() }
+            Task { @MainActor [weak self] in self?.tick() }
         }
         timer.tolerance = 0.1
         RunLoop.main.add(timer, forMode: .common)

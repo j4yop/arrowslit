@@ -153,6 +153,7 @@ public final class AppState {
     public let reminders: RemindersService
     public let system: SystemMonitorService
     public let session = SessionLockService()
+    public let systemAppearance = AppearanceService()
     public let lyrics = LyricsService()
     public let updater = UpdateService()
     public let stopwatch = StopwatchService()
@@ -174,6 +175,10 @@ public final class AppState {
 
     @ObservationIgnored public var onOpenSettings: (() -> Void)?
     @ObservationIgnored public var onOpenTour: (() -> Void)?
+    @ObservationIgnored public var onOpenCommandCenter: (() -> Void)?
+    @ObservationIgnored var onOpenCommandCenterTab: ((CommandCenterTab) -> Void)?
+    @ObservationIgnored public var onOpenClipboardShelf: (() -> Void)?
+    @ObservationIgnored public var onCapture: ((CaptureMode) -> Void)?
     @ObservationIgnored private var alertTask: Task<Void, Never>?
 
     public init(
@@ -222,8 +227,8 @@ public final class AppState {
         microphone.onMuteChanged = { [weak self] muted in
             self?.receive(.microphone(muted: muted))
         }
-        clipboard.onCaptured = { [weak self] _ in
-            self?.receive(.clipboard(kind: "Text"))
+        clipboard.onCaptured = { [weak self] kind in
+            self?.receive(.clipboard(kind: kind.title))
         }
         inputSource.onChange = { [weak self] code, name in
             self?.receive(.inputSource(code: code, name: name))

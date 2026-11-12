@@ -160,7 +160,7 @@ final class ListenerContext: @unchecked Sendable {
 
     func fire() {
         DispatchQueue.main.async { [self] in
-            MainActor.assumeIsolated { handler() }
+            Task { @MainActor in handler() }
         }
     }
 }

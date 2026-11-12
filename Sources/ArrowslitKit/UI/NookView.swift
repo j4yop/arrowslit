@@ -1049,7 +1049,7 @@ private struct CompactClipCard: View {
     var body: some View {
         Button { state.clipboard.copy(entry) } label: {
             VStack(alignment: .leading, spacing: 6 * scale) {
-                Text(ClipboardRules.preview(entry.text, limit: wide ? 220 : 110))
+                Text(entry.previewText)
                     .font(.system(size: 12 * scale, weight: .medium))
                     .foregroundStyle(.white)
                     .lineLimit(4)
@@ -1120,7 +1120,7 @@ private struct CompactClipCard: View {
             Button("Remove from History") { state.clipboard.remove(entry.id) }
         }
         .help("Click to copy")
-        .accessibilityLabel("Copy \(ClipboardRules.preview(entry.text, limit: 60))")
+        .accessibilityLabel("Copy \(entry.previewText)")
     }
 }
 

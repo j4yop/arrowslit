@@ -66,6 +66,6 @@ private func hotKeyHandler(_ next: EventHandlerCallRef?, _ event: EventRef?, _ d
     let status = GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
     guard status == noErr else { return status }
     let index = Int(id.id)
-    MainActor.assumeIsolated { HotKeys.current?.pressed(index) }
+    Task { @MainActor in HotKeys.current?.pressed(index) }
     return noErr
 }

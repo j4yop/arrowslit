@@ -15,7 +15,7 @@ final class DebugHooks {
             queue: .main
         ) { [weak self] notification in
             guard let command = notification.object as? String else { return }
-            MainActor.assumeIsolated { self?.run(command) }
+            Task { @MainActor [weak self] in self?.run(command) }
         }
         if let command = ProcessInfo.processInfo.environment["ARROWSLIT_DEBUG_COMMAND"] {
             Task { @MainActor [weak self] in
@@ -339,6 +339,24 @@ final class DebugHooks {
                 title: "Run a command",
                 detail: "swift test --build-system native"
             )))
+        case "appearance-toggle":
+            state.systemAppearance.toggle()
+            FileHandle.standardError.write(Data("APPEARANCE dark=\(state.systemAppearance.isDark) error=\(state.systemAppearance.errorMessage ?? "nil")\n".utf8))
+        case "appearance-light": state.systemAppearance.setDark(false)
+        case "appearance-dark": state.systemAppearance.setDark(true)
+        case "command-center-capture": state.collapse(); state.onOpenCommandCenterTab?(.capture)
+        case "command-center-system": state.collapse(); state.onOpenCommandCenterTab?(.system)
+        case "command-center-custom": state.collapse(); state.onOpenCommandCenterTab?(.custom)
+        case "capture-fullscreen": state.collapse(); state.onCapture?(.fullscreen)
+        case "capture-area": state.collapse(); state.onCapture?(.area)
+        case "capture-window": state.collapse(); state.onCapture?(.window)
+        case "capture-text": state.collapse(); state.onCapture?(.text)
+        case "clipboard-shelf":
+            state.collapse()
+            state.onOpenClipboardShelf?()
+        case "command-center":
+            state.collapse()
+            state.onOpenCommandCenter?()
         case "tour":
             state.collapse()
             state.onOpenTour?()
@@ -400,7 +418,7 @@ final class DebugHooks {
     private func hold(_ action: @escaping @MainActor () -> Void) {
         for step in 0..<30 {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(step)) {
-                MainActor.assumeIsolated { action() }
+                Task { @MainActor in action() }
             }
         }
     }

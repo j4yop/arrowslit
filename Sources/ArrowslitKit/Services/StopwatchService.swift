@@ -47,7 +47,7 @@ public final class StopwatchService {
     private func startTicker() {
         stopTicker()
         let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor [weak self] in
                 guard let self, let startedAt = self.startedAt else { return }
                 self.elapsed = self.accumulated + max(0, Date().timeIntervalSince(startedAt))
             }
