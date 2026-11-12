@@ -114,7 +114,7 @@ public final class TimerService {
     private func startTicker() {
         stopTicker()
         let timer = Timer(timeInterval: 0.2, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.tick() }
+            Task { @MainActor [weak self] in self?.tick() }
         }
         timer.tolerance = 0.05
         RunLoop.main.add(timer, forMode: .common)

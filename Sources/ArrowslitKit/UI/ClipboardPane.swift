@@ -130,13 +130,13 @@ private struct ClipboardRow: View {
         HStack(alignment: .top, spacing: 8) {
             Button(action: action) {
                 HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: copied ? "checkmark" : (entry.isPinned ? "pin.fill" : "doc.on.doc"))
+                    Image(systemName: copied ? "checkmark" : (entry.isPinned ? "pin.fill" : entry.kind.symbol))
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(copied ? ArrowTheme.green : (entry.isPinned ? ArrowTheme.amber : ArrowTheme.muted))
                         .frame(width: 14)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(ClipboardRules.preview(entry.text))
+                        Text(entry.previewText)
                             .font(.system(size: 11.5, weight: .medium))
                             .foregroundStyle(ArrowTheme.bone)
                             .lineLimit(2)

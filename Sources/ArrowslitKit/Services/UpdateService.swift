@@ -49,7 +49,7 @@ public final class UpdateService {
         // A launch check makes a new release visible without waiting for the daily window.
         check(userInitiated: false)
         let timer = Timer(timeInterval: 3 * 3600, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.checkIfDue() }
+            Task { @MainActor [weak self] in self?.checkIfDue() }
         }
         timer.tolerance = 600
         RunLoop.main.add(timer, forMode: .common)

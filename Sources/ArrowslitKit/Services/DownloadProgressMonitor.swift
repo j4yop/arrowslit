@@ -63,7 +63,7 @@ public final class DownloadProgressMonitor {
         // Browsers that do not publish Progress still leave a partial file in Downloads. Poll
         // those names directly so their progress is not invisible.
         let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
+            Task { @MainActor [weak self] in self?.refresh() }
         }
         timer.tolerance = 0.15
         RunLoop.main.add(timer, forMode: .common)

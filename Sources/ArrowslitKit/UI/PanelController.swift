@@ -22,8 +22,6 @@ final class PanelController {
         return "display:\(number)"
     }
     private var screenObserver: NSObjectProtocol?
-    private var mouseMonitor: Any?
-    private var pointerMonitor: Any?
     private var keyMonitor: Any?
     private var hoverOpenTimer: Timer?
     private var leaveTimer: Timer?
@@ -75,8 +73,6 @@ final class PanelController {
 
     func tearDown() {
         if let screenObserver { NotificationCenter.default.removeObserver(screenObserver) }
-        if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
-        if let pointerMonitor { NSEvent.removeMonitor(pointerMonitor) }
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         hoverOpenTimer?.invalidate()
         hoverOpenTimer = nil
@@ -116,7 +112,7 @@ final class PanelController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor [weak self] in
                 self?.refreshScreen()
                 self?.updateFrame(animated: false)
                 self?.panel.orderFrontRegardless()
@@ -156,29 +152,23 @@ final class PanelController {
         keyboardFocus()
     }
 
-    /// Hover is driven by pointer events, not a repeating timer. The tracking area covers the
-    /// panel itself; the global monitor catches the pointer moving toward a mirror on another
-    /// screen. A slow fallback exists only when macOS has not granted Accessibility, because
-    /// global mouse events are unavailable there.
+    /// Hover is driven by a light polling timer. Global event monitors are avoided here:
+    /// their callbacks are not guaranteed to run on the main actor in this runtime, and the
+    /// previous implementation crashed inside `MainActor.assumeIsolated`.
     private func startPointerWatching() {
-        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.pollPointer() }
+        let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in self?.pollPointer() }
         }
-        if pointerMonitor == nil || !AXIsProcessTrusted() {
-            let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated { self?.pollPointer() }
-            }
-            timer.tolerance = 0.2
-            RunLoop.main.add(timer, forMode: .common)
-            fallbackTimer = timer
-        }
+        timer.tolerance = 0.12
+        RunLoop.main.add(timer, forMode: .common)
+        fallbackTimer = timer
     }
 
     private func scheduleHoverOpen() {
         guard hoverOpenTimer == nil else { return }
         let delay = state.settings.hoverDelay
         let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.hoverOpenTimer = nil
                 guard self.role.isActive, !self.state.isExpanded,
@@ -193,7 +183,7 @@ final class PanelController {
     private func scheduleLeaveCheck() {
         guard leaveTimer == nil else { return }
         let timer = Timer(timeInterval: 0.45, repeats: false) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.leaveTimer = nil
                 guard self.role.isActive, self.state.isExpanded,
@@ -310,18 +300,6 @@ final class PanelController {
     }
 
     private func installMonitors() {
-        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
-            MainActor.assumeIsolated {
-                guard let self else { return }
-                guard self.role.isActive, !self.state.session.isLocked else { return }
-                guard self.state.isExpanded || self.state.currentAlert != nil else { return }
-                if !self.panel.frame.contains(NSEvent.mouseLocation) {
-                    DispatchQueue.main.async { [weak self] in
-                        self?.state.outsideClick()
-                    }
-                }
-            }
-        }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             guard let self, self.role.isActive else { return event }
             if event.keyCode == 53 {

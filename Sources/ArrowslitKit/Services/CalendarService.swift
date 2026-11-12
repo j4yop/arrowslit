@@ -93,18 +93,18 @@ public final class CalendarService {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.reload() }
+            Task { @MainActor in self?.reload() }
         })
         observers.append(NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.reload() }
+            Task { @MainActor in self?.reload() }
         })
         reload()
         let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.reload() }
+            Task { @MainActor [weak self] in self?.reload() }
         }
         timer.tolerance = 10
         RunLoop.main.add(timer, forMode: .common)

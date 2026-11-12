@@ -22,7 +22,7 @@ final class PanelManager {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor [weak self] in
                 guard let self, self.state.settings.displayChoice == .all else { return }
                 self.rebuild()
             }

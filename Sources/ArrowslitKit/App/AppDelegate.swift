@@ -7,6 +7,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: StatusItemController?
     private var settingsWindow: SettingsWindowController?
     private var tourWindow: OnboardingWindowController?
+    private var commandCenter: CommandCenterWindowController?
     #if DEBUG
     private var debugHooks: DebugHooks?
     #endif
@@ -32,12 +33,22 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         state.onOpenSettings = { [weak settingsWindow] in settingsWindow?.show() }
         let tourWindow = OnboardingWindowController(state: state)
         state.onOpenTour = { [weak tourWindow] in tourWindow?.show() }
+        let commandCenter = CommandCenterWindowController(state: state)
+        state.onOpenCommandCenter = { [weak commandCenter] in commandCenter?.toggle() }
+        state.onOpenCommandCenterTab = { [weak commandCenter] tab in commandCenter?.show(startTab: tab) }
+        state.onOpenClipboardShelf = { [weak commandCenter] in commandCenter?.showClipboardShelf() }
+        state.onCapture = { [weak commandCenter] mode in commandCenter?.startCapture(mode) }
 
         self.state = state
         self.settingsWindow = settingsWindow
         self.tourWindow = tourWindow
+        self.commandCenter = commandCenter
         panel = PanelManager(state: state)
-        statusItem = StatusItemController(state: state) { [weak settingsWindow] in settingsWindow?.show() }
+        statusItem = StatusItemController(
+            state: state,
+            openSettings: { [weak settingsWindow] in settingsWindow?.show() },
+            openCommandCenter: { [weak commandCenter] in commandCenter?.toggle() }
+        )
         #if DEBUG
         debugHooks = DebugHooks(state: state)
         #endif

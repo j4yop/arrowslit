@@ -39,7 +39,7 @@ public final class RemindersService {
             object: store,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
+            Task { @MainActor in self?.refresh() }
         }
     }
 

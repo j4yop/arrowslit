@@ -26,28 +26,28 @@ public final class SessionLockService {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.setLocked(true) }
+            Task { @MainActor in self?.setLocked(true) }
         })
         observers.append(center.addObserver(
             forName: Notification.Name("com.apple.screenIsUnlocked"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.setLocked(false) }
+            Task { @MainActor in self?.setLocked(false) }
         })
         observers.append(center.addObserver(
             forName: Notification.Name("com.apple.screensaver.didstart"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.setLocked(true) }
+            Task { @MainActor in self?.setLocked(true) }
         })
         observers.append(center.addObserver(
             forName: Notification.Name("com.apple.screensaver.didstop"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.setLocked(false) }
+            Task { @MainActor in self?.setLocked(false) }
         })
 
         let workspace = NSWorkspace.shared.notificationCenter
@@ -56,14 +56,14 @@ public final class SessionLockService {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.setLocked(true) }
+            Task { @MainActor in self?.setLocked(true) }
         })
         workspaceObservers.append(workspace.addObserver(
             forName: NSWorkspace.sessionDidBecomeActiveNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.setLocked(false) }
+            Task { @MainActor in self?.setLocked(false) }
         })
 
         refresh()

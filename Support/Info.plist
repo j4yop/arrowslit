@@ -34,6 +34,10 @@
 	<true/>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Arrowslit changes between light and dark appearance when you use the appearance tile or the setting.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Arrowslit detects calls and shows the microphone indicator in the notch. Nothing is recorded.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Arrowslit shows a local camera preview before a call. Nothing is recorded.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>

@@ -48,6 +48,73 @@ struct ClipboardHistoryTests {
         #expect(history.capacity == 1)
     }
 
+
+
+    @Test func richEntriesKeepTheirKindAndPreview() {
+        var history = ClipboardHistory()
+        history.addEntry(ClipboardHistory.Entry(
+            kind: .image,
+            text: "",
+            appName: "Screenshot",
+            imageFilename: "image.png",
+            imageWidth: 284,
+            imageHeight: 206,
+            imageHash: "abc"
+        ))
+        history.addEntry(ClipboardHistory.Entry(
+            kind: .file,
+            text: "report.pdf",
+            appName: "Finder",
+            filePath: "/tmp/report.pdf"
+        ))
+        history.addEntry(ClipboardHistory.Entry(
+            kind: .url,
+            text: "https://github.com/j4yop/arrowslit",
+            appName: "Safari"
+        ))
+
+        #expect(history.entries.map(\.kind) == [.url, .file, .image])
+        #expect(history.entries.last?.previewText == "Image · 284 × 206")
+        #expect(history.entries[1].previewText == "report.pdf")
+        #expect(history.matching("report").map(\.kind) == [.file])
+        #expect(history.matching("image").map(\.kind) == [.image])
+    }
+
+    @Test func copyingTheSameImageMovesTheExistingCardToTheFront() {
+        var history = ClipboardHistory()
+        let image = ClipboardHistory.Entry(
+            kind: .image,
+            text: "",
+            appName: "Screenshot",
+            imageFilename: "one.png",
+            imageWidth: 100,
+            imageHeight: 100,
+            imageHash: "same"
+        )
+        history.addEntry(image)
+        history.add("a text clip")
+        history.addEntry(ClipboardHistory.Entry(
+            kind: .image,
+            text: "",
+            appName: "Screenshot",
+            imageFilename: "two.png",
+            imageWidth: 100,
+            imageHeight: 100,
+            imageHash: "same"
+        ))
+
+        #expect(history.entries.count == 2)
+        #expect(history.entries.first?.kind == .image)
+        #expect(history.entries.first?.imageFilename == "one.png")
+    }
+
+    @Test func clipPreviewsShowThatPreviewIsUnavailable() {
+        var history = ClipboardHistory()
+        history.addEntry(ClipboardHistory.Entry(kind: .clip, text: "", appName: "Notes"))
+        #expect(history.entries.first?.previewText == "Preview unavailable")
+        #expect(history.entries.first?.characterCount == 0)
+    }
+
     @Test func unpinnedHistoryIsCapped() {
         var history = ClipboardHistory()
         for index in 0..<(ClipboardHistory.capacity + 5) {

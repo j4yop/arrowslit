@@ -41,7 +41,7 @@ public final class StatsService {
         lastDiskCheck = .distantPast
         sample()
         let timer = Timer(timeInterval: max(1, refreshInterval), repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.sample() }
+            Task { @MainActor [weak self] in self?.sample() }
         }
         timer.tolerance = 0.5
         RunLoop.main.add(timer, forMode: .common)
