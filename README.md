@@ -84,7 +84,7 @@ The `.sha256` file must be in the same folder as the DMG. The file lists only `A
 | **Release Type** | Stable |
 | **Direct Download** | [Arrowslit-0.12.13.dmg](https://github.com/j4yop/arrowslit/releases/download/v0.12.13/Arrowslit-0.12.13.dmg) |
 | **Architecture** | Universal Binary (Apple Silicon M1/M2/M3/M4 + Intel Core) |
-| **SHA-256 Checksum** | `17a361a5a374c1008bb13741ba7aa8a6e2306bc32f56c047070efd6b56d19530` |
+| **SHA-256 Checksum** | `bd0839c6a5818c04f5daf59dc4645cd93265b8f87ed1f12b6e2087abcd6a2e83` |
 | **License** | GNU General Public License v3.0 or later |
 
 ---
