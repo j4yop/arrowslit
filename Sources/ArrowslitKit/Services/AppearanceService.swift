@@ -71,6 +71,6 @@ public final class AppearanceService {
         if let style = UserDefaults.standard.string(forKey: "AppleInterfaceStyle") {
             return style.caseInsensitiveCompare("Dark") == .orderedSame
         }
-        return NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        return NSApp?.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
     }
 }
