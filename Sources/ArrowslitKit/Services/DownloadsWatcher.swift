@@ -44,7 +44,7 @@ public final class DownloadsWatcher {
         guard descriptor >= 0 else { return }
         let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename], queue: .main)
         source.setEventHandler { [weak self] in
-            MainActor.assumeIsolated { self?.scheduleCheck() }
+            Task { @MainActor in self?.scheduleCheck() }
         }
         source.setCancelHandler { close(descriptor) }
         source.resume()

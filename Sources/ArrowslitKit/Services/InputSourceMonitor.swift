@@ -27,7 +27,7 @@ public final class InputSourceMonitor {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.changed() }
+            Task { @MainActor in self?.changed() }
         }
         // A notification can arrive while the app is still launching. Let
         // that pass settle the baseline instead of flashing a HUD.

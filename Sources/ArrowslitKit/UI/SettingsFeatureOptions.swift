@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import AVFoundation
 import SwiftUI
 
@@ -294,7 +295,7 @@ struct ClipboardSettingsSection: View {
     var body: some View {
         SettingsSection(
             title: "Clipboard",
-            note: "History stays in memory. Pinned clips are the only ones written to disk."
+            note: "History stays in memory. Pinned clips, and images you pin, are the only ones written to disk."
         ) {
             HStack(spacing: 12) {
                 Text("Keep")
@@ -316,6 +317,15 @@ struct ClipboardSettingsSection: View {
             .padding(.vertical, 9)
 
             SettingsToggle(
+                title: "Copy images and files",
+                detail: "Show image previews and file cards in the shelf, not just text.",
+                isOn: Binding(
+                    get: { state.clipboard.capturesRichContent },
+                    set: { state.clipboard.setCapturesRichContent($0) }
+                )
+            )
+
+            SettingsToggle(
                 title: "Ignore passwords and transient clips",
                 detail: "Leaves out password managers and pasteboard items macOS marks private.",
                 isOn: Binding(
@@ -329,6 +339,13 @@ struct ClipboardSettingsSection: View {
                     .font(ArrowTheme.detail)
                     .foregroundStyle(ArrowTheme.muted)
                 Spacer(minLength: 8)
+                Button("Open shelf") {
+                    state.onOpenClipboardShelf?()
+                    state.collapse()
+                }
+                .buttonStyle(NookPressStyle())
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(ArrowTheme.bone)
                 Button("Clear history") { state.clipboard.clear() }
                     .buttonStyle(NookPressStyle())
                     .font(.system(size: 11, weight: .medium))
@@ -819,6 +836,315 @@ struct BatteryThresholdsSettingsSection: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
+        }
+    }
+}
+
+// MARK: - Command Center
+
+struct CommandCenterSettingsSection: View {
+    @Bindable var state: AppState
+
+    var body: some View {
+        SettingsSection(
+            title: "Command Center",
+            note: "The panel that opens from the menu-bar Arrowslit icon. Right-click still opens the short menu."
+        ) {
+            SettingsToggle(
+                title: "Open from the menu-bar icon",
+                detail: "Left-click opens the Command Center; right-click opens the short menu.",
+                isOn: Binding(
+                    get: { state.settings.commandCenterEnabled },
+                    set: { state.settings.commandCenterEnabled = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Show Now Playing",
+                isOn: Binding(
+                    get: { state.settings.commandCenterPlayer },
+                    set: { state.settings.commandCenterPlayer = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Show Upcoming",
+                isOn: Binding(
+                    get: { state.settings.commandCenterUpcoming },
+                    set: { state.settings.commandCenterUpcoming = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Show System tab",
+                isOn: Binding(
+                    get: { state.settings.commandCenterSystem },
+                    set: { state.settings.commandCenterSystem = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Show appearance tile",
+                detail: "The sun or moon tile switches macOS between light and dark.",
+                isOn: Binding(
+                    get: { state.settings.commandCenterAppearanceTile },
+                    set: { state.settings.commandCenterAppearanceTile = $0 }
+                )
+            )
+            Button {
+                state.onOpenCommandCenter?()
+                state.collapse()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "square.grid.2x2.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber)
+                        .frame(width: 20)
+                    Text("Open Command Center")
+                        .font(ArrowTheme.settingsBody)
+                        .foregroundStyle(ArrowTheme.bone)
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.faint)
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 38)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(NookPressStyle())
+        }
+    }
+}
+
+// MARK: - Capture
+
+struct CaptureSettingsSection: View {
+    @Bindable var state: AppState
+
+    private var folderName: String { state.settings.captureFolderURL.lastPathComponent }
+
+    var body: some View {
+        SettingsSection(
+            title: "Capture",
+            note: "Area, window, fullscreen and text capture live in the Command Center's Capture tab. Each capture opens a floating card with Copy, Save, Pin, Annotate and OCR. The first capture asks for Screen Recording access."
+        ) {
+            SettingsToggle(
+                title: "Copy after capture",
+                detail: "Put the screenshot or recognised text on the clipboard immediately.",
+                isOn: Binding(
+                    get: { state.settings.captureCopy },
+                    set: { state.settings.captureCopy = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Include the pointer",
+                isOn: Binding(
+                    get: { state.settings.captureIncludeCursor },
+                    set: { state.settings.captureIncludeCursor = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Play the screenshot sound",
+                detail: "The macOS capture sound when a screenshot is taken.",
+                isOn: Binding(
+                    get: { state.settings.captureSound },
+                    set: { state.settings.captureSound = $0 }
+                )
+            )
+            SettingsToggle(
+                title: "Hide capture controls until hover",
+                detail: "Show the screenshot first; move the pointer over it for Copy, Save, Pin, Annotate and OCR.",
+                isOn: Binding(
+                    get: { state.settings.captureAutoHideControls },
+                    set: { state.settings.captureAutoHideControls = $0 }
+                )
+            )
+            HStack(spacing: 12) {
+                Image(systemName: "folder")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(ArrowTheme.amber)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(folderName).font(ArrowTheme.settingsBody).foregroundStyle(ArrowTheme.bone)
+                    Text(state.settings.captureFolderURL.path)
+                        .font(ArrowTheme.caption)
+                        .foregroundStyle(ArrowTheme.muted)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer(minLength: 8)
+                Button("Choose…", action: chooseFolder)
+                    .buttonStyle(NookPressStyle())
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone)
+                    .padding(.horizontal, 9)
+                    .frame(height: 26)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.08)))
+                if state.settings.captureFolderPath != nil {
+                    Button("Desktop") { state.settings.captureFolderPath = nil }
+                        .buttonStyle(NookPressStyle())
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(ArrowTheme.muted)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+
+            HStack(spacing: 10) {
+                Button {
+                    state.onCapture?(.fullscreen)
+                } label: {
+                    Label("Capture now", systemImage: "camera.viewfinder")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .frame(height: 28)
+                        .background(Capsule().fill(ArrowTheme.amber.opacity(0.18)))
+                }
+                .buttonStyle(NookPressStyle())
+                Button("Screen Recording access") {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10))
+                .foregroundStyle(ArrowTheme.muted)
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+        }
+    }
+
+    private func chooseFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = state.settings.captureFolderURL
+        panel.prompt = "Choose"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        state.settings.captureFolderPath = url.path
+    }
+}
+
+
+// MARK: - Permissions
+
+struct PermissionsSettingsSection: View {
+    @Bindable var state: AppState
+    @State private var permissions = PermissionsCenter()
+
+    var body: some View {
+        SettingsSection(
+            title: "Permissions",
+            note: "macOS manages these. Arrowslit appears in Privacy & Security after you request a permission; you can change every switch here or in System Settings."
+        ) {
+            VStack(spacing: 0) {
+                ForEach(Array(PermissionKind.allCases.enumerated()), id: \.element) { index, kind in
+                    if index > 0 {
+                        Divider().opacity(0.35)
+                    }
+                    row(kind)
+                }
+
+                Divider().opacity(0.35)
+
+                HStack(spacing: 10) {
+                    Button {
+                        Task { await permissions.requestAll() }
+                    } label: {
+                        Label(permissions.isRequesting ? "Requesting…" : "Grant All", systemImage: "checkmark.shield.fill")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(ArrowTheme.bone)
+                            .padding(.horizontal, 10)
+                            .frame(height: 26)
+                            .background(
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .fill(ArrowTheme.amber.opacity(0.16))
+                            )
+                    }
+                    .buttonStyle(NookPressStyle())
+                    .disabled(permissions.isRequesting)
+
+                    Spacer(minLength: 8)
+
+                    Button("Open Privacy & Security") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security")!)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(ArrowTheme.muted)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+
+                if let message = permissions.automationMessage {
+                    Text(message)
+                        .font(ArrowTheme.caption)
+                        .foregroundStyle(ArrowTheme.amber)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 9)
+                }
+            }
+        }
+        .task { await permissions.refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await permissions.refresh() }
+        }
+    }
+
+    private func row(_ kind: PermissionKind) -> some View {
+        let status = permissions.status(for: kind)
+        return HStack(spacing: 12) {
+            Image(systemName: kind.symbol)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(ArrowTheme.amber)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(kind.title)
+                    .font(ArrowTheme.settingsBody)
+                    .fontWeight(.medium)
+                    .foregroundStyle(ArrowTheme.bone)
+                Text(kind.detail)
+                    .font(ArrowTheme.detail)
+                    .foregroundStyle(ArrowTheme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 8)
+
+            statusView(kind, status: status)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+    }
+
+    @ViewBuilder private func statusView(_ kind: PermissionKind, status: PermissionStatus) -> some View {
+        if status.isGranted {
+            Label("Allowed", systemImage: "checkmark")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(ArrowTheme.green)
+                .labelStyle(.titleAndIcon)
+        } else {
+            Button(status == .denied || status == .restricted || status == .limited ? "Open Settings" : "Grant") {
+                if status == .denied || status == .restricted || status == .limited {
+                    permissions.openSettings(for: kind)
+                } else {
+                    Task { await permissions.request(kind) }
+                }
+            }
+            .buttonStyle(NookPressStyle())
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(ArrowTheme.bone)
+            .padding(.horizontal, 10)
+            .frame(height: 24)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(ArrowTheme.hairline, lineWidth: 0.5)
+            }
         }
     }
 }

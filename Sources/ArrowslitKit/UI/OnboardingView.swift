@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import ServiceManagement
 import SwiftUI
 
@@ -1439,141 +1440,178 @@ private struct TourOptionRow: View {
 private struct PermissionsStage: View {
     @Binding var launchAtLogin: Bool
     @Binding var error: String?
-    @State private var accessibility = AXIsProcessTrusted()
+    @State private var permissions = PermissionsCenter()
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 7),
+        GridItem(.flexible(), spacing: 7),
+    ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                ArrowslitScreenArt()
-                    .frame(width: 700, height: 300)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .strokeBorder(ArrowTheme.amber.opacity(0.12), lineWidth: 0.5)
-                    }
+        VStack(spacing: 8) {
+            HStack(spacing: 11) {
+                ZStack {
+                    Circle().fill(ArrowTheme.amber.opacity(0.14))
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber)
+                }
+                .frame(width: 42, height: 42)
 
-                Capsule(style: .continuous)
-                    .fill(Color.black)
-                    .frame(width: 160, height: 24)
-                    .overlay {
-                        HStack(spacing: 2) {
-                            ForEach(0..<4, id: \.self) { item in
-                                Capsule()
-                                    .fill(ArrowTheme.amber.opacity(0.55))
-                                    .frame(width: 2, height: CGFloat(5 + item * 2))
-                            }
-                        }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Permissions")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.bone)
+                    Text("Turn on what you want now. Everything can be changed later.")
+                        .font(.system(size: 9.5))
+                        .foregroundStyle(ArrowTheme.bone.opacity(0.5))
+                }
+
+                Spacer(minLength: 8)
+
+                Button {
+                    Task { await permissions.requestAll() }
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text(permissions.isRequesting ? "Requesting…" : "Grant All")
+                            .font(.system(size: 10, weight: .semibold))
                     }
-                    .padding(.top, -126)
+                    .foregroundStyle(ArrowTheme.bone)
+                    .padding(.horizontal, 11)
+                    .frame(height: 28)
+                    .background(Capsule().fill(ArrowTheme.amber.opacity(0.18)))
+                    .overlay(Capsule().strokeBorder(ArrowTheme.amber.opacity(0.25), lineWidth: 0.5))
+                }
+                .buttonStyle(NookPressStyle())
+                .disabled(permissions.isRequesting)
             }
-            .padding(.top, 2)
+            .padding(.horizontal, 12)
+            .frame(width: 700, height: 70)
+            .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(ArrowTheme.amber.opacity(0.10), lineWidth: 0.5))
 
-            VStack(spacing: 0) {
-                permissionRow(
-                    symbol: "keyboard",
-                    title: "Accessibility",
-                    detail: "Paste anywhere and respond to volume and brightness keys.",
-                    action: accessibility ? "Granted" : "Grant",
-                    enabled: !accessibility
-                ) {
-                    openPrivacy("Privacy_Accessibility")
-                    accessibility = AXIsProcessTrusted()
-                }
-                permissionRow(
-                    symbol: "keyboard.badge.ellipsis",
-                    title: "Input Monitoring",
-                    detail: "Enables the global shortcut for the launcher.",
-                    action: "Open Settings",
-                    enabled: true
-                ) {
-                    openPrivacy("Privacy_ListenEvent")
-                }
-                Toggle(isOn: $launchAtLogin) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "power")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(ArrowTheme.amber.opacity(0.9))
-                            .frame(width: 18)
-                        Text("Start Arrowslit at login")
-                            .font(.system(size: 10.5, weight: .medium))
-                            .foregroundStyle(ArrowTheme.bone.opacity(0.9))
-                        Spacer()
-                    }
-                }
-                .toggleStyle(.switch)
-                .controlSize(.mini)
-                .tint(ArrowTheme.amber)
-                .padding(.horizontal, 12)
-                .frame(height: 42)
-                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .onChange(of: launchAtLogin) { _, value in
-                    do {
-                        if value { try SMAppService.mainApp.register() }
-                        else { try SMAppService.mainApp.unregister() }
-                        error = nil
-                    } catch {
-                        self.error = error.localizedDescription
-                        launchAtLogin.toggle()
-                    }
-                }
-                if let error {
-                    Text(error)
-                        .font(.system(size: 9))
-                        .foregroundStyle(ArrowTheme.red)
-                        .padding(.top, 6)
+            LazyVGrid(columns: columns, spacing: 7) {
+                ForEach(PermissionKind.allCases) { kind in
+                    permissionRow(kind)
                 }
             }
-            .frame(width: 460)
-            .padding(10)
-            .background(Color.black.opacity(0.46), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(ArrowTheme.amber.opacity(0.10), lineWidth: 0.5))
-            .padding(.top, 12)
+            .frame(width: 700)
+
+            Toggle(isOn: $launchAtLogin) {
+                HStack(spacing: 10) {
+                    Image(systemName: "power")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(ArrowTheme.amber.opacity(0.9))
+                        .frame(width: 18)
+                    Text("Start Arrowslit at login")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(ArrowTheme.bone.opacity(0.9))
+                    Spacer()
+                }
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .tint(ArrowTheme.amber)
+            .padding(.horizontal, 12)
+            .frame(width: 700, height: 38)
+            .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .onChange(of: launchAtLogin) { _, value in
+                do {
+                    if value { try SMAppService.mainApp.register() }
+                    else { try SMAppService.mainApp.unregister() }
+                    error = nil
+                } catch {
+                    self.error = error.localizedDescription
+                    launchAtLogin.toggle()
+                }
+            }
+
+            if let message = permissions.automationMessage {
+                Text(message)
+                    .font(.system(size: 8.5))
+                    .foregroundStyle(ArrowTheme.amber.opacity(0.8))
+                    .lineLimit(2)
+                    .frame(width: 700, alignment: .leading)
+            }
+
+            if let error {
+                Text(error)
+                    .font(.system(size: 9))
+                    .foregroundStyle(ArrowTheme.red)
+                    .frame(width: 700, alignment: .leading)
+            }
+
+            HStack(spacing: 8) {
+                Text("You can change these later in Settings › General › Permissions.")
+                    .font(.system(size: 8.5))
+                    .foregroundStyle(ArrowTheme.bone.opacity(0.35))
+                Spacer()
+                Button("Open Privacy & Security") {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security")!)
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 8.5, weight: .medium))
+                .foregroundStyle(ArrowTheme.bone.opacity(0.55))
+            }
+            .frame(width: 700)
         }
         .frame(maxWidth: .infinity)
+        .task { await permissions.refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await permissions.refresh() }
+        }
     }
 
-    private func permissionRow(
-        symbol: String,
-        title: String,
-        detail: String,
-        action: String,
-        enabled: Bool,
-        _ perform: @escaping () -> Void
-    ) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: symbol)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(ArrowTheme.amber.opacity(0.8))
-                .frame(width: 18)
+    private func permissionRow(_ kind: PermissionKind) -> some View {
+        let status = permissions.status(for: kind)
+        return HStack(spacing: 8) {
+            Image(systemName: kind.symbol)
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(ArrowTheme.amber.opacity(0.82))
+                .frame(width: 17)
+
             VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(ArrowTheme.bone.opacity(0.9))
-                Text(detail)
-                    .font(.system(size: 8.5))
-                    .foregroundStyle(ArrowTheme.bone.opacity(0.42))
+                Text(kind.title)
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(ArrowTheme.bone.opacity(0.92))
+                Text(kind.detail)
+                    .font(.system(size: 8))
+                    .foregroundStyle(ArrowTheme.bone.opacity(0.4))
                     .lineLimit(1)
             }
-            Spacer(minLength: 8)
-            Button(action) {
-                Text(action)
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(ArrowTheme.bone.opacity(0.85))
-                    .padding(.horizontal, 9)
-                    .frame(height: 22)
-                    .background(Capsule().fill(ArrowTheme.amber.opacity(0.16)))
-            }
-            .buttonStyle(NookPressStyle())
-            .disabled(!enabled)
-            .opacity(enabled ? 1 : 0.55)
+
+            Spacer(minLength: 3)
+
+            statusButton(kind, status: status)
         }
-        .padding(.horizontal, 12)
-        .frame(height: 42)
-        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .padding(.horizontal, 9)
+        .frame(height: 54)
+        .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(ArrowTheme.amber.opacity(0.05), lineWidth: 0.5))
     }
 
-    private func openPrivacy(_ pane: String) {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)") else { return }
-        NSWorkspace.shared.open(url)
+    @ViewBuilder private func statusButton(_ kind: PermissionKind, status: PermissionStatus) -> some View {
+        if status.isGranted {
+            Label("Granted", systemImage: "checkmark")
+                .font(.system(size: 8.5, weight: .semibold))
+                .foregroundStyle(ArrowTheme.green)
+                .labelStyle(.titleAndIcon)
+        } else {
+            Button(status == .denied || status == .restricted || status == .limited ? "Settings" : "Grant") {
+                if status == .denied || status == .restricted || status == .limited {
+                    permissions.openSettings(for: kind)
+                } else {
+                    Task { await permissions.request(kind) }
+                }
+            }
+            .buttonStyle(NookPressStyle())
+            .font(.system(size: 8.5, weight: .semibold))
+            .foregroundStyle(ArrowTheme.bone.opacity(0.86))
+            .padding(.horizontal, 8)
+            .frame(height: 21)
+            .background(Capsule().fill(ArrowTheme.amber.opacity(0.16)))
+        }
     }
 }

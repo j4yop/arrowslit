@@ -49,6 +49,17 @@ public final class SettingsStore {
     public var callStripEnabled: Bool { didSet { defaults.set(callStripEnabled, forKey: Key.callStrip) } }
     public var downloadsEnabled: Bool { didSet { defaults.set(downloadsEnabled, forKey: Key.downloads) } }
     public var downloadsFolderPath: String? { didSet { defaults.set(downloadsFolderPath, forKey: Key.downloadsFolder) } }
+    public var commandCenterEnabled: Bool { didSet { defaults.set(commandCenterEnabled, forKey: Key.commandCenter) } }
+    public var commandCenterPlayer: Bool { didSet { defaults.set(commandCenterPlayer, forKey: Key.commandCenterPlayer) } }
+    public var commandCenterUpcoming: Bool { didSet { defaults.set(commandCenterUpcoming, forKey: Key.commandCenterUpcoming) } }
+    public var commandCenterSystem: Bool { didSet { defaults.set(commandCenterSystem, forKey: Key.commandCenterSystem) } }
+    public var commandCenterAppearanceTile: Bool { didSet { defaults.set(commandCenterAppearanceTile, forKey: Key.commandCenterAppearanceTile) } }
+    public var commandCenterCustomTiles: [String] { didSet { defaults.set(commandCenterCustomTiles, forKey: Key.commandCenterCustomTiles) } }
+    public var captureCopy: Bool { didSet { defaults.set(captureCopy, forKey: Key.captureCopy) } }
+    public var captureIncludeCursor: Bool { didSet { defaults.set(captureIncludeCursor, forKey: Key.captureCursor) } }
+    public var captureFolderPath: String? { didSet { defaults.set(captureFolderPath, forKey: Key.captureFolder) } }
+    public var captureSound: Bool { didSet { defaults.set(captureSound, forKey: Key.captureSound) } }
+    public var captureAutoHideControls: Bool { didSet { defaults.set(captureAutoHideControls, forKey: Key.captureAutoHideControls) } }
     public var nowPlayingAppMode: MediaAppFilter.Mode { didSet { defaults.set(nowPlayingAppMode.rawValue, forKey: Key.nowPlayingAppMode) } }
     public var nowPlayingApps: [String] { didSet { defaults.set(nowPlayingApps, forKey: Key.nowPlayingApps) } }
     public private(set) var recentMediaApps: RecentMediaApps { didSet { defaults.set(recentMediaApps.identifiers, forKey: Key.recentMediaApps) } }
@@ -63,6 +74,15 @@ public final class SettingsStore {
 
     public var mediaAppFilter: MediaAppFilter {
         MediaAppFilter(mode: nowPlayingAppMode, allowed: Set(nowPlayingApps))
+    }
+
+    public var captureFolderURL: URL {
+        if let path = captureFolderPath, !path.isEmpty {
+            let url = URL(fileURLWithPath: path, isDirectory: true)
+            if FileManager.default.fileExists(atPath: url.path) { return url }
+        }
+        return FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Desktop")
     }
 
     /// The chosen download folder, or the standard Downloads folder.
@@ -187,6 +207,17 @@ public final class SettingsStore {
         callStripEnabled = defaults.object(forKey: Key.callStrip) as? Bool ?? true
         downloadsEnabled = defaults.object(forKey: Key.downloads) as? Bool ?? false
         downloadsFolderPath = defaults.string(forKey: Key.downloadsFolder)
+        commandCenterEnabled = defaults.object(forKey: Key.commandCenter) as? Bool ?? true
+        commandCenterPlayer = defaults.object(forKey: Key.commandCenterPlayer) as? Bool ?? true
+        commandCenterUpcoming = defaults.object(forKey: Key.commandCenterUpcoming) as? Bool ?? true
+        commandCenterSystem = defaults.object(forKey: Key.commandCenterSystem) as? Bool ?? true
+        commandCenterAppearanceTile = defaults.object(forKey: Key.commandCenterAppearanceTile) as? Bool ?? true
+        commandCenterCustomTiles = defaults.stringArray(forKey: Key.commandCenterCustomTiles) ?? []
+        captureCopy = defaults.object(forKey: Key.captureCopy) as? Bool ?? true
+        captureIncludeCursor = defaults.object(forKey: Key.captureCursor) as? Bool ?? false
+        captureFolderPath = defaults.string(forKey: Key.captureFolder)
+        captureSound = defaults.object(forKey: Key.captureSound) as? Bool ?? true
+        captureAutoHideControls = defaults.object(forKey: Key.captureAutoHideControls) as? Bool ?? true
         nowPlayingAppMode = defaults.string(forKey: Key.nowPlayingAppMode).flatMap(MediaAppFilter.Mode.init(rawValue:)) ?? .all
         var seenApps = Set<String>()
         nowPlayingApps = (defaults.stringArray(forKey: Key.nowPlayingApps) ?? [])
@@ -339,6 +370,17 @@ public final class SettingsStore {
         static let callStrip = "arrowslit.callStripEnabled"
         static let downloads = "arrowslit.downloadsEnabled"
         static let downloadsFolder = "arrowslit.downloads.folder"
+        static let commandCenter = "arrowslit.commandCenter.enabled"
+        static let commandCenterPlayer = "arrowslit.commandCenter.player"
+        static let commandCenterUpcoming = "arrowslit.commandCenter.upcoming"
+        static let commandCenterSystem = "arrowslit.commandCenter.system"
+        static let commandCenterAppearanceTile = "arrowslit.commandCenter.appearanceTile"
+        static let commandCenterCustomTiles = "arrowslit.commandCenter.customTiles"
+        static let captureCopy = "arrowslit.capture.copy"
+        static let captureCursor = "arrowslit.capture.includeCursor"
+        static let captureFolder = "arrowslit.capture.folder"
+        static let captureSound = "arrowslit.capture.sound"
+        static let captureAutoHideControls = "arrowslit.capture.autoHideControls"
         static let nowPlayingAppMode = "arrowslit.nowPlaying.appMode"
         static let nowPlayingApps = "arrowslit.nowPlaying.apps"
         static let recentMediaApps = "arrowslit.nowPlaying.recentApps"
