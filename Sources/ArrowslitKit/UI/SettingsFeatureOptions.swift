@@ -1034,7 +1034,7 @@ struct PermissionsSettingsSection: View {
     var body: some View {
         SettingsSection(
             title: "Permissions",
-            note: "macOS manages these. Arrowslit appears in Privacy & Security after you request a permission; you can change every switch here or in System Settings."
+            note: "Device Control & Data Access is the main macOS switch. Granting it adds Arrowslit to Privacy & Security once and for all. The remaining permissions are separate macOS prompts."
         ) {
             VStack(spacing: 0) {
                 ForEach(Array(PermissionKind.allCases.enumerated()), id: \.element) { index, kind in

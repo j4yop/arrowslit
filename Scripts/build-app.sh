@@ -7,7 +7,20 @@ CONFIG="${CONFIG:-release}"
 VERSION="${VERSION:-$(git -C "$ROOT" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)}"
 VERSION="${VERSION:-0.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
-BUNDLE_ID="${BUNDLE_ID:-com.j4yop.arrowslit}"
+if [[ -z "${BUNDLE_ID:-}" ]]; then
+    if [[ "$CONFIG" == "debug" ]]; then
+        BUNDLE_ID="com.j4yop.arrowslit.debug"
+    else
+        BUNDLE_ID="com.j4yop.arrowslit"
+    fi
+fi
+if [[ -z "${DISPLAY_NAME:-}" ]]; then
+    if [[ "$CONFIG" == "debug" ]]; then
+        DISPLAY_NAME="Arrowslit Debug"
+    else
+        DISPLAY_NAME="Arrowslit"
+    fi
+fi
 APP="${APP_OUTPUT:-$ROOT/build/Arrowslit.app}"
 UPDATE_PUBLIC_KEY="${UPDATE_PUBLIC_KEY:-$(cat "$ROOT/Support/UpdatePublicKey.txt" 2>/dev/null || true)}"
 
@@ -55,7 +68,8 @@ else
     cp "$BIN_DIR/libArrowslitMedia.dylib" "$APP/Contents/Frameworks/libArrowslitMedia.dylib"
 fi
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD_NUMBER/" \
-    -e "s/__BUNDLE_ID__/$BUNDLE_ID/" -e "s|__UPDATE_PUBLIC_KEY__|$UPDATE_PUBLIC_KEY|" \
+    -e "s/__BUNDLE_ID__/$BUNDLE_ID/" -e "s/__DISPLAY_NAME__/$DISPLAY_NAME/" \
+    -e "s|__UPDATE_PUBLIC_KEY__|$UPDATE_PUBLIC_KEY|" \
     "$ROOT/Support/Info.plist" > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist" > /dev/null
 printf 'APPL????' > "$APP/Contents/PkgInfo"
