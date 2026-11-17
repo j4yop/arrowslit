@@ -7,10 +7,10 @@ import Observation
 import UserNotifications
 
 public enum PermissionKind: String, CaseIterable, Identifiable, Sendable {
-    case automation
-    case screenRecording
     case accessibility
     case inputMonitoring
+    case automation
+    case screenRecording
     case calendars
     case reminders
     case camera
@@ -23,7 +23,7 @@ public enum PermissionKind: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .automation: "Automation"
         case .screenRecording: "Screen Recording"
-        case .accessibility: "Accessibility"
+        case .accessibility: "Device Control & Data Access"
         case .inputMonitoring: "Input Monitoring"
         case .calendars: "Calendars"
         case .reminders: "Reminders"
@@ -37,7 +37,7 @@ public enum PermissionKind: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .automation: "Switch macOS light and dark."
         case .screenRecording: "Capture areas, windows and text."
-        case .accessibility: "Volume, brightness and paste."
+        case .accessibility: "Lets Arrowslit control your Mac and access its data. This is the main macOS permission."
         case .inputMonitoring: "Global launcher shortcut."
         case .calendars: "Next event in the notch."
         case .reminders: "Today's reminders in the notch."

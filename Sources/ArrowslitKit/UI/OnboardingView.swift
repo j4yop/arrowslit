@@ -135,7 +135,7 @@ struct OnboardingView: View {
         ),
         TourPage(
             title: "Almost there.",
-            subtitle: "Each permission turns on a feature — grant it now or later in Settings. Choose whether Arrowslit opens when you log in.",
+            subtitle: "Grant All starts with Device Control & Data Access, the main macOS permission, then the separate feature prompts. Choose whether Arrowslit opens when you log in.",
             demo: .permissions,
             primary: "Continue",
             options: []
